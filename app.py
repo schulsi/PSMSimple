@@ -73,6 +73,10 @@ def init_db():
 def api_to_string(einheit: str):
     if einheit == "GK":
         return "g/kg"
+    elif einheit == "GL":
+        return "g/l"
+    elif einheit == "MD":
+        return "ml/dosis"
 
 # ── BETRIEB ──────────────────────────────────────────────
 
@@ -118,6 +122,19 @@ def get_psm():
 def add_psm():
     d = request.json
     conn = get_db()
+    cur = conn.cursor()
+
+    # Check if already exists
+    cur.execute(
+        "SELECT id FROM pflanzenschutzmittel WHERE zulassungsnr = ?", (d["zulassungsnr"],))
+    exists = cur.fetchone()
+
+    if exists:
+        conn.close()
+        return jsonify({
+            "error": "Mittel existiert bereits",
+            "existing_id": exists[0]
+        }), 409
     conn.execute("""INSERT INTO pflanzenschutzmittel (name,zulassungsnr,wirkstoffe,aufwandEinheit,bienen)
                     VALUES (?,?,?,?,?)""",
                  (d["name"], d["zulassungsnr"], d["wirkstoffe"], d["aufwandEinheit"], d["bienen"]))
