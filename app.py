@@ -107,6 +107,10 @@ def init_db():
 def api_to_string(einheit: str):
     if einheit == "GK":
         return "g/kg"
+    elif einheit == "GL":
+        return "g/l"
+    elif einheit == "MD":
+        return "ml/dosis"
 
 # ── BETRIEB ──────────────────────────────────────────────
 
