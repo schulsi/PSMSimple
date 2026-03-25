@@ -97,6 +97,10 @@
   .btn-export:hover { background: #0e2218; color: #fff; }
   .btn-pdf { background: #fff; color: var(--green-deep); border: 2px solid var(--green-deep); font-size: 1rem; padding: .8rem 2rem; }
   .btn-pdf:hover { background: var(--cream-dark); }
+  .btn:disabled { opacity: .38; cursor: not-allowed; }
+  .btn:disabled:hover { background: initial; color: initial; }
+  .btn-export:disabled:hover { background: var(--green-deep); color: var(--green-pale); }
+  .btn-pdf:disabled:hover { background: #fff; color: var(--green-deep); }
 
   .item-list { display: flex; flex-direction: column; gap: .6rem; }
   .item {
@@ -157,7 +161,8 @@
     padding: .38rem .65rem;
     font-size: .82rem;
     border-radius: 6px;
-}
+  }
+
   pre {
     background: var(--green-deep); color: #b7e4c7; border-radius: 10px; padding: 1.25rem;
     font-size: .78rem; line-height: 1.6; overflow: auto; max-height: 420px;
@@ -253,7 +258,7 @@
 
     <!-- EXPORT -->
     <div id="tab-export" class="tab">
-      <h2>📄 Applikation dokumentieren</h2>
+      <h2>📄 JSON erstellen</h2>
 
       <div class="card export-section">
         <h3>🧪 Pflanzenschutzmittel &amp; Aufwandsmenge</h3>
@@ -292,10 +297,11 @@
       </div>
 
       <div class="export-footer">
-        <button class="btn btn-ghost" onclick="previewJSON()">👁 Vorschau</button>
-        <button class="btn btn-export" onclick="exportJSON()">⬇ JSON herunterladen</button>
-        <button class="btn btn-pdf" onclick="exportPDF()">🖨 PDF herunterladen</button>
+        <button id="btn-preview" class="btn btn-ghost" onclick="previewJSON()" disabled>👁 Vorschau</button>
+        <button id="btn-json"    class="btn btn-export" onclick="exportJSON()" disabled>⬇ JSON herunterladen</button>
+        <button id="btn-pdf"     class="btn btn-pdf"    onclick="exportPDF()" disabled>🖨 PDF herunterladen</button>
       </div>
+      <div id="validation-msg" style="margin-top:.6rem;font-size:.82rem;color:var(--danger);display:none"></div>
 
       <div id="json-preview-wrap" style="display:none;margin-top:1.5rem">
         <div class="divider"></div>
@@ -646,10 +652,59 @@ async function loadExportSelections() {
   // Defaults Anwendung
   document.getElementById('anw-datum').value = new Date().toISOString().split('T')[0];
   document.getElementById('anw-uhrzeit').value = new Date().toTimeString().slice(0,5);
+  // wire live validation to all dynamic inputs
+  setTimeout(() => {
+    document.getElementById('tab-export').addEventListener('input', validate);
+    document.getElementById('tab-export').addEventListener('change', validate);
+    validate();
+  }, 50);
   if (betrieb.vorname) {
     const full = `${betrieb.vorname} ${betrieb.name}`;
     document.getElementById('anw-verantwortlich').value = full;
     document.getElementById('anw-anwender').value = full;
+  }
+}
+
+function validate() {
+  const errors = [];
+
+  const psmChecked = [...document.querySelectorAll('[id^="cb-psm-"]')].filter(cb => cb.checked);
+  if (psmChecked.length === 0) {
+    errors.push('Mindestens 1 Pflanzenschutzmittel auswählen');
+  } else {
+    psmChecked.forEach(cb => {
+      const id = cb.id.replace('cb-psm-','');
+      const val = parseFloat(document.getElementById(`psm-menge-${id}`)?.value);
+      if (!val || val <= 0) errors.push(`Aufwandsmenge für "${cb.closest('.exp-item').querySelector('.ci-name').textContent.replace('🧪 ','')}" fehlt`);
+    });
+  }
+
+  const eoChecked = [...document.querySelectorAll('[id^="cb-eo-"]')].filter(cb => cb.checked);
+  if (eoChecked.length === 0) errors.push('Mindestens 1 Einsatzort auswählen');
+
+  const kultChecked = [...document.querySelectorAll('[id^="cb-kult-"]')].filter(cb => cb.checked);
+  if (kultChecked.length === 0) {
+    errors.push('Mindestens 1 Kultur auswählen');
+  } else {
+    kultChecked.forEach(cb => {
+      const id = cb.id.replace('cb-kult-','');
+      if (!document.getElementById(`kult-bbch-${id}`)?.value.trim())
+        errors.push(`BBCH-Code für "${cb.closest('.exp-item').querySelector('.ci-name').textContent.replace('🌾 ','')}" fehlt`);
+    });
+  }
+
+  if (!document.getElementById('anw-datum')?.value) errors.push('Datum fehlt');
+  if (!document.getElementById('anw-uhrzeit')?.value) errors.push('Uhrzeit fehlt');
+
+  const ok = errors.length === 0;
+  ['btn-preview','btn-json','btn-pdf'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.disabled = !ok;
+  });
+  const msg = document.getElementById('validation-msg');
+  if (msg) {
+    msg.style.display = ok ? 'none' : 'block';
+    msg.innerHTML = ok ? '' : '⚠️ ' + errors.join(' &nbsp;·&nbsp; ');
   }
 }
 
@@ -659,6 +714,7 @@ function toggleExpItem(type, id, checked) {
   const isNowSelected = checked !== undefined ? checked : !cb.checked;
   cb.checked = isNowSelected;
   el.classList.toggle('selected', isNowSelected);
+  validate();
 }
 
 function getExportPayload() {
@@ -705,9 +761,6 @@ async function previewJSON() {
 
 async function exportJSON() {
   const payload = getExportPayload();
-  if (!payload.psm_overrides.length && !payload.einsatzort_ids.length) {
-    toast('⚠️ Bitte mindestens ein Element auswählen'); return;
-  }
   const resp = await fetch('/api/export', {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
   });
@@ -721,9 +774,6 @@ async function exportJSON() {
 
 async function exportPDF() {
   const payload = getExportPayload();
-  if (!payload.psm_overrides.length && !payload.einsatzort_ids.length) {
-    toast('⚠️ Bitte mindestens ein Element auswählen'); return;
-  }
   const resp = await fetch('/api/pdf', {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
   });
