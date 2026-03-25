@@ -6,6 +6,15 @@ from datetime import date
 import io
 import os
 
+# Needed for PDF creation
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import mm
+from reportlab.platypus import (SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable)
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
+from datetime import datetime
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
@@ -282,15 +291,6 @@ def build_output(d, betrieb):
 
 
 def generate_pdf(data):
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib import colors
-    from reportlab.lib.units import mm
-    from reportlab.platypus import (SimpleDocTemplate, Table, TableStyle,
-                                    Paragraph, Spacer, HRFlowable)
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
-    from datetime import datetime
-
     buf = io.BytesIO()
     W, H = A4
     margin = 20 * mm
