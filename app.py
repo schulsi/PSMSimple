@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, send_from_directory
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -666,6 +667,11 @@ def get_psm_info(name: str):
     return jsonify(wirkstoff + " " + str(wirkstoff_menge) + " " + api_to_string(wirkstoff_einheit), zul_nr)
 
 
+@app.route('/media/<path:filename>')
+def media(filename):
+    return send_from_directory('media', filename)
+
+
 @app.route("/")
 @login_required
 def index():
@@ -677,4 +683,4 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()   # creates users.db + users table
     init_db()             # creates pflanzenschutz.db
-    app.run(debug=True, port=5000, host="0.0.0.0")
+    app.run(debug=True, port=5000)
