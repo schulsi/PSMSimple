@@ -2,9 +2,10 @@ from flask import Flask, render_template, request, jsonify, send_file, send_from
 import sqlite3
 import json
 import uuid
-from datetime import date
+from datetime import date, datetime
 import io
 import os
+import requests
 
 # Needed for PDF creation
 from reportlab.lib.pagesizes import A4
@@ -14,12 +15,12 @@ from reportlab.platypus import (
     SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable)
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
-from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
 DB = os.path.join(BASE_DIR, "pflanzenschutz.db")
+PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
 
 
 def get_db():
@@ -67,6 +68,11 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+
+def api_to_string(einheit: str):
+    if einheit == "GK":
+        return "g/kg"
 
 # ── BETRIEB ──────────────────────────────────────────────
 
@@ -538,6 +544,41 @@ def preview_json():
 @app.route('/media/<path:filename>')
 def media(filename):
     return send_from_directory('media', filename)
+
+
+@app.route('/search/psm/<term>')
+def search_psm(term):
+    resp = requests.get(
+        "https://psm-api.bvl.bund.de/ords/psm/api-v1/mittel/",
+        params={
+            "q": json.dumps({
+                "MITTELNAME": {"$instr": term}
+            }),
+            "limit": 10
+        }
+    )
+
+    output = resp.json()["items"]
+    return jsonify([r["mittelname"] for r in output])
+
+
+@app.route('/api/psm/info/<name>')
+def get_psm_info(name: str):
+    name = name.replace("_", " ")
+    zul_nr = requests.get(
+        PSM_API+"mittel/", params={"q": json.dumps({"MITTELNAME": {"$instr": name}})}).json()["items"][0]["kennr"]
+
+    output = requests.get(
+        PSM_API+"wirkstoff_gehalt/", params={"q": json.dumps({"kennr": {"$instr": zul_nr}})}).json()
+    output = output["items"][0]
+    wirkstoff_nr = output["wirknr"]
+    wirkstoff_menge = output["gehalt_rein_grundstruktur"]
+    wirkstoff_einheit = output["gehalt_einheit"]
+
+    wirkstoff = requests.get(
+        PSM_API+"wirkstoff/", params={"q": json.dumps({"wirknr": {"$instr": wirkstoff_nr}})}).json()["items"][0]["wirkstoffname"]
+
+    return jsonify(wirkstoff + " " + str(wirkstoff_menge) + " " + api_to_string(wirkstoff_einheit), zul_nr)
 
 
 @app.route("/")
