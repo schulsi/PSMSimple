@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 import sqlite3
 import json
 import uuid
@@ -533,6 +533,11 @@ def preview_json():
     betrieb = dict(conn.execute("SELECT * FROM betrieb LIMIT 1").fetchone())
     conn.close()
     return jsonify(build_output(d, betrieb))
+
+
+@app.route('/media/<path:filename>')
+def media(filename):
+    return send_from_directory('media', filename)
 
 
 @app.route("/")
