@@ -28,10 +28,10 @@ python app.py
 SQLite-Datei `pflanzenschutz.db` wird automatisch beim ersten Start erstellt.
 
 ## ToDos
-Ausreiser beim anlegen anpassen
-PDF Export
-Uhrzeit hinzufügen
-Aufwandmenge fixen
-Favicon
-PSInfo API
-Wie hosten?
+- PDF Export
+- Favicon
+- PSInfo API
+- Wie hosten?
+- Export local auf Folder
+- Dockerfile
+- User Mgmt

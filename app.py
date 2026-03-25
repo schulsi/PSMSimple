@@ -235,6 +235,7 @@ def build_output(d, betrieb):
             "artVerwendung":  anwendung.get("artVerwendung", ""),
             "anwender":       anwendung.get("anwender", f"{betrieb['vorname']} {betrieb['name']}"),
             "datum":          anwendung.get("datum", str(date.today())),
+            "uhrzeit":        anwendung.get("uhrzeit", ""),
         }
     }
 

@@ -142,13 +142,20 @@
   .modal {
     background: #fff; border-radius: 14px; padding: 2rem;
     width: 560px; max-width: 95vw;
+    max-height: 90vh; overflow-y: auto;
     box-shadow: 0 8px 40px rgba(0,0,0,.18);
     animation: popIn .18s ease;
   }
   @keyframes popIn { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .modal h3 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; margin-bottom: 1.25rem; color: var(--green-deep); }
   .modal-footer { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1.25rem; }
-
+  .modal .form-grid { gap: .6rem; }
+  .modal .field label { font-size: .72rem; }
+  .modal .field input, .modal .field select {
+    padding: .38rem .65rem;
+    font-size: .82rem;
+    border-radius: 6px;
+}
   pre {
     background: var(--green-deep); color: #b7e4c7; border-radius: 10px; padding: 1.25rem;
     font-size: .78rem; line-height: 1.6; overflow: auto; max-height: 420px;
@@ -182,10 +189,10 @@
     <div class="section-label">Stammdaten</div>
     <a class="active" onclick="showTab('betrieb',this)"><span class="ico">🏡</span> Betrieb</a>
     <a onclick="showTab('psm',this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
-    <a onclick="showTab('einsatzorte',this)"><span class="ico">📍</span> Einsatzorte</a>
+    <a onclick="showTab('einsatzorte',this)"><span class="ico">📍</span> Felder</a>
     <a onclick="showTab('kulturen',this)"><span class="ico">🌾</span> Kulturen</a>
     <div class="section-label">Export</div>
-    <a onclick="showTab('export',this)"><span class="ico">📄</span> JSON erstellen</a>
+    <a onclick="showTab('export',this)"><span class="ico">📄</span> Anwendung dokumentieren</a>
   </nav>
 
   <main>
@@ -244,7 +251,7 @@
 
     <!-- EXPORT -->
     <div id="tab-export" class="tab">
-      <h2>📄 JSON erstellen</h2>
+      <h2>📄 Applikation dokumentiereen</h2>
 
       <div class="card export-section">
         <h3>🧪 Pflanzenschutzmittel &amp; Aufwandsmenge</h3>
@@ -267,6 +274,7 @@
         <h3>📋 Anwendung</h3>
         <div class="form-grid">
           <div class="field"><label>Datum</label><input type="date" id="anw-datum"></div>
+          <div class="field"><label>Uhrzeit</label><input type="time" id="anw-uhrzeit"></div>
           <div class="field">
             <label>Art der Verwendung</label>
             <select id="anw-art">
@@ -304,7 +312,7 @@
     <div class="form-grid">
       <div class="field"><label>Name</label><input id="psm-name"></div>
       <div class="field"><label>Zulassungsnr.</label><input id="psm-zulassung" placeholder="024459-00"></div>
-      <div class="field" style="grid-column:span 2"><label>Wirkstoffe</label><input id="psm-wirkstoffe"></div>
+      <div class="field"><label>Wirkstoffe</label><input id="psm-wirkstoffe"></div>
       <div class="field">
         <label>Einheit (Aufwandsmenge)</label>
         <select id="psm-einheit">
@@ -312,9 +320,9 @@
           <option>ml/ha</option><option>kg/m²</option><option>l/m²</option>
         </select>
       </div>
-      <div class="field">
+      <div class="field" style="grid-column:span 2">
         <label>Bienengefährlichkeit</label>
-        <select id="psm-bienen">
+        <select id="psm-bienen" style="font-size:.8rem; padding:.35rem .65rem">
           <option>(B1) Bienengefährlich</option>
           <option>(B2) Bienengefährlich außer nach dem täglichen Bienenflug</option>
           <option>(B3) Bienengefährlich, Anwendungsverbot</option>
@@ -634,6 +642,7 @@ async function loadExportSelections() {
 
   // Defaults Anwendung
   document.getElementById('anw-datum').value = new Date().toISOString().split('T')[0];
+  document.getElementById('anw-uhrzeit').value = new Date().toTimeString().slice(0,5);
   if (betrieb.vorname) {
     const full = `${betrieb.vorname} ${betrieb.name}`;
     document.getElementById('anw-verantwortlich').value = full;
@@ -672,6 +681,7 @@ function getExportPayload() {
     kult_overrides: kultOverrides,
     anwendung: {
       datum: document.getElementById('anw-datum').value,
+      uhrzeit: document.getElementById('anw-uhrzeit').value,
       artVerwendung: document.getElementById('anw-art').value,
       verantwortlich: document.getElementById('anw-verantwortlich').value,
       anwender: document.getElementById('anw-anwender').value,
