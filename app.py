@@ -7,8 +7,10 @@ import sqlite3
 import json
 import uuid
 from datetime import date, datetime
+from datetime import date, datetime
 import io
 import os
+import requests
 import requests
 
 # Needed for PDF creation
@@ -53,6 +55,8 @@ def load_user(user_id):
 
 # ── ORIGINAL SQLITE DB (app data) ────────────────────────
 DB = os.path.join(BASE_DIR, "pflanzenschutz.db")
+PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
+
 
 def get_db():
     conn = sqlite3.connect(DB)
@@ -103,94 +107,6 @@ def init_db():
 def api_to_string(einheit: str):
     if einheit == "GK":
         return "g/kg"
-    elif einheit == "GL":
-        return "g/l"
-    elif einheit == "MD":
-        return "ml/dosis"
-# ── AUTH ROUTES ──────────────────────────────────────────
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for("index"))
-
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
-        user = User.query.filter_by(username=username).first()
-
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for("index"))
-        else:
-            flash("Ungültiger Benutzername oder Passwort.", "error")
-
-    return render_template("login.html")
-
-
-@app.route("/register", methods=["POST"])
-def register():
-    username  = request.form.get("username", "").strip()
-    password  = request.form.get("password", "")
-    password2 = request.form.get("password2", "")
-
-    if not username or not password:
-        flash("Bitte alle Felder ausfüllen.", "error")
-        return redirect(url_for("login") + "?tab=register")
-
-    if password != password2:
-        flash("Die Passwörter stimmen nicht überein.", "error")
-        return redirect(url_for("login") + "?tab=register")
-
-    if len(password) < 6:
-        flash("Das Passwort muss mindestens 6 Zeichen lang sein.", "error")
-        return redirect(url_for("login") + "?tab=register")
-
-    if User.query.filter_by(username=username).first():
-        flash("Dieser Benutzername ist bereits vergeben.", "error")
-        return redirect(url_for("login") + "?tab=register")
-
-    new_user = User(
-        username=username,
-        password=generate_password_hash(password)
-    )
-    db.session.add(new_user)
-    db.session.commit()
-
-    flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
-    return redirect(url_for("login"))
-
-
-@app.route("/logout")
-@login_required
-def logout():
-    logout_user()
-    flash("Sie wurden abgemeldet.", "success")
-    return redirect(url_for("login"))
-
-# ── USER RENAME ──────────────────────────────────────────
-
-@app.route("/api/user/rename", methods=["POST"])
-@login_required
-def rename_user():
-    d = request.json
-    new_name = (d.get("username") or "").strip()
-
-    if not new_name:
-        return jsonify({"ok": False, "error": "Bitte einen Namen eingeben."})
-
-    if len(new_name) < 2:
-        return jsonify({"ok": False, "error": "Mindestens 2 Zeichen erforderlich."})
-
-    # Check if name is already taken by a different user
-    existing = User.query.filter_by(username=new_name).first()
-    if existing and existing.id != current_user.id:
-        return jsonify({"ok": False, "error": "Dieser Benutzername ist bereits vergeben."})
-
-    # Update only the username — all other data (betrieb etc.) stays untouched
-    current_user.username = new_name
-    db.session.commit()
-    return jsonify({"ok": True})
 
 # ── BETRIEB ──────────────────────────────────────────────
 
@@ -665,11 +581,6 @@ def get_psm_info(name: str):
         PSM_API+"wirkstoff/", params={"q": json.dumps({"wirknr": {"$instr": wirkstoff_nr}})}).json()["items"][0]["wirkstoffname"]
 
     return jsonify(wirkstoff + " " + str(wirkstoff_menge) + " " + api_to_string(wirkstoff_einheit), zul_nr)
-
-
-@app.route('/media/<path:filename>')
-def media(filename):
-    return send_from_directory('media', filename)
 
 
 @app.route("/")
