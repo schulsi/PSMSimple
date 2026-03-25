@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pflanzenschutz · Dokumentation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-deep: #1a3a2a;
+    --green-mid: #2d6a4f;
+    --green-light: #52b788;
+    --green-pale: #b7e4c7;
+    --cream: #f8f5ee;
+    --cream-dark: #ede9df;
+    --text: #1c2b22;
+    --text-muted: #5a7060;
+    --danger: #c0392b;
+    --shadow: 0 2px 16px rgba(26,58,42,.10);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+  header {
+    background: var(--green-deep); color: #fff;
+    padding: 0 2rem; display: flex; align-items: center; gap: 1rem;
+    height: 64px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  }
+  header .logo { font-family: 'DM Serif Display', serif; font-size: 1.5rem; letter-spacing: -.5px; }
+  header .logo span { color: var(--green-light); }
+  header .sub { font-size: .8rem; color: var(--green-pale); margin-left: .5rem; opacity: .7; }
+
+  .app { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 64px); }
+
+  nav {
+    background: var(--green-deep); padding: 1.5rem 0;
+    position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto;
+  }
+  nav a {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .65rem 1.5rem; color: var(--green-pale);
+    text-decoration: none; font-size: .88rem; font-weight: 500;
+    border-left: 3px solid transparent; transition: all .18s; cursor: pointer;
+  }
+  nav a:hover { color: #fff; background: rgba(255,255,255,.07); }
+  nav a.active { color: #fff; border-left-color: var(--green-light); background: rgba(82,183,136,.12); }
+  nav .section-label {
+    font-size: .68rem; font-weight: 600; letter-spacing: 1.5px;
+    color: var(--text-muted); padding: 1.5rem 1.5rem .5rem; text-transform: uppercase;
+  }
+  nav .ico { font-size: 1.1rem; width: 20px; text-align: center; }
+
+  main { padding: 2rem 2.5rem; max-width: 900px; }
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  h2 {
+    font-family: 'DM Serif Display', serif; font-size: 1.7rem; color: var(--green-deep);
+    margin-bottom: 1.5rem; display: flex; align-items: center; gap: .6rem;
+  }
+  h2 .badge {
+    font-family: 'DM Sans', sans-serif; font-size: .7rem; font-weight: 600;
+    background: var(--green-pale); color: var(--green-deep); padding: .2rem .6rem; border-radius: 20px;
+  }
+
+  .card {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 1.5rem; margin-bottom: 1.25rem; border: 1px solid var(--cream-dark);
+  }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
+  .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .field { display: flex; flex-direction: column; gap: .3rem; }
+  .field label { font-size: .78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+  .field input, .field select {
+    border: 1.5px solid var(--cream-dark); border-radius: 7px; padding: .55rem .8rem;
+    font-family: 'DM Sans', sans-serif; font-size: .9rem;
+    background: var(--cream); color: var(--text); transition: border .15s; outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--green-light); background: #fff; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .55rem 1.1rem; border: none; border-radius: 7px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: .88rem; font-weight: 600; transition: all .15s;
+  }
+  .btn-primary { background: var(--green-mid); color: #fff; }
+  .btn-primary:hover { background: var(--green-deep); }
+  .btn-danger { background: #fef0ef; color: var(--danger); border: 1px solid #fad5d2; }
+  .btn-danger:hover { background: #fad5d2; }
+  .btn-ghost { background: var(--cream-dark); color: var(--text); }
+  .btn-ghost:hover { background: var(--cream); }
+  .btn-sm { padding: .35rem .75rem; font-size: .8rem; }
+  .btn-export { background: var(--green-deep); color: var(--green-pale); font-size: 1rem; padding: .8rem 2rem; }
+  .btn-export:hover { background: #0e2218; color: #fff; }
+
+  .item-list { display: flex; flex-direction: column; gap: .6rem; }
+  .item {
+    background: var(--cream); border: 1.5px solid var(--cream-dark);
+    border-radius: 8px; padding: .8rem 1rem;
+    display: flex; justify-content: space-between; align-items: center; transition: border-color .15s;
+  }
+  .item:hover { border-color: var(--green-light); }
+  .item-info .name { font-weight: 600; font-size: .92rem; }
+  .item-info .meta { font-size: .78rem; color: var(--text-muted); margin-top: .1rem; }
+  .item-actions { display: flex; gap: .4rem; flex-shrink: 0; }
+
+  /* Export selection cards */
+  .exp-item {
+    background: var(--cream); border: 1.5px solid var(--cream-dark);
+    border-radius: 8px; padding: .85rem 1rem; transition: all .15s;
+    margin-bottom: .5rem;
+  }
+  .exp-item.selected { border-color: var(--green-mid); background: #f0faf5; }
+  .exp-item-header { display: flex; align-items: center; gap: .75rem; cursor: pointer; }
+  .exp-item-header input[type=checkbox] { accent-color: var(--green-mid); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+  .exp-item-header .ci-name { font-weight: 600; font-size: .9rem; }
+  .exp-item-header .ci-meta { font-size: .77rem; color: var(--text-muted); }
+  .exp-item-extra {
+    display: none; margin-top: .85rem; padding-top: .85rem;
+    border-top: 1px solid var(--cream-dark);
+  }
+  .exp-item.selected .exp-item-extra { display: block; }
+  .exp-item-extra .form-grid { grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .exp-item-extra label { font-size: .75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: .25rem; }
+  .exp-item-extra input, .exp-item-extra select {
+    border: 1.5px solid var(--cream-dark); border-radius: 6px; padding: .45rem .7rem;
+    font-family: 'DM Sans', sans-serif; font-size: .88rem; background: #fff;
+    color: var(--text); outline: none; width: 100%; transition: border .15s;
+  }
+  .exp-item-extra input:focus { border-color: var(--green-light); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,30,20,.45); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 14px; padding: 2rem;
+    width: 560px; max-width: 95vw;
+    box-shadow: 0 8px 40px rgba(0,0,0,.18);
+    animation: popIn .18s ease;
+  }
+  @keyframes popIn { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal h3 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; margin-bottom: 1.25rem; color: var(--green-deep); }
+  .modal-footer { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1.25rem; }
+
+  pre {
+    background: var(--green-deep); color: #b7e4c7; border-radius: 10px; padding: 1.25rem;
+    font-size: .78rem; line-height: 1.6; overflow: auto; max-height: 420px;
+    font-family: 'Fira Mono', 'Courier New', monospace;
+  }
+
+  #toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: var(--green-deep); color: #fff; padding: .7rem 1.3rem;
+    border-radius: 8px; font-size: .88rem; font-weight: 500;
+    opacity: 0; transform: translateY(10px); transition: all .25s; pointer-events: none; z-index: 300;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  .divider { height: 1px; background: var(--cream-dark); margin: 1.25rem 0; }
+  .empty { text-align: center; color: var(--text-muted); padding: 2rem; font-size: .88rem; }
+  .export-section { margin-bottom: 1.25rem; }
+  .export-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: .75rem; color: var(--green-deep); }
+  .export-footer { display: flex; gap: 1rem; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🌿 Pflanzen<span>schutz</span></div>
+  <div class="sub">Dokumentation & JSON-Export</div>
+</header>
+
+<div class="app">
+  <nav>
+    <div class="section-label">Stammdaten</div>
+    <a class="active" onclick="showTab('betrieb',this)"><span class="ico">🏡</span> Betrieb</a>
+    <a onclick="showTab('psm',this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
+    <a onclick="showTab('einsatzorte',this)"><span class="ico">📍</span> Einsatzorte</a>
+    <a onclick="showTab('kulturen',this)"><span class="ico">🌾</span> Kulturen</a>
+    <div class="section-label">Export</div>
+    <a onclick="showTab('export',this)"><span class="ico">📄</span> JSON erstellen</a>
+  </nav>
+
+  <main>
+
+    <!-- BETRIEB -->
+    <div id="tab-betrieb" class="tab active">
+      <h2>🏡 Betrieb <span class="badge">Stammdaten</span></h2>
+      <div class="card">
+        <div class="form-grid cols-3">
+          <div class="field"><label>Firma</label><input id="b-firma"></div>
+          <div class="field"><label>Nachname</label><input id="b-name"></div>
+          <div class="field"><label>Vorname</label><input id="b-vorname"></div>
+          <div class="field"><label>Straße + Hausnr.</label><input id="b-strHnr"></div>
+          <div class="field"><label>PLZ</label><input id="b-plz"></div>
+          <div class="field"><label>Ort</label><input id="b-ort"></div>
+          <div class="field">
+            <label>Bundesland</label>
+            <select id="b-bundesland">
+              <option value="BW">Baden-Württemberg</option><option value="BY">Bayern</option>
+              <option value="BE">Berlin</option><option value="BB">Brandenburg</option>
+              <option value="HB">Bremen</option><option value="HH">Hamburg</option>
+              <option value="HE">Hessen</option><option value="MV">Mecklenburg-Vorpommern</option>
+              <option value="NI">Niedersachsen</option><option value="NW">Nordrhein-Westfalen</option>
+              <option value="RP">Rheinland-Pfalz</option><option value="SL">Saarland</option>
+              <option value="SN">Sachsen</option><option value="ST">Sachsen-Anhalt</option>
+              <option value="SH">Schleswig-Holstein</option><option value="TH">Thüringen</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:1rem;display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" onclick="saveBetrieb()">💾 Speichern</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PSM -->
+    <div id="tab-psm" class="tab">
+      <h2>🧪 Pflanzenschutzmittel <span class="badge" id="psm-count">0</span></h2>
+      <button class="btn btn-primary" onclick="openModal('psm')" style="margin-bottom:1rem">+ Neues Mittel</button>
+      <div class="item-list" id="psm-list"></div>
+    </div>
+
+    <!-- EINSATZORTE -->
+    <div id="tab-einsatzorte" class="tab">
+      <h2>📍 Einsatzorte <span class="badge" id="eo-count">0</span></h2>
+      <button class="btn btn-primary" onclick="openModal('eo')" style="margin-bottom:1rem">+ Neuer Einsatzort</button>
+      <div class="item-list" id="eo-list"></div>
+    </div>
+
+    <!-- KULTUREN -->
+    <div id="tab-kulturen" class="tab">
+      <h2>🌾 Kulturen <span class="badge" id="kult-count">0</span></h2>
+      <button class="btn btn-primary" onclick="openModal('kult')" style="margin-bottom:1rem">+ Neue Kultur</button>
+      <div class="item-list" id="kult-list"></div>
+    </div>
+
+    <!-- EXPORT -->
+    <div id="tab-export" class="tab">
+      <h2>📄 JSON erstellen</h2>
+
+      <div class="card export-section">
+        <h3>🧪 Pflanzenschutzmittel &amp; Aufwandsmenge</h3>
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.85rem">Mittel auswählen und Aufwandsmenge für diese Anwendung eingeben.</p>
+        <div id="exp-psm"></div>
+      </div>
+
+      <div class="card export-section">
+        <h3>📍 Einsatzorte auswählen</h3>
+        <div id="exp-eo"></div>
+      </div>
+
+      <div class="card export-section">
+        <h3>🌾 Kulturen &amp; BBCH-Code</h3>
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.85rem">Kultur auswählen und BBCH-Code für diese Anwendung eingeben.</p>
+        <div id="exp-kult"></div>
+      </div>
+
+      <div class="card export-section">
+        <h3>📋 Anwendung</h3>
+        <div class="form-grid">
+          <div class="field"><label>Datum</label><input type="date" id="anw-datum"></div>
+          <div class="field">
+            <label>Art der Verwendung</label>
+            <select id="anw-art">
+              <option>Behandlung von Freilandflächen</option>
+              <option>Behandlung im Gewächshaus</option>
+              <option>Bodenbehandlung</option>
+              <option>Saatgutbehandlung</option>
+            </select>
+          </div>
+          <div class="field"><label>Verantwortlich</label><input id="anw-verantwortlich"></div>
+          <div class="field"><label>Anwender</label><input id="anw-anwender"></div>
+        </div>
+      </div>
+
+      <div class="export-footer">
+        <button class="btn btn-ghost" onclick="previewJSON()">👁 Vorschau</button>
+        <button class="btn btn-export" onclick="exportJSON()">⬇ JSON herunterladen</button>
+      </div>
+
+      <div id="json-preview-wrap" style="display:none;margin-top:1.5rem">
+        <div class="divider"></div>
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:.75rem;color:var(--green-deep)">🔍 Vorschau</h3>
+        <pre id="json-preview"></pre>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL PSM -->
+<div class="modal-overlay" id="modal-psm">
+  <div class="modal">
+    <h3 id="psm-modal-title">Pflanzenschutzmittel</h3>
+    <input type="hidden" id="psm-edit-id">
+    <div class="form-grid">
+      <div class="field"><label>Name</label><input id="psm-name"></div>
+      <div class="field"><label>Zulassungsnr.</label><input id="psm-zulassung" placeholder="024459-00"></div>
+      <div class="field" style="grid-column:span 2"><label>Wirkstoffe</label><input id="psm-wirkstoffe"></div>
+      <div class="field">
+        <label>Einheit (Aufwandsmenge)</label>
+        <select id="psm-einheit">
+          <option>kg/ha</option><option>l/ha</option><option>g/ha</option>
+          <option>ml/ha</option><option>kg/m²</option><option>l/m²</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Bienengefährlichkeit</label>
+        <select id="psm-bienen">
+          <option>(B1) Bienengefährlich</option>
+          <option>(B2) Bienengefährlich außer nach dem täglichen Bienenflug</option>
+          <option>(B3) Bienengefährlich, Anwendungsverbot</option>
+          <option>(B4) Nicht bienengefährlich</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('psm')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="savePSM()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL Einsatzort -->
+<div class="modal-overlay" id="modal-eo">
+  <div class="modal">
+    <h3 id="eo-modal-title">Einsatzort</h3>
+    <input type="hidden" id="eo-edit-id">
+    <div class="form-grid">
+      <div class="field" style="grid-column:span 2"><label>Name / Bezeichnung</label><input id="eo-name"></div>
+      <div class="field"><label>GPS Rechtswert (Lat)</label><input type="number" id="eo-lat" step="any"></div>
+      <div class="field"><label>GPS Hochwert (Lng)</label><input type="number" id="eo-lng" step="any"></div>
+      <div class="field">
+        <label>Anwendungsbereich</label>
+        <select id="eo-bereich"><option>Freiland</option><option>Gewächshaus</option><option>Lager</option></select>
+      </div>
+      <div class="field">
+        <label>Geo-Typ</label>
+        <select id="eo-geotyp"><option>GPS-Koordinaten</option><option>Polygon</option><option>Schlagname</option></select>
+      </div>
+      <div class="field">
+        <label>Einheit</label>
+        <select id="eo-einheit"><option>m2</option><option>ha</option><option>l</option></select>
+      </div>
+      <div class="field"><label>Fläche / Volumen</label><input type="number" id="eo-flaeche" step="0.01"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('eo')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveEinsatzort()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL Kultur -->
+<div class="modal-overlay" id="modal-kult">
+  <div class="modal">
+    <h3 id="kult-modal-title">Kultur</h3>
+    <input type="hidden" id="kult-edit-id">
+    <div class="form-grid">
+      <div class="field"><label>Name</label><input id="kult-name" placeholder="Weinbau"></div>
+      <div class="field"><label>EPPO-Code</label><input id="kult-eppo" placeholder="VITVI"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('kult')">Abbrechen</button>
+      <button class="btn btn-primary" onclick="saveKultur()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── NAV ──────────────────────────────────────────────────
+function showTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'export') loadExportSelections();
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function openModal(type, data = null) {
+  if (type === 'psm') {
+    document.getElementById('psm-modal-title').textContent = data ? 'Mittel bearbeiten' : 'Neues Pflanzenschutzmittel';
+    document.getElementById('psm-edit-id').value = data?.id || '';
+    document.getElementById('psm-name').value = data?.name || '';
+    document.getElementById('psm-zulassung').value = data?.zulassungsnr || '';
+    document.getElementById('psm-wirkstoffe').value = data?.wirkstoffe || '';
+    document.getElementById('psm-einheit').value = data?.aufwandEinheit || 'kg/ha';
+    document.getElementById('psm-bienen').value = data?.bienen || '(B4) Nicht bienengefährlich';
+  } else if (type === 'eo') {
+    document.getElementById('eo-modal-title').textContent = data ? 'Einsatzort bearbeiten' : 'Neuer Einsatzort';
+    document.getElementById('eo-edit-id').value = data?.id || '';
+    document.getElementById('eo-name').value = data?.name || '';
+    document.getElementById('eo-lat').value = data?.gpsRechtswert || '';
+    document.getElementById('eo-lng').value = data?.gpsHochwert || '';
+    document.getElementById('eo-bereich').value = data?.anwendungsbereich || 'Freiland';
+    document.getElementById('eo-geotyp').value = data?.geoTyp || 'GPS-Koordinaten';
+    document.getElementById('eo-einheit').value = data?.einheit || 'm2';
+    document.getElementById('eo-flaeche').value = data?.flaecheVolumen || '';
+  } else if (type === 'kult') {
+    document.getElementById('kult-modal-title').textContent = data ? 'Kultur bearbeiten' : 'Neue Kultur';
+    document.getElementById('kult-edit-id').value = data?.id || '';
+    document.getElementById('kult-name').value = data?.name || '';
+    document.getElementById('kult-eppo').value = data?.eppoCode || '';
+  }
+  document.getElementById('modal-' + type).classList.add('open');
+}
+function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ── BETRIEB ──────────────────────────────────────────────
+async function loadBetrieb() {
+  const b = await fetch('/api/betrieb').then(r => r.json());
+  if (!b.id) return;
+  ['firma','name','vorname','strHnr','plz','ort'].forEach(f => {
+    document.getElementById('b-' + f).value = b[f] || '';
+  });
+  document.getElementById('b-bundesland').value = b.bundesland || 'BW';
+}
+async function saveBetrieb() {
+  await fetch('/api/betrieb', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      firma: document.getElementById('b-firma').value,
+      name:  document.getElementById('b-name').value,
+      vorname: document.getElementById('b-vorname').value,
+      strHnr: document.getElementById('b-strHnr').value,
+      plz:   document.getElementById('b-plz').value,
+      ort:   document.getElementById('b-ort').value,
+      bundesland: document.getElementById('b-bundesland').value,
+    })
+  });
+  toast('✅ Betrieb gespeichert');
+}
+
+// ── PSM ──────────────────────────────────────────────────
+async function loadPSM() {
+  const data = await fetch('/api/psm').then(r => r.json());
+  document.getElementById('psm-count').textContent = data.length;
+  const list = document.getElementById('psm-list');
+  if (!data.length) { list.innerHTML = '<div class="empty">Noch keine Mittel eingetragen</div>'; return; }
+  list.innerHTML = data.map(p => `
+    <div class="item">
+      <div class="item-info">
+        <div class="name">🧪 ${p.name}</div>
+        <div class="meta">${p.zulassungsnr} · Einheit: ${p.aufwandEinheit} · ${p.bienen}</div>
+        <div class="meta" style="font-style:italic">${p.wirkstoffe}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-ghost btn-sm" onclick='openModal("psm",${JSON.stringify(p)})'>✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePSM(${p.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+async function savePSM() {
+  const id = document.getElementById('psm-edit-id').value;
+  const data = {
+    name: document.getElementById('psm-name').value,
+    zulassungsnr: document.getElementById('psm-zulassung').value,
+    wirkstoffe: document.getElementById('psm-wirkstoffe').value,
+    aufwandEinheit: document.getElementById('psm-einheit').value,
+    bienen: document.getElementById('psm-bienen').value,
+  };
+  await fetch(id ? `/api/psm/${id}` : '/api/psm', {
+    method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+  });
+  closeModal('psm'); loadPSM(); toast('✅ Mittel gespeichert');
+}
+async function deletePSM(id) {
+  if (!confirm('Mittel löschen?')) return;
+  await fetch(`/api/psm/${id}`, {method:'DELETE'});
+  loadPSM(); toast('🗑 Mittel gelöscht');
+}
+
+// ── EINSATZORTE ──────────────────────────────────────────
+async function loadEinsatzorte() {
+  const data = await fetch('/api/einsatzorte').then(r => r.json());
+  document.getElementById('eo-count').textContent = data.length;
+  const list = document.getElementById('eo-list');
+  if (!data.length) { list.innerHTML = '<div class="empty">Noch keine Einsatzorte eingetragen</div>'; return; }
+  list.innerHTML = data.map(e => `
+    <div class="item">
+      <div class="item-info">
+        <div class="name">📍 ${e.name}</div>
+        <div class="meta">${e.anwendungsbereich} · ${e.flaecheVolumen} ${e.einheit} · ${e.geoTyp}</div>
+        <div class="meta">${e.gpsRechtswert}, ${e.gpsHochwert}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-ghost btn-sm" onclick='openModal("eo",${JSON.stringify(e)})'>✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEinsatzort(${e.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+async function saveEinsatzort() {
+  const id = document.getElementById('eo-edit-id').value;
+  const data = {
+    name: document.getElementById('eo-name').value,
+    gpsRechtswert: parseFloat(document.getElementById('eo-lat').value),
+    gpsHochwert: parseFloat(document.getElementById('eo-lng').value),
+    anwendungsbereich: document.getElementById('eo-bereich').value,
+    geoTyp: document.getElementById('eo-geotyp').value,
+    einheit: document.getElementById('eo-einheit').value,
+    flaecheVolumen: parseFloat(document.getElementById('eo-flaeche').value),
+  };
+  await fetch(id ? `/api/einsatzorte/${id}` : '/api/einsatzorte', {
+    method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+  });
+  closeModal('eo'); loadEinsatzorte(); toast('✅ Einsatzort gespeichert');
+}
+async function deleteEinsatzort(id) {
+  if (!confirm('Einsatzort löschen?')) return;
+  await fetch(`/api/einsatzorte/${id}`, {method:'DELETE'});
+  loadEinsatzorte(); toast('🗑 Einsatzort gelöscht');
+}
+
+// ── KULTUREN ─────────────────────────────────────────────
+async function loadKulturen() {
+  const data = await fetch('/api/kulturen').then(r => r.json());
+  document.getElementById('kult-count').textContent = data.length;
+  const list = document.getElementById('kult-list');
+  if (!data.length) { list.innerHTML = '<div class="empty">Noch keine Kulturen eingetragen</div>'; return; }
+  list.innerHTML = data.map(k => `
+    <div class="item">
+      <div class="item-info">
+        <div class="name">🌾 ${k.name}</div>
+        <div class="meta">EPPO: ${k.eppoCode}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-ghost btn-sm" onclick='openModal("kult",${JSON.stringify(k)})'>✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteKultur(${k.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+async function saveKultur() {
+  const id = document.getElementById('kult-edit-id').value;
+  const data = {
+    name: document.getElementById('kult-name').value,
+    eppoCode: document.getElementById('kult-eppo').value,
+  };
+  await fetch(id ? `/api/kulturen/${id}` : '/api/kulturen', {
+    method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+  });
+  closeModal('kult'); loadKulturen(); toast('✅ Kultur gespeichert');
+}
+async function deleteKultur(id) {
+  if (!confirm('Kultur löschen?')) return;
+  await fetch(`/api/kulturen/${id}`, {method:'DELETE'});
+  loadKulturen(); toast('🗑 Kultur gelöscht');
+}
+
+// ── EXPORT ───────────────────────────────────────────────
+async function loadExportSelections() {
+  const [psm, eo, kult, betrieb] = await Promise.all([
+    fetch('/api/psm').then(r=>r.json()),
+    fetch('/api/einsatzorte').then(r=>r.json()),
+    fetch('/api/kulturen').then(r=>r.json()),
+    fetch('/api/betrieb').then(r=>r.json()),
+  ]);
+
+  // PSM with aufwandMenge input
+  document.getElementById('exp-psm').innerHTML = psm.length
+    ? psm.map(p => `
+      <div class="exp-item" id="exp-psm-${p.id}">
+        <div class="exp-item-header" onclick="toggleExpItem('psm',${p.id})">
+          <input type="checkbox" id="cb-psm-${p.id}" onclick="event.stopPropagation();toggleExpItem('psm',${p.id},this.checked)">
+          <div>
+            <div class="ci-name">🧪 ${p.name}</div>
+            <div class="ci-meta">${p.zulassungsnr} · Einheit: ${p.aufwandEinheit}</div>
+          </div>
+        </div>
+        <div class="exp-item-extra">
+          <div class="form-grid">
+            <div>
+              <label>Aufwandsmenge (${p.aufwandEinheit})</label>
+              <input type="number" step="0.01" id="psm-menge-${p.id}" placeholder="z.B. 2.0">
+            </div>
+          </div>
+        </div>
+      </div>`).join('')
+    : '<div class="empty">Keine Mittel vorhanden</div>';
+
+  // Einsatzorte (simple checkboxes)
+  document.getElementById('exp-eo').innerHTML = eo.length
+    ? eo.map(e => `
+      <div class="exp-item" id="exp-eo-${e.id}">
+        <div class="exp-item-header" onclick="toggleExpItem('eo',${e.id})">
+          <input type="checkbox" id="cb-eo-${e.id}" onclick="event.stopPropagation();toggleExpItem('eo',${e.id},this.checked)">
+          <div>
+            <div class="ci-name">📍 ${e.name}</div>
+            <div class="ci-meta">${e.flaecheVolumen} ${e.einheit} · ${e.anwendungsbereich}</div>
+          </div>
+        </div>
+      </div>`).join('')
+    : '<div class="empty">Keine Einsatzorte vorhanden</div>';
+
+  // Kulturen with bbchCode input
+  document.getElementById('exp-kult').innerHTML = kult.length
+    ? kult.map(k => `
+      <div class="exp-item" id="exp-kult-${k.id}">
+        <div class="exp-item-header" onclick="toggleExpItem('kult',${k.id})">
+          <input type="checkbox" id="cb-kult-${k.id}" onclick="event.stopPropagation();toggleExpItem('kult',${k.id},this.checked)">
+          <div>
+            <div class="ci-name">🌾 ${k.name}</div>
+            <div class="ci-meta">EPPO: ${k.eppoCode}</div>
+          </div>
+        </div>
+        <div class="exp-item-extra">
+          <div class="form-grid">
+            <div>
+              <label>BBCH-Code für diese Anwendung</label>
+              <input type="text" id="kult-bbch-${k.id}" placeholder="z.B. 20">
+            </div>
+          </div>
+        </div>
+      </div>`).join('')
+    : '<div class="empty">Keine Kulturen vorhanden</div>';
+
+  // Defaults Anwendung
+  document.getElementById('anw-datum').value = new Date().toISOString().split('T')[0];
+  if (betrieb.vorname) {
+    const full = `${betrieb.vorname} ${betrieb.name}`;
+    document.getElementById('anw-verantwortlich').value = full;
+    document.getElementById('anw-anwender').value = full;
+  }
+}
+
+function toggleExpItem(type, id, checked) {
+  const el = document.getElementById(`exp-${type}-${id}`);
+  const cb = document.getElementById(`cb-${type}-${id}`);
+  const isNowSelected = checked !== undefined ? checked : !cb.checked;
+  cb.checked = isNowSelected;
+  el.classList.toggle('selected', isNowSelected);
+}
+
+function getExportPayload() {
+  const psmOverrides = [];
+  document.querySelectorAll('[id^="cb-psm-"]').forEach(cb => {
+    if (cb.checked) {
+      const id = cb.id.replace('cb-psm-','');
+      psmOverrides.push({ id: parseInt(id), aufwandMenge: parseFloat(document.getElementById(`psm-menge-${id}`).value) || 0 });
+    }
+  });
+  const eoIds = [...document.querySelectorAll('[id^="cb-eo-"]')]
+    .filter(cb => cb.checked).map(cb => parseInt(cb.id.replace('cb-eo-','')));
+  const kultOverrides = [];
+  document.querySelectorAll('[id^="cb-kult-"]').forEach(cb => {
+    if (cb.checked) {
+      const id = cb.id.replace('cb-kult-','');
+      kultOverrides.push({ id: parseInt(id), bbchCode: document.getElementById(`kult-bbch-${id}`).value || '' });
+    }
+  });
+  return {
+    psm_overrides: psmOverrides,
+    einsatzort_ids: eoIds,
+    kult_overrides: kultOverrides,
+    anwendung: {
+      datum: document.getElementById('anw-datum').value,
+      artVerwendung: document.getElementById('anw-art').value,
+      verantwortlich: document.getElementById('anw-verantwortlich').value,
+      anwender: document.getElementById('anw-anwender').value,
+    }
+  };
+}
+
+async function previewJSON() {
+  const result = await fetch('/api/preview', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(getExportPayload())
+  }).then(r=>r.json());
+  const wrap = document.getElementById('json-preview-wrap');
+  document.getElementById('json-preview').textContent = JSON.stringify(result, null, 2);
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({behavior:'smooth'});
+}
+
+async function exportJSON() {
+  const payload = getExportPayload();
+  if (!payload.psm_overrides.length && !payload.einsatzort_ids.length) {
+    toast('⚠️ Bitte mindestens ein Element auswählen'); return;
+  }
+  const resp = await fetch('/api/export', {
+    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+  });
+  const blob = await resp.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pflanzenschutz_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  toast('✅ JSON exportiert');
+}
+
+// ── INIT ────────────────────────────────────────────────
+loadBetrieb(); loadPSM(); loadEinsatzorte(); loadKulturen();
+</script>
+</body>
+</html>

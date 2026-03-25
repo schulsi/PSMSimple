@@ -1,0 +1,43 @@
+{
+  "einsatzorte": [
+    {
+      "name": "Maisental",
+      "gpsRechtswert": 48.08662372,
+      "anwendungsbereich": "Freiland",
+      "gpsHochwert": 7.70235453,
+      "geoTyp": "GPS-Koordinaten",
+      "einheit": "m2",
+      "flaecheVolumen": 26.0
+    }
+  ],
+  "version": "1",
+  "betrieb": {
+    "name": "Schulz",
+    "ort": "Bötzingen",
+    "bundesland": "BW",
+    "firma": "Schulz",
+    "vorname": "Silas",
+    "guid": "23948f71-2973-4478-b23a-ad09d7fcec1a",
+    "strHnr": "Am Dreschschopf 4",
+    "plz": "79268"
+  },
+  "pflanzenschutzmittel": [
+    {
+      "aufwandEinheit": "kg/ha",
+      "wirkstoffe": "Folpet 800 g/kg",
+      "aufwandMenge": 2.0,
+      "zulassungsnr": "024459-00",
+      "bienen": "(B4) Nicht bienengefährlich",
+      "name": "Folpan 80 WDG"
+    }
+  ],
+  "kulturen": [{ "bbchCode": "20", "name": "Weinbau" }],
+  "guid": "132e2169-5443-460c-8dde-b80eb0dc9083",
+  "zusatzstoffe": [],
+  "anwendung": {
+    "verantwortlich": "Silas Schulz",
+    "artVerwendung": "Behandlung von Freilandflächen",
+    "anwender": "Silas Schulz",
+    "datum": "2026-03-24"
+  }
+}
