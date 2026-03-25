@@ -149,7 +149,13 @@
   @keyframes popIn { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .modal h3 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; margin-bottom: 1.25rem; color: var(--green-deep); }
   .modal-footer { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1.25rem; }
-
+  .modal .form-grid { gap: .6rem; }
+  .modal .field label { font-size: .72rem; }
+  .modal .field input, .modal .field select {
+    padding: .38rem .65rem;
+    font-size: .82rem;
+    border-radius: 6px;
+}
   pre {
     background: var(--green-deep); color: #b7e4c7; border-radius: 10px; padding: 1.25rem;
     font-size: .78rem; line-height: 1.6; overflow: auto; max-height: 420px;
@@ -314,9 +320,9 @@
           <option>ml/ha</option><option>kg/m²</option><option>l/m²</option>
         </select>
       </div>
-      <div class="field">
+      <div class="field" style="grid-column:span 2">
         <label>Bienengefährlichkeit</label>
-        <select id="psm-bienen">
+        <select id="psm-bienen" style="font-size:.8rem; padding:.35rem .65rem">
           <option>(B1) Bienengefährlich</option>
           <option>(B2) Bienengefährlich außer nach dem täglichen Bienenflug</option>
           <option>(B3) Bienengefährlich, Anwendungsverbot</option>
