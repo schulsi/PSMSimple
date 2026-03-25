@@ -28,6 +28,7 @@ python app.py
 SQLite-Datei `pflanzenschutz.db` wird automatisch beim ersten Start erstellt.
 
 ## ToDos
+
 - PDF Export
 - Favicon
 - PSInfo API
@@ -35,3 +36,4 @@ SQLite-Datei `pflanzenschutz.db` wird automatisch beim ersten Start erstellt.
 - Export local auf Folder
 - Dockerfile
 - User Mgmt
+- Felder als Mandatory deklarieren (Buttons erst wenn alles richtig ausgefüllt ist)
