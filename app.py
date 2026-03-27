@@ -156,7 +156,7 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-    flash(f"Konto für „{username}“ erfolgreich erstellt. Bitte jetzt anmelden.", "success")
+    flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
     return redirect(url_for("login"))
 
 
@@ -166,6 +166,30 @@ def logout():
     logout_user()
     flash("Sie wurden abgemeldet.", "success")
     return redirect(url_for("login"))
+
+# ── USER RENAME ──────────────────────────────────────────
+
+@app.route("/api/user/rename", methods=["POST"])
+@login_required
+def rename_user():
+    d = request.json
+    new_name = (d.get("username") or "").strip()
+
+    if not new_name:
+        return jsonify({"ok": False, "error": "Bitte einen Namen eingeben."})
+
+    if len(new_name) < 2:
+        return jsonify({"ok": False, "error": "Mindestens 2 Zeichen erforderlich."})
+
+    # Check if name is already taken by a different user
+    existing = User.query.filter_by(username=new_name).first()
+    if existing and existing.id != current_user.id:
+        return jsonify({"ok": False, "error": "Dieser Benutzername ist bereits vergeben."})
+
+    # Update only the username — all other data (betrieb etc.) stays untouched
+    current_user.username = new_name
+    db.session.commit()
+    return jsonify({"ok": True})
 
 # ── BETRIEB ──────────────────────────────────────────────
 
