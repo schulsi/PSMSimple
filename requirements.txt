@@ -1,3 +1,7 @@
 flask>=3.0.0
+flask import
+flask_login
+flask_sqlalchemy
+werkzeug.security
 reportlab
 requests
