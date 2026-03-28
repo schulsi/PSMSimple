@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pflanzenschutz · Dokumentation</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="icon" type="image/png" href="{{ url_for('media', filename='favicon.png') }}">
 <style>
   :root {
     --green-deep: #1a3a2a;
@@ -193,10 +192,6 @@
   .btn-export:hover { background: #0e2218; color: #fff; }
   .btn-pdf { background: #fff; color: var(--green-deep); border: 2px solid var(--green-deep); font-size: 1rem; padding: .8rem 2rem; }
   .btn-pdf:hover { background: var(--cream-dark); }
-  .btn:disabled { opacity: .38; cursor: not-allowed; }
-  .btn:disabled:hover { background: initial; color: initial; }
-  .btn-export:disabled:hover { background: var(--green-deep); color: var(--green-pale); }
-  .btn-pdf:disabled:hover { background: #fff; color: var(--green-deep); }
 
   .item-list { display: flex; flex-direction: column; gap: .6rem; }
   .item {
@@ -245,12 +240,7 @@
   .modal-footer { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1.25rem; }
   .modal .form-grid { gap: .6rem; }
   .modal .field label { font-size: .72rem; }
-  .modal .field input, .modal .field select {
-    padding: .38rem .65rem;
-    font-size: .82rem;
-    border-radius: 6px;
-  }
-
+  .modal .field input, .modal .field select { padding: .38rem .65rem; font-size: .82rem; border-radius: 6px; }
   pre {
     background: var(--green-deep); color: #b7e4c7; border-radius: 10px; padding: 1.25rem;
     font-size: .78rem; line-height: 1.6; overflow: auto; max-height: 420px;
@@ -270,31 +260,6 @@
   .export-section { margin-bottom: 1.25rem; }
   .export-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: .75rem; color: var(--green-deep); }
   .export-footer { display: flex; gap: 1rem; margin-top: 1.5rem; }
-.autocomplete-wrap { position: relative; }
-.autocomplete-results {
-  display: none;
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: #fff;
-  border: 1.5px solid var(--cream-dark);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  max-height: 220px;
-  overflow-y: auto;
-  z-index: 250;
-}
-.autocomplete-results.show { display: block; }
-.autocomplete-item {
-  padding: .55rem .75rem;
-  font-size: .84rem;
-  cursor: pointer;
-  border-bottom: 1px solid var(--cream-dark);
-}
-.autocomplete-item:last-child { border-bottom: none; }
-.autocomplete-item:hover { background: var(--cream); }
-.autocomplete-empty { padding: .55rem .75rem; font-size: .84rem; color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -397,7 +362,7 @@
 
     <!-- EXPORT -->
     <div id="tab-export" class="tab">
-      <h2>📄 JSON erstellen</h2>
+      <h2>📄 Applikation dokumentieren</h2>
 
       <div class="card export-section">
         <h3>🧪 Pflanzenschutzmittel &amp; Aufwandsmenge</h3>
@@ -425,8 +390,9 @@
             <label>Art der Verwendung</label>
             <select id="anw-art">
               <option>Behandlung von Freilandflächen</option>
-              <option>Behandlung in geschlossenen Räumen</option>
-              <option>Behandlung von Saatgut oder Pflanzenvermehrungsmaterial</option>
+              <option>Behandlung im Gewächshaus</option>
+              <option>Bodenbehandlung</option>
+              <option>Saatgutbehandlung</option>
             </select>
           </div>
           <div class="field"><label>Verantwortlich</label><input id="anw-verantwortlich"></div>
@@ -435,11 +401,10 @@
       </div>
 
       <div class="export-footer">
-        <button id="btn-preview" class="btn btn-ghost" onclick="previewJSON()" disabled>👁 Vorschau</button>
-        <button id="btn-json"    class="btn btn-export" onclick="exportJSON()" disabled>⬇ JSON herunterladen</button>
-        <button id="btn-pdf"     class="btn btn-pdf"    onclick="exportPDF()" disabled>🖨 PDF herunterladen</button>
+        <button class="btn btn-ghost" onclick="previewJSON()">👁 Vorschau</button>
+        <button class="btn btn-export" onclick="exportJSON()">⬇ JSON herunterladen</button>
+        <button class="btn btn-pdf" onclick="exportPDF()">🖨 PDF herunterladen</button>
       </div>
-      <div id="validation-msg" style="margin-top:.6rem;font-size:.82rem;color:var(--danger);display:none"></div>
 
       <div id="json-preview-wrap" style="display:none;margin-top:1.5rem">
         <div class="divider"></div>
@@ -457,9 +422,9 @@
     <h3 id="psm-modal-title">Pflanzenschutzmittel</h3>
     <input type="hidden" id="psm-edit-id">
     <div class="form-grid">
-      <div class="field"><label>Name</label><div class="autocomplete-wrap"><input id="psm-name" autocomplete="off"><div id="psm-search-results" class="autocomplete-results"></div></div></div>
-      <div class="field"><label>Zulassungsnr.</label><input id="psm-zulassung" disabled></div>
-      <div class="field"><label>Wirkstoffe</label><input id="psm-wirkstoffe" disabled></div>
+      <div class="field"><label>Name</label><input id="psm-name"></div>
+      <div class="field"><label>Zulassungsnr.</label><input id="psm-zulassung" placeholder="024459-00"></div>
+      <div class="field"><label>Wirkstoffe</label><input id="psm-wirkstoffe"></div>
       <div class="field">
         <label>Einheit (Aufwandsmenge)</label>
         <select id="psm-einheit">
@@ -659,90 +624,6 @@ async function saveBetrieb() {
 }
 
 // ── PSM ──────────────────────────────────────────────────
-const psmNameInput = document.getElementById('psm-name');
-const psmSearchResults = document.getElementById('psm-search-results');
-let psmSearchTimer = null;
-let psmLastSearchTerm = '';
-
-function hidePSMResults() {
-  psmSearchResults.classList.remove('show');
-  psmSearchResults.innerHTML = '';
-}
-
-function showPSMResults(items) {
-  if (!items.length) {
-    psmSearchResults.innerHTML = '<div class="autocomplete-empty">Keine Treffer</div>';
-    psmSearchResults.classList.add('show');
-    return;
-  }
-
-  psmSearchResults.innerHTML = items.map(name => `
-    <div class="autocomplete-item" data-name="${name.replace(/"/g, '&quot;')}">${name}</div>
-  `).join('');
-  psmSearchResults.classList.add('show');
-
-  psmSearchResults.querySelectorAll('.autocomplete-item').forEach(item => {
-    item.addEventListener('click', async () => {
-      const name = item.dataset.name;
-      psmNameInput.value = name;
-      hidePSMResults();
-      await fillPSMInfo(name);
-    });
-  });
-}
-
-async function fillPSMInfo(name) {
-  try {
-    const safeName = encodeURIComponent(name.replace(/ /g, '_'));
-    const data = await fetch(`/api/psm/info/${safeName}`).then(r => r.json());
-    if (Array.isArray(data)) {
-      document.getElementById('psm-wirkstoffe').value = data[0] || '';
-      document.getElementById('psm-zulassung').value = data[1] || '';
-    }
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-psmNameInput.addEventListener('input', () => {
-  const term = psmNameInput.value.trim();
-
-  document.getElementById('psm-zulassung').value = '';
-  document.getElementById('psm-wirkstoffe').value = '';
-
-  if (psmSearchTimer) clearTimeout(psmSearchTimer);
-  if (term.length < 2) {
-    hidePSMResults();
-    return;
-  }
-
-  psmSearchTimer = setTimeout(async () => {
-    psmLastSearchTerm = term;
-    try {
-      const result = await fetch(`/search/psm/${encodeURIComponent(term)}`).then(r => r.json());
-      if (psmLastSearchTerm !== psmNameInput.value.trim()) return;
-      showPSMResults(Array.isArray(result) ? result : []);
-    } catch (e) {
-      console.error(e);
-      hidePSMResults();
-    }
-  }, 250);
-});
-
-psmNameInput.addEventListener('blur', () => {
-  setTimeout(hidePSMResults, 150);
-});
-
-psmNameInput.addEventListener('focus', () => {
-  if (psmSearchResults.innerHTML.trim()) {
-    psmSearchResults.classList.add('show');
-  }
-});
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.autocomplete-wrap')) hidePSMResults();
-});
-
 async function loadPSM() {
   const data = await fetch('/api/psm').then(r => r.json());
   document.getElementById('psm-count').textContent = data.length;
@@ -770,14 +651,9 @@ async function savePSM() {
     aufwandEinheit: document.getElementById('psm-einheit').value,
     bienen: document.getElementById('psm-bienen').value,
   };
-  const res = await fetch(id ? `/api/psm/${id}` : '/api/psm', {
+  await fetch(id ? `/api/psm/${id}` : '/api/psm', {
     method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
   });
-  if (res.status === 409) {
-    const data = await res.json();
-    alert(data.error || 'Dieses Mittel existiert bereits.');
-    return;
-  }
   closeModal('psm'); loadPSM(); toast('✅ Mittel gespeichert');
 }
 async function deletePSM(id) {
@@ -928,59 +804,10 @@ async function loadExportSelections() {
 
   document.getElementById('anw-datum').value = new Date().toISOString().split('T')[0];
   document.getElementById('anw-uhrzeit').value = new Date().toTimeString().slice(0,5);
-  // wire live validation to all dynamic inputs
-  setTimeout(() => {
-    document.getElementById('tab-export').addEventListener('input', validate);
-    document.getElementById('tab-export').addEventListener('change', validate);
-    validate();
-  }, 50);
   if (betrieb.vorname) {
     const full = `${betrieb.vorname} ${betrieb.name}`;
     document.getElementById('anw-verantwortlich').value = full;
     document.getElementById('anw-anwender').value = full;
-  }
-}
-
-function validate() {
-  const errors = [];
-
-  const psmChecked = [...document.querySelectorAll('[id^="cb-psm-"]')].filter(cb => cb.checked);
-  if (psmChecked.length === 0) {
-    errors.push('Mindestens 1 Pflanzenschutzmittel auswählen');
-  } else {
-    psmChecked.forEach(cb => {
-      const id = cb.id.replace('cb-psm-','');
-      const val = parseFloat(document.getElementById(`psm-menge-${id}`)?.value);
-      if (!val || val <= 0) errors.push(`Aufwandsmenge für "${cb.closest('.exp-item').querySelector('.ci-name').textContent.replace('🧪 ','')}" fehlt`);
-    });
-  }
-
-  const eoChecked = [...document.querySelectorAll('[id^="cb-eo-"]')].filter(cb => cb.checked);
-  if (eoChecked.length === 0) errors.push('Mindestens 1 Einsatzort auswählen');
-
-  const kultChecked = [...document.querySelectorAll('[id^="cb-kult-"]')].filter(cb => cb.checked);
-  if (kultChecked.length === 0) {
-    errors.push('Mindestens 1 Kultur auswählen');
-  } else {
-    kultChecked.forEach(cb => {
-      const id = cb.id.replace('cb-kult-','');
-      if (!document.getElementById(`kult-bbch-${id}`)?.value.trim())
-        errors.push(`BBCH-Code für "${cb.closest('.exp-item').querySelector('.ci-name').textContent.replace('🌾 ','')}" fehlt`);
-    });
-  }
-
-  if (!document.getElementById('anw-datum')?.value) errors.push('Datum fehlt');
-  if (!document.getElementById('anw-uhrzeit')?.value) errors.push('Uhrzeit fehlt');
-
-  const ok = errors.length === 0;
-  ['btn-preview','btn-json','btn-pdf'].forEach(id => {
-    const btn = document.getElementById(id);
-    if (btn) btn.disabled = !ok;
-  });
-  const msg = document.getElementById('validation-msg');
-  if (msg) {
-    msg.style.display = ok ? 'none' : 'block';
-    msg.innerHTML = ok ? '' : '⚠️ ' + errors.join(' &nbsp;·&nbsp; ');
   }
 }
 
@@ -990,7 +817,6 @@ function toggleExpItem(type, id, checked) {
   const isNowSelected = checked !== undefined ? checked : !cb.checked;
   cb.checked = isNowSelected;
   el.classList.toggle('selected', isNowSelected);
-  validate();
 }
 
 function getExportPayload() {
@@ -1037,6 +863,9 @@ async function previewJSON() {
 
 async function exportJSON() {
   const payload = getExportPayload();
+  if (!payload.psm_overrides.length && !payload.einsatzort_ids.length) {
+    toast('⚠️ Bitte mindestens ein Element auswählen'); return;
+  }
   const resp = await fetch('/api/export', {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
   });
@@ -1050,6 +879,9 @@ async function exportJSON() {
 
 async function exportPDF() {
   const payload = getExportPayload();
+  if (!payload.psm_overrides.length && !payload.einsatzort_ids.length) {
+    toast('⚠️ Bitte mindestens ein Element auswählen'); return;
+  }
   const resp = await fetch('/api/pdf', {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
   });

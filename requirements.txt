@@ -4,4 +4,3 @@ flask_login
 flask_sqlalchemy
 werkzeug.security
 reportlab
-requests
