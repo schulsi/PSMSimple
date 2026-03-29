@@ -51,7 +51,6 @@ class UserSettings(db.Model):
     user_id         = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
     browser_download = db.Column(db.Boolean, default=True, nullable=False)
     local_save       = db.Column(db.Boolean, default=True, nullable=False)
-    save_path        = db.Column(db.String(500), nullable=True)   # None = BASE_DIR/exports
     default_anwender      = db.Column(db.String(200), nullable=True)
     default_verantwortlich = db.Column(db.String(200), nullable=True)
 
@@ -68,7 +67,6 @@ class UserSettings(db.Model):
         return {
             "browser_download":        self.browser_download,
             "local_save":              self.local_save,
-            "save_path":               self.save_path or "",
             "default_anwender":        self.default_anwender or "",
             "default_verantwortlich":  self.default_verantwortlich or "",
         }
@@ -240,7 +238,6 @@ def save_settings():
     s = UserSettings.for_user(current_user.id)
     s.browser_download        = bool(d.get("browser_download", True))
     s.local_save              = bool(d.get("local_save", True))
-    s.save_path               = d.get("save_path", "").strip() or None
     s.default_anwender        = d.get("default_anwender", "").strip() or None
     s.default_verantwortlich  = d.get("default_verantwortlich", "").strip() or None
     db.session.commit()

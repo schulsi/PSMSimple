@@ -471,10 +471,6 @@
               <div style="font-size:.78rem;color:var(--text-muted)">Datei wird auf dem Server im Exportordner abgelegt</div>
             </div>
           </label>
-          <div class="field" style="max-width:480px">
-            <label>Speicherpfad <span style="font-weight:400;text-transform:none;letter-spacing:0">(leer = Standard exports/)</span></label>
-            <input id="set-save-path" placeholder="/pfad/zum/ordner">
-          </div>
         </div>
       </div>
 
@@ -1171,7 +1167,6 @@ async function loadSettings() {
   const s = await fetch('/api/user/settings').then(r => r.json());
   document.getElementById('set-browser-download').checked  = s.browser_download;
   document.getElementById('set-local-save').checked        = s.local_save;
-  document.getElementById('set-save-path').value           = s.save_path || '';
   document.getElementById('set-default-anwender').value    = s.default_anwender || '';
   document.getElementById('set-default-verantwortlich').value = s.default_verantwortlich || '';
 }
@@ -1180,7 +1175,6 @@ async function saveSettings() {
   const payload = {
     browser_download:       document.getElementById('set-browser-download').checked,
     local_save:             document.getElementById('set-local-save').checked,
-    save_path:              document.getElementById('set-save-path').value.trim(),
     default_anwender:       document.getElementById('set-default-anwender').value.trim(),
     default_verantwortlich: document.getElementById('set-default-verantwortlich').value.trim(),
   };
