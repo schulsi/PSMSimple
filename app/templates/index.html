@@ -504,5 +504,15 @@
       syncArtVerwendungField();
     }
   });
+  document.addEventListener("DOMContentLoaded", () => {
+  const uhrzeit = document.getElementById("exp-uhrzeit");
+
+  if (uhrzeit && !uhrzeit.value) {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    uhrzeit.value = `${hh}:${mm}`;
+  }
+});
 </script>
 {% endblock %}
