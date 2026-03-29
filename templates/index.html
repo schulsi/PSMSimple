@@ -1318,26 +1318,44 @@ async function exportJSON() {
   }
 
   const resp = await fetch('/api/export', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
 
-  const ct = resp.headers.get('Content-Type') || '';
-  if (ct.includes('application/json')) {
-    const data = await resp.json();
-    if (data.filename) {
-      toast(`✅ JSON gespeichert: ${data.filename}`);
-      return;
-    }
+  if (!resp.ok) {
+    toast('❌ JSON-Fehler');
+    return;
   }
 
-  const blob = await resp.blob();
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `pflanzenschutz_${new Date().toISOString().split('T')[0]}.json`;
-  a.click();
-  toast('✅ JSON exportiert');
+  const cd = resp.headers.get('Content-Disposition') || '';
+
+  // Echter Dateidownload
+  if (cd.includes('attachment')) {
+    const blob = await resp.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+
+    const match = cd.match(/filename="?([^"]+)"?/);
+    a.download = match ? match[1] : `pflanzenschutz_${new Date().toISOString().split('T')[0]}.json`;
+
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+
+    toast('✅ JSON exportiert');
+    return;
+  }
+
+  // Normale API-JSON-Antwort (z. B. nur lokal gespeichert)
+  const data = await resp.json();
+  if (data.filename) {
+    toast(`✅ JSON gespeichert: ${data.filename}`);
+    return;
+  }
+
+  toast('⚠️ Unerwartete Server-Antwort');
 }
 
 async function exportPDF() {
