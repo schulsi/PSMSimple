@@ -4,7 +4,13 @@ from flask_login import login_required
 
 bp = Blueprint("pages", __name__)
 
-
+@bp.route("/betrieb")
+@bp.route("/psm")
+@bp.route("/fields")
+@bp.route("/cultures")
+@bp.route("/export")
+@bp.route("/history")
+@bp.route("/settings")
 @bp.route("/")
 @login_required
 def index():

@@ -12,16 +12,16 @@
   <nav>
     <div class="nav-items">
       <div class="section-label">Stammdaten</div>
-      <a class="active" onclick="showTab('betrieb', this)"><span class="ico">🏡</span> Betrieb</a>
-      <a onclick="showTab('psm', this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
-      <a onclick="showTab('einsatzorte', this)"><span class="ico">📍</span> Felder</a>
-      <a onclick="showTab('kulturen', this)"><span class="ico">🌾</span> Kulturen</a>
+      <a class="active" href="/betrieb" onclick="event.preventDefault(); showTab('betrieb', this)"><span class="ico">🏡</span> Betrieb</a>
+      <a href="/psm" onclick="event.preventDefault(); showTab('psm', this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
+      <a href="/fields" onclick="event.preventDefault(); showTab('einsatzorte', this)"><span class="ico">📍</span> Felder</a>
+      <a href="/cultures" onclick="event.preventDefault(); showTab('kulturen', this)"><span class="ico">🌾</span> Kulturen</a>
 
       <div class="section-label">Export</div>
-      <a onclick="showTab('export', this); loadExportSelections(); syncLegacyExportUI()"><span class="ico">📄</span> Applikation dokumentieren</a>
+      <a href="/export" onclick="event.preventDefault(); showTab('export', this); loadExportSelections(); syncLegacyExportUI()"><span class="ico">📄</span> Applikation dokumentieren</a>
 
       <div class="section-label">Verlauf</div>
-      <a onclick="showTab('history', this); loadHistory()"><span class="ico">🕘</span> Gespeicherte Applikationen</a>
+      <a href="/history" onclick="event.preventDefault(); showTab('history', this); loadHistory()"><span class="ico">🕘</span> Gespeicherte Applikationen</a>
     </div>
 
     <div class="nav-user">
@@ -31,7 +31,7 @@
           <div class="popup-label">Angemeldet als</div>
         </div>
 
-        <a onclick="showTab('settings', this)"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
+        <a href="/settings" onclick="event.preventDefault(); showTab('settings', this)"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
         <a class="popup-logout" href="{{ url_for('auth.logout') }}">🚪 Abmelden</a>
       </div>
 
