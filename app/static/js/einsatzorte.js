@@ -41,10 +41,19 @@ async function loadEinsatzorte() {
 function resetEinsatzortForm() {
   currentEinsatzortEditId = null;
 
-  const fields = ['name', 'gpsRechtswert', 'gpsHochwert', 'anwendungsbereich', 'geoTyp', 'einheit', 'flaecheVolumen'];
-  fields.forEach(field => {
+  const defaultValues = {
+    name: '',
+    gpsRechtswert: '',
+    gpsHochwert: '',
+    anwendungsbereich: 'Freiland',
+    geoTyp: 'GPS-Koordinaten',
+    einheit: 'm2',
+    flaecheVolumen: ''
+  };
+
+  Object.entries(defaultValues).forEach(([field, value]) => {
     const el = $(`eo-${field}`);
-    if (el) el.value = '';
+    if (el) el.value = value;
   });
 
   const modalTitle = $('modal-einsatzort-title');
