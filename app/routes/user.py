@@ -2,7 +2,12 @@ from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 
 from ..extensions import db
-from ..models.user import User, UserSettings
+from ..models.user import User
+from ..services.settings_service import (
+    get_user_settings_dict,
+    normalize_settings_payload,
+    save_user_settings,
+)
 
 bp = Blueprint("user", __name__)
 
@@ -31,7 +36,7 @@ def rename_user():
 @bp.route("/api/user/settings", methods=["GET"])
 @login_required
 def get_settings():
-    return jsonify(UserSettings.for_user(current_user.id).to_dict())
+    return jsonify(get_user_settings_dict(current_user.id))
 
 
 @bp.route("/api/user/settings", methods=["POST"])
@@ -39,11 +44,5 @@ def get_settings():
 def save_settings():
     data = request.get_json(silent=True) or {}
 
-    settings = UserSettings.for_user(current_user.id)
-    settings.browser_download = bool(data.get("browser_download", True))
-    settings.local_save = bool(data.get("local_save", True))
-    settings.default_anwender = (data.get("default_anwender") or "").strip() or None
-    settings.default_verantwortlich = (data.get("default_verantwortlich") or "").strip() or None
-
-    db.session.commit()
-    return jsonify({"ok": True})
+    settings = save_user_settings(current_user.id, data)
+    return jsonify({"ok": True, "settings": settings})

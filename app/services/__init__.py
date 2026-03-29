@@ -8,10 +8,16 @@ from .export_service import (
 
 from .pdf_service import generate_pdf
 
-from .psm_api_service import (
+from .psm_api_services import (
     api_to_string,
     search_psm_by_term,
     get_psm_info_by_kennr,
+)
+
+from .settings_service import (
+    get_user_settings_dict,
+    normalize_settings_payload,
+    save_user_settings,
 )
 
 from .history_service import save_history_snapshot
@@ -27,4 +33,7 @@ __all__ = [
     "search_psm_by_term",
     "get_psm_info_by_kennr",
     "save_history_snapshot",
+    "get_user_settings_dict",
+    "normalize_settings_payload",
+    "save_user_settings",
 ]

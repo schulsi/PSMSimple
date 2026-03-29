@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadPSM(),
       loadEinsatzorte(),
       loadKulturen(),
-      loadExportSelections(),
       loadSettings()
     ]);
   } catch (err) {
