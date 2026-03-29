@@ -673,9 +673,9 @@ def export_json():
     output = build_output(d, betrieb)
     buf = io.BytesIO(json.dumps(output, ensure_ascii=False, indent=2).encode("utf-8"))
     buf.seek(0)
-    eo_name  = d["einsatzorte"][0]["name"] if d["einsatzorte"] else "export"
-    datum    = d["anwendung"]["datum"].replace("-", "")
-    psm_slug = d["pflanzenschutzmittel"][0]["name"].replace(" ", "_") if d["pflanzenschutzmittel"] else "PSM"
+    eo_name  = output["einsatzorte"][0]["name"] if output["einsatzorte"] else "export"
+    datum    = output["anwendung"]["datum"].replace("-", "")
+    psm_slug = output["pflanzenschutzmittel"][0]["name"].replace(" ", "_") if output["pflanzenschutzmittel"] else "PSM"
     filename = f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.json"
     settings = UserSettings.for_user(current_user.id)
     if settings.local_save:
