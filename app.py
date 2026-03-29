@@ -16,9 +16,11 @@ from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
 from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_DIR = os.environ.get("DB_DIR", BASE_DIR)
+
 
 app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
-DB = os.path.join(BASE_DIR, "pflanzenschutz.db")
+DB = os.path.join(DB_DIR, "pflanzenschutz.db")
 
 
 def get_db():
@@ -59,7 +61,7 @@ def init_db():
     """)
 
     if not c.execute("SELECT id FROM betrieb LIMIT 1").fetchone():
-        c.execute("""INSERT INTO betrieb (firma,name,vorname,strHnr,plz,ort,bundesland,guid)
+       c.execute("""INSERT INTO betrieb (firma,name,vorname,strHnr,plz,ort,bundesland,guid)
                      VALUES (?,?,?,?,?,?,?,?)""",
                   ("Schulz", "Schulz", "Silas", "Am Dreschschopf 4", "79268", "Bötzingen", "BW",
                    str(uuid.uuid4())))
