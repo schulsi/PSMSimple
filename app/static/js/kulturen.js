@@ -26,8 +26,11 @@ function renderKulturenList(items = kulturenItems) {
 
 async function loadKulturen() {
   try {
-    kulturenItems = await apiGet('/api/kulturen');
+    kulturenItems = ahttp://10.0.200.6:5001/historywait apiGet('/api/kulturen');
+    const list = document.getElementById('kulturen-list');
+    const count = document.getElementById('kult-count');
     renderKulturenList();
+    if (count) count.textContent = String(kulturenItems.length);
     if (typeof loadExportSelections === 'function') {
       loadExportSelections();
     }

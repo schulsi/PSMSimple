@@ -438,26 +438,6 @@
     };
   }
 
-  patchFunction('loadPSM', () => {
-    syncBadgeCount('psm-count', Array.isArray(window.psmItems) ? window.psmItems.length : 0);
-    syncLegacyExportUI();
-  });
-
-  patchFunction('loadEinsatzorte', () => {
-    syncBadgeCount('eo-count', Array.isArray(window.einsatzorteItems) ? window.einsatzorteItems.length : 0);
-    syncLegacyExportUI();
-  });
-
-  patchFunction('loadKulturen', () => {
-    syncBadgeCount('kult-count', Array.isArray(window.kulturenItems) ? window.kulturenItems.length : 0);
-    syncLegacyExportUI();
-  });
-
-  patchFunction('loadHistory', () => {
-    const items = Array.isArray(window.historyItems) ? window.historyItems : [];
-    syncBadgeCount('history-count', items.length);
-  });
-
   if (typeof previewJSON === 'function') {
     const originalPreviewJSON = previewJSON;
     previewJSON = async function(...args) {

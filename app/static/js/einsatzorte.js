@@ -28,7 +28,9 @@ function renderEinsatzorteList(items = einsatzorteItems) {
 async function loadEinsatzorte() {
   try {
     einsatzorteItems = await apiGet('/api/einsatzorte');
+    const count = document.getElementById('eo-count');
     renderEinsatzorteList();
+    if (count) count.textContent = String(einsatzorteItems.length);
     if (typeof loadExportSelections === 'function') {
       loadExportSelections();
     }
