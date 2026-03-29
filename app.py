@@ -104,6 +104,12 @@ def api_to_string(einheit: str):
         return "g/l"
     elif einheit == "MD":
         return "ml/dosis"
+    
+def create_save_path(datum: str = None):
+    now = datetime.strptime(datum, "%Y-%m-%d") if datum else datetime.now()
+    path = os.path.join(BASE_DIR, "exports", str(now.year), f"{now.month:02d}_{now.strftime('%B')}")
+    os.makedirs(path, exist_ok=True)
+    return path
 
 # ── AUTH ROUTES ──────────────────────────────────────────
 
@@ -596,6 +602,8 @@ def export_pdf():
     datum    = data["anwendung"]["datum"].replace("-", "")
     psm_slug = data["pflanzenschutzmittel"][0]["name"].replace(" ", "_") if data["pflanzenschutzmittel"] else "PSM"
     filename = f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.pdf"
+    with open(os.path.join(create_save_path(data["anwendung"]["datum"]), filename), "wb") as f:
+        f.write(buf.getbuffer()) 
 
     return send_file(buf, mimetype="application/pdf",
                      as_attachment=True, download_name=filename)
@@ -611,8 +619,14 @@ def export_json():
     output = build_output(d, betrieb)
     buf = io.BytesIO(json.dumps(output, ensure_ascii=False, indent=2).encode("utf-8"))
     buf.seek(0)
+    eo_name  = output["einsatzorte"][0]["name"] if output["einsatzorte"] else "export"
+    datum    = output["anwendung"]["datum"].replace("-", "")
+    psm_slug = output["pflanzenschutzmittel"][0]["name"].replace(" ", "_") if output["pflanzenschutzmittel"] else "PSM"
+    filename = f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.json"
+    with open(os.path.join(create_save_path(output["anwendung"]["datum"]), filename), "wb") as f:
+        f.write(buf.getbuffer()) 
     return send_file(buf, mimetype="application/json",
-                     as_attachment=True, download_name="pflanzenschutz_export.json")
+                     as_attachment=True, download_name=filename)
 
 
 @app.route("/api/preview", methods=["POST"])
