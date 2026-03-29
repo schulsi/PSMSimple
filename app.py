@@ -20,8 +20,14 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_DIR = os.environ.get("DB_DIR", BASE_DIR)
-EXPORT_DIR = os.environ.get("EXPORT_DIR", BASE_DIR)
+
+DATA_DIR    = os.environ.get("DATA_DIR", os.path.join(BASE_DIR, "data"))
+
+DB_DIR      = os.path.join(DATA_DIR, "databases")
+EXPORT_DIR  = os.path.join(DATA_DIR, "exports")
+
+os.makedirs(DB_DIR,     exist_ok=True)
+os.makedirs(EXPORT_DIR, exist_ok=True)
 
 app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
 DB = os.path.join(DB_DIR, "pflanzenschutz.db")
@@ -34,7 +40,7 @@ app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
 app.secret_key = os.environ.get("SECRET_KEY", "change-me-in-production-supersecretkey")
 
 # ── SQLALCHEMY (user database) ───────────────────────────
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "users.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(DB_DIR, "users.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
@@ -56,7 +62,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # ── ORIGINAL SQLITE DB (app data) ────────────────────────
-DB = os.path.join(BASE_DIR, "pflanzenschutz.db")
+DB = os.path.join(DB_DIR, "pflanzenschutz.db")
 
 def get_db():
     conn = sqlite3.connect(DB)
@@ -113,7 +119,7 @@ def api_to_string(einheit: str):
     
 def create_save_path(datum: str = None):
     now = datetime.strptime(datum, "%Y-%m-%d") if datum else datetime.now()
-    path = os.path.join(BASE_DIR, "exports", str(now.year), f"{now.month:02d}_{now.strftime('%B')}")
+    path = os.path.join(EXPORT_DIR, str(now.year), f"{now.month:02d}_{now.strftime('%B')}")
     os.makedirs(path, exist_ok=True)
     return path
 
@@ -700,8 +706,10 @@ def index():
 
 
 # ── STARTUP ──────────────────────────────────────────────
+# Runs whether started via "python app.py" OR "flask run" / gunicorn
+with app.app_context():
+    db.create_all()   # creates users.db + users table (safe if already exists)
+init_db()             # creates pflanzenschutz.db     (safe if already exists)
+
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()   # creates users.db + users table
-    init_db()             # creates pflanzenschutz.db
     app.run(debug=True, port=5001, host="0.0.0.0")
