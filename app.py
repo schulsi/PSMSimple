@@ -57,6 +57,32 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
 
+class UserSettings(db.Model):
+    __tablename__ = "user_settings"
+    id              = db.Column(db.Integer, primary_key=True)
+    user_id         = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
+    browser_download = db.Column(db.Boolean, default=True, nullable=False)
+    local_save       = db.Column(db.Boolean, default=True, nullable=False)
+    default_anwender      = db.Column(db.String(200), nullable=True)
+    default_verantwortlich = db.Column(db.String(200), nullable=True)
+
+    @staticmethod
+    def for_user(user_id):
+        s = UserSettings.query.filter_by(user_id=user_id).first()
+        if not s:
+            s = UserSettings(user_id=user_id)
+            db.session.add(s)
+            db.session.commit()
+        return s
+
+    def to_dict(self):
+        return {
+            "browser_download":        self.browser_download,
+            "local_save":              self.local_save,
+            "default_anwender":        self.default_anwender or "",
+            "default_verantwortlich":  self.default_verantwortlich or "",
+        }
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -99,13 +125,6 @@ def init_db():
             name TEXT, eppoCode TEXT
         );
     """)
-
-    if not c.execute("SELECT id FROM betrieb LIMIT 1").fetchone():
-       c.execute("""INSERT INTO betrieb (firma,name,vorname,strHnr,plz,ort,bundesland,guid)
-                     VALUES (?,?,?,?,?,?,?,?)""",
-                  ("Schulz", "Schulz", "Silas", "Am Dreschschopf 4", "79268", "Bötzingen", "BW",
-                   str(uuid.uuid4())))
-
     conn.commit()
     conn.close()
 
@@ -117,9 +136,9 @@ def api_to_string(einheit: str):
     elif einheit == "MD":
         return "ml/dosis"
     
-def create_save_path(datum: str = None):
+def create_save_path(datum: str = None, base: str = None):
     now = datetime.strptime(datum, "%Y-%m-%d") if datum else datetime.now()
-    path = os.path.join(EXPORT_DIR, str(now.year), f"{now.month:02d}_{now.strftime('%B')}")
+    path = os.path.join(BASE_DIR, "exports", str(now.year), f"{now.month:02d}_{now.strftime('%B')}")
     os.makedirs(path, exist_ok=True)
     return path
 
@@ -205,6 +224,26 @@ def rename_user():
 
     # Update only the username — all other data (betrieb etc.) stays untouched
     current_user.username = new_name
+    db.session.commit()
+    return jsonify({"ok": True})
+
+# ── USER SETTINGS ────────────────────────────────────────
+
+@app.route("/api/user/settings", methods=["GET"])
+@login_required
+def get_settings():
+    return jsonify(UserSettings.for_user(current_user.id).to_dict())
+
+
+@app.route("/api/user/settings", methods=["POST"])
+@login_required
+def save_settings():
+    d = request.json
+    s = UserSettings.for_user(current_user.id)
+    s.browser_download        = bool(d.get("browser_download", True))
+    s.local_save              = bool(d.get("local_save", True))
+    s.default_anwender        = d.get("default_anwender", "").strip() or None
+    s.default_verantwortlich  = d.get("default_verantwortlich", "").strip() or None
     db.session.commit()
     return jsonify({"ok": True})
 
@@ -614,11 +653,15 @@ def export_pdf():
     datum    = data["anwendung"]["datum"].replace("-", "")
     psm_slug = data["pflanzenschutzmittel"][0]["name"].replace(" ", "_") if data["pflanzenschutzmittel"] else "PSM"
     filename = f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.pdf"
-    with open(os.path.join(create_save_path(data["anwendung"]["datum"]), filename), "wb") as f:
-        f.write(buf.getbuffer()) 
-
-    return send_file(buf, mimetype="application/pdf",
-                     as_attachment=True, download_name=filename)
+    settings = UserSettings.for_user(current_user.id)
+    if settings.local_save:
+        with open(os.path.join(create_save_path(data["anwendung"]["datum"], settings.save_path or None), filename), "wb") as f:
+            f.write(buf.getbuffer())
+    if settings.browser_download:
+        buf.seek(0)
+        return send_file(buf, mimetype="application/pdf",
+                         as_attachment=True, download_name=filename)
+    return jsonify({"ok": True, "filename": filename})
 
 
 @app.route("/api/export", methods=["POST"])
@@ -635,10 +678,15 @@ def export_json():
     datum    = output["anwendung"]["datum"].replace("-", "")
     psm_slug = output["pflanzenschutzmittel"][0]["name"].replace(" ", "_") if output["pflanzenschutzmittel"] else "PSM"
     filename = f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.json"
-    with open(os.path.join(create_save_path(output["anwendung"]["datum"]), filename), "wb") as f:
-        f.write(buf.getbuffer()) 
-    return send_file(buf, mimetype="application/json",
-                     as_attachment=True, download_name=filename)
+    settings = UserSettings.for_user(current_user.id)
+    if settings.local_save:
+        with open(os.path.join(create_save_path(output["anwendung"]["datum"], settings.save_path or None), filename), "wb") as f:
+            f.write(buf.getbuffer())
+    if settings.browser_download:
+        buf.seek(0)
+        return send_file(buf, mimetype="application/json",
+                         as_attachment=True, download_name=filename)
+    return jsonify({"ok": True, "filename": filename})
 
 
 @app.route("/api/preview", methods=["POST"])
