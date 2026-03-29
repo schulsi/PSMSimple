@@ -21,6 +21,7 @@ from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.environ.get("DB_DIR", BASE_DIR)
+EXPORT_DIR = os.environ.get("EXPORT_DIR", BASE_DIR)
 
 app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
 DB = os.path.join(DB_DIR, "pflanzenschutz.db")

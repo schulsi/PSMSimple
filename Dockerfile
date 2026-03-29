@@ -10,9 +10,13 @@ COPY app.py .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN mkdir -p /data
+RUN mkdir -p /psmsimple/databases
 
-ENV DB_PATH=/data
+RUN mkdir -p /psmsimple/exports
+
+ENV DB_PATH=/psmsimple/databases
+
+ENV EXPORT_PATH=/psmsimple/exports
 
 EXPOSE 80
 
