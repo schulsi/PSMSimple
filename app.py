@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, send_from_directory
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,7 +13,8 @@ import os
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
-from reportlab.platypus import (SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable)
+from reportlab.platypus import (
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable)
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
 from datetime import datetime
@@ -602,6 +603,11 @@ def preview_json():
     return jsonify(build_output(d, betrieb))
 
 
+@app.route('/media/<path:filename>')
+def media(filename):
+    return send_from_directory('media', filename)
+
+
 @app.route("/")
 @login_required
 def index():
@@ -613,4 +619,4 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()   # creates users.db + users table
     init_db()             # creates pflanzenschutz.db
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001, host="0.0.0.0")
