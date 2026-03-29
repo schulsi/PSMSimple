@@ -327,6 +327,7 @@
             <button onclick="renameUser()">Speichern</button>
           </div>
         </div>
+        <a onclick="showTab('settings',this)"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
         <a class="popup-logout" href="{{ url_for('logout') }}">🚪 Abmelden</a>
       </div>
 
@@ -449,6 +450,49 @@
       </div>
     </div>
 
+    <!-- SETTINGS -->
+    <div id="tab-settings" class="tab">
+      <h2>⚙️ Einstellungen</h2>
+
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">📁 Export-Verhalten</h3>
+        <div style="display:flex;flex-direction:column;gap:.85rem">
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
+            <input type="checkbox" id="set-browser-download" style="accent-color:var(--green-mid);width:16px;height:16px">
+            <div>
+              <div style="font-weight:600;font-size:.9rem">Browser-Download</div>
+              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird direkt im Browser heruntergeladen</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
+            <input type="checkbox" id="set-local-save" style="accent-color:var(--green-mid);width:16px;height:16px">
+            <div>
+              <div style="font-weight:600;font-size:.9rem">Lokal speichern</div>
+              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird auf dem Server im Exportordner abgelegt</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">👤 Standard-Felder</h3>
+        <div class="form-grid" style="max-width:600px">
+          <div class="field">
+            <label>Standard-Anwender</label>
+            <input id="set-default-anwender" placeholder="Wird automatisch in Anwendung eingetragen">
+          </div>
+          <div class="field">
+            <label>Standard-Verantwortliche/r</label>
+            <input id="set-default-verantwortlich" placeholder="Wird automatisch in Anwendung eingetragen">
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.75rem;margin-top:.5rem">
+        <button class="btn btn-primary" onclick="saveSettings()">💾 Einstellungen speichern</button>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -532,6 +576,50 @@
 </div>
 
 <div id="toast"></div>
+
+<!-- MODAL Betriebsdaten-Wizard -->
+<div class="modal-overlay" id="modal-betrieb-wizard">
+  <div class="modal">
+    <h3>Willkommen 👋</h3>
+    <p style="margin-bottom:1rem;color:var(--text-muted)">
+      Bevor du loslegst, trage bitte einmal die Betriebsdaten ein.
+    </p>
+
+    <div class="form-grid cols-3">
+      <div class="field"><label>Firma</label><input id="wiz-firma" placeholder="Mustermann Gemüsebau"></div>
+      <div class="field"><label>Nachname</label><input id="wiz-name" placeholder="Mustermann"></div>
+      <div class="field"><label>Vorname</label><input id="wiz-vorname" placeholder="Max"></div>
+      <div class="field"><label>Straße + Hausnr.</label><input id="wiz-strHnr" placeholder="Musterstraße 123"></div>
+      <div class="field"><label>PLZ</label><input id="wiz-plz" placeholder="12345"></div>
+      <div class="field"><label>Ort</label><input id="wiz-ort" placeholder="Musterstadt"></div>
+      <div class="field">
+        <label>Bundesland</label>
+        <select id="wiz-bundesland">
+          <option value="BW">Baden-Württemberg</option>
+          <option value="BY">Bayern</option>
+          <option value="BE">Berlin</option>
+          <option value="BB">Brandenburg</option>
+          <option value="HB">Bremen</option>
+          <option value="HH">Hamburg</option>
+          <option value="HE">Hessen</option>
+          <option value="MV">Mecklenburg-Vorpommern</option>
+          <option value="NI">Niedersachsen</option>
+          <option value="NW">Nordrhein-Westfalen</option>
+          <option value="RP">Rheinland-Pfalz</option>
+          <option value="SL">Saarland</option>
+          <option value="SN">Sachsen</option>
+          <option value="ST">Sachsen-Anhalt</option>
+          <option value="SH">Schleswig-Holstein</option>
+          <option value="TH">Thüringen</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveBetriebWizard()">Speichern und starten</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── NAV ──────────────────────────────────────────────────
@@ -635,28 +723,76 @@ async function renameUser() {
 }
 
 // ── BETRIEB ──────────────────────────────────────────────
-async function loadBetrieb() {
-  const b = await fetch('/api/betrieb').then(r => r.json());
-  if (!b.id) return;
+let betriebExists = false;
+
+function openBetriebWizard() {
+  document.getElementById('modal-betrieb-wizard').classList.add('open');
+}
+
+function closeBetriebWizard() {
+  document.getElementById('modal-betrieb-wizard').classList.remove('open');
+}
+
+function fillBetriebForm(b) {
   ['firma','name','vorname','strHnr','plz','ort'].forEach(f => {
     document.getElementById('b-' + f).value = b[f] || '';
   });
   document.getElementById('b-bundesland').value = b.bundesland || 'BW';
 }
+
+async function loadBetrieb() {
+  const b = await fetch('/api/betrieb').then(r => r.json());
+
+  if (!b.id) {
+    betriebExists = false;
+    openBetriebWizard();
+    return;
+  }
+
+  betriebExists = true;
+  fillBetriebForm(b);
+}
+
 async function saveBetrieb() {
   await fetch('/api/betrieb', {
-    method: 'POST', headers: {'Content-Type':'application/json'},
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
       firma: document.getElementById('b-firma').value,
-      name:  document.getElementById('b-name').value,
+      name: document.getElementById('b-name').value,
       vorname: document.getElementById('b-vorname').value,
       strHnr: document.getElementById('b-strHnr').value,
-      plz:   document.getElementById('b-plz').value,
-      ort:   document.getElementById('b-ort').value,
+      plz: document.getElementById('b-plz').value,
+      ort: document.getElementById('b-ort').value,
       bundesland: document.getElementById('b-bundesland').value,
     })
   });
+
+  betriebExists = true;
   toast('✅ Betrieb gespeichert');
+}
+
+async function saveBetriebWizard() {
+  const payload = {
+    firma: document.getElementById('wiz-firma').value,
+    name: document.getElementById('wiz-name').value,
+    vorname: document.getElementById('wiz-vorname').value,
+    strHnr: document.getElementById('wiz-strHnr').value,
+    plz: document.getElementById('wiz-plz').value,
+    ort: document.getElementById('wiz-ort').value,
+    bundesland: document.getElementById('wiz-bundesland').value,
+  };
+
+  await fetch('/api/betrieb', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+
+  fillBetriebForm(payload);
+  betriebExists = true;
+  closeBetriebWizard();
+  toast('✅ Betriebsdaten gespeichert');
 }
 
 // ── PSM ──────────────────────────────────────────────────
@@ -673,10 +809,6 @@ function hidePSMResults() {
 function showPSMResults(items) {
   if (!items.length) {
     psmSearchResults.innerHTML = '<div class="autocomplete-empty">Keine Treffer</div>';
-    const rect = psmNameInput.getBoundingClientRect();
-    psmSearchResults.style.top   = (rect.bottom + 4) + 'px';
-    psmSearchResults.style.left  = rect.left + 'px';
-    psmSearchResults.style.width = rect.width + 'px';
     psmSearchResults.classList.add('show');
     return;
   }
@@ -684,12 +816,6 @@ function showPSMResults(items) {
   psmSearchResults.innerHTML = items.map(item => `
     <div class="autocomplete-item" data-name="${item.name.replace(/"/g, '&quot;')}" data-kennr="${item.kennr}">${item.name}</div>
   `).join('');
-
-  // Position relative to input using fixed coords (bypasses modal overflow clipping)
-  const rect = psmNameInput.getBoundingClientRect();
-  psmSearchResults.style.top   = (rect.bottom + 4) + 'px';
-  psmSearchResults.style.left  = rect.left + 'px';
-  psmSearchResults.style.width = rect.width + 'px';
   psmSearchResults.classList.add('show');
 
   psmSearchResults.querySelectorAll('.autocomplete-item').forEach(el => {
@@ -968,11 +1094,11 @@ async function loadExportSelections() {
     document.getElementById('tab-export').addEventListener('change', validate);
     validate();
   }, 50);
-  if (betrieb.vorname) {
-    const full = `${betrieb.vorname} ${betrieb.name}`;
-    document.getElementById('anw-verantwortlich').value = full;
-    document.getElementById('anw-anwender').value = full;
-  }
+  // Prefer user settings defaults, fall back to betrieb name
+  const settings = await fetch('/api/user/settings').then(r => r.json());
+  const fullName = betrieb.vorname ? `${betrieb.vorname} ${betrieb.name}` : '';
+  document.getElementById('anw-anwender').value      = settings.default_anwender       || fullName;
+  document.getElementById('anw-verantwortlich').value = settings.default_verantwortlich || fullName;
 }
 
 function validate() {
@@ -1074,6 +1200,11 @@ async function exportJSON() {
   const resp = await fetch('/api/export', {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
   });
+  const ct = resp.headers.get('Content-Type') || '';
+  if (ct.includes('application/json')) {
+    const data = await resp.json();
+    if (data.filename) { toast(`✅ JSON gespeichert: ${data.filename}`); return; }
+  }
   const blob = await resp.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1088,6 +1219,12 @@ async function exportPDF() {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
   });
   if (!resp.ok) { toast('❌ PDF-Fehler'); return; }
+  const ct = resp.headers.get('Content-Type') || '';
+  if (ct.includes('application/json')) {
+    const data = await resp.json();
+    toast(`✅ PDF gespeichert: ${data.filename}`);
+    return;
+  }
   const blob = await resp.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1117,8 +1254,34 @@ function updateArtSubkategorie() {
   sub.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
 }
 
+// ── SETTINGS ─────────────────────────────────────────────
+async function loadSettings() {
+  const s = await fetch('/api/user/settings').then(r => r.json());
+  document.getElementById('set-browser-download').checked  = s.browser_download;
+  document.getElementById('set-local-save').checked        = s.local_save;
+  document.getElementById('set-default-anwender').value    = s.default_anwender || '';
+  document.getElementById('set-default-verantwortlich').value = s.default_verantwortlich || '';
+}
+
+async function saveSettings() {
+  const payload = {
+    browser_download:       document.getElementById('set-browser-download').checked,
+    local_save:             document.getElementById('set-local-save').checked,
+    default_anwender:       document.getElementById('set-default-anwender').value.trim(),
+    default_verantwortlich: document.getElementById('set-default-verantwortlich').value.trim(),
+  };
+  if (!payload.browser_download && !payload.local_save) {
+    toast('⚠️ Mindestens eine Export-Option muss aktiv sein');
+    return;
+  }
+  const res = await fetch('/api/user/settings', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+  }).then(r => r.json());
+  if (res.ok) toast('✅ Einstellungen gespeichert');
+}
+
 // ── INIT ────────────────────────────────────────────────
-loadBetrieb(); loadPSM(); loadEinsatzorte(); loadKulturen();
+loadBetrieb(); loadPSM(); loadEinsatzorte(); loadKulturen(); loadSettings();
 </script>
 </body>
 </html>
