@@ -35,6 +35,8 @@ DB = os.path.join(DB_DIR, "pflanzenschutz.db")
 PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
 
 app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
+DB_DIR = os.environ.get("DB_DIR", BASE_DIR)
+DB = os.path.join(DB_DIR, "pflanzenschutz.db")
 
 # ── SECRET KEY (change in production!) ──────────────────
 app.secret_key = os.environ.get("SECRET_KEY", "change-me-in-production-supersecretkey")
@@ -139,6 +141,13 @@ def init_db():
             json_data TEXT NOT NULL
         );
     """)
+
+    if not c.execute("SELECT id FROM betrieb LIMIT 1").fetchone():
+       c.execute("""INSERT INTO betrieb (firma,name,vorname,strHnr,plz,ort,bundesland,guid)
+                     VALUES (?,?,?,?,?,?,?,?)""",
+                  ("Schulz", "Schulz", "Silas", "Am Dreschschopf 4", "79268", "Bötzingen", "BW",
+                   str(uuid.uuid4())))
+
     conn.commit()
     conn.close()
 
