@@ -22,7 +22,99 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+  .history-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
+.history-section {
+  background: var(--cream);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.history-section h4 {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--green-deep);
+  margin-bottom: .75rem;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem 1rem;
+}
+
+.history-field {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.history-field .label {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.history-field .value {
+  font-size: .9rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.history-list-block {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+
+.history-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.history-chip {
+  background: #fff;
+  border: 1px solid var(--cream-dark);
+  border-radius: 999px;
+  padding: .35rem .7rem;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--green-deep);
+}
+
+.history-subitem {
+  background: #fff;
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  padding: .75rem .9rem;
+}
+
+.history-subitem-title {
+  font-weight: 700;
+  font-size: .88rem;
+  color: var(--green-deep);
+  margin-bottom: .2rem;
+}
+
+.history-subitem-meta {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin-top: .15rem;
+}
+
+@media (max-width: 700px) {
+  .history-grid {
+    grid-template-columns: 1fr;
+  }
+}
   header {
     background: var(--green-deep); color: #fff;
     padding: 0 2rem; display: flex; align-items: center; gap: 1rem;
@@ -311,6 +403,8 @@
       <a onclick="showTab('kulturen',this)"><span class="ico">🌾</span> Kulturen</a>
       <div class="section-label">Export</div>
       <a onclick="showTab('export',this)"><span class="ico">📄</span> Applikation dokumentieren</a>
+      <div class="section-label">Verlauf</div>
+<a onclick="showTab('history',this); loadHistory()"><span class="ico">🕘</span> Gespeicherte Applikationen</a>
     </div>
 
     <!-- ── User widget ── -->
@@ -449,6 +543,24 @@
         <pre id="json-preview"></pre>
       </div>
     </div>
+    <!-- HISTORY  -->
+    <div id="tab-history" class="tab">
+      <h2>🕘 History <span class="badge" id="history-count">0</span></h2>
+
+      <div class="card">
+        <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
+          Hier siehst du alle gespeicherten Applikationen.
+        </p>
+        <div class="item-list" id="history-list"></div>
+      </div>
+
+      <div class="card" id="history-detail-wrap" style="display:none">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">
+          🔍 Applikationsdetails
+        </h3>
+
+        <div id="history-detail" class="history-detail"></div>
+      </div>
 
     <!-- SETTINGS -->
     <div id="tab-settings" class="tab">
@@ -1197,14 +1309,29 @@ async function previewJSON() {
 
 async function exportJSON() {
   const payload = getExportPayload();
+
+  try {
+    await ensureHistorySaved(payload);
+  } catch (err) {
+    toast('❌ History konnte nicht gespeichert werden');
+    return;
+  }
+
   const resp = await fetch('/api/export', {
-    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
   });
+
   const ct = resp.headers.get('Content-Type') || '';
   if (ct.includes('application/json')) {
     const data = await resp.json();
-    if (data.filename) { toast(`✅ JSON gespeichert: ${data.filename}`); return; }
+    if (data.filename) {
+      toast(`✅ JSON gespeichert: ${data.filename}`);
+      return;
+    }
   }
+
   const blob = await resp.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1215,16 +1342,32 @@ async function exportJSON() {
 
 async function exportPDF() {
   const payload = getExportPayload();
+
+  try {
+    await ensureHistorySaved(payload);
+  } catch (err) {
+    toast('❌ History konnte nicht gespeichert werden');
+    return;
+  }
+
   const resp = await fetch('/api/pdf', {
-    method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
   });
-  if (!resp.ok) { toast('❌ PDF-Fehler'); return; }
+
+  if (!resp.ok) {
+    toast('❌ PDF-Fehler');
+    return;
+  }
+
   const ct = resp.headers.get('Content-Type') || '';
   if (ct.includes('application/json')) {
     const data = await resp.json();
     toast(`✅ PDF gespeichert: ${data.filename}`);
     return;
   }
+
   const blob = await resp.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1252,6 +1395,213 @@ function updateArtSubkategorie() {
   const sub = document.getElementById('anw-art-sub');
   const opts = ART_SUBKATEGORIEN[haupt] || [];
   sub.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
+}
+let lastSavedHistorySignature = null;
+
+function getPayloadSignature(payload) {
+  return JSON.stringify(payload);
+}
+
+async function ensureHistorySaved(payload) {
+  const signature = getPayloadSignature(payload);
+  if (lastSavedHistorySignature === signature) return;
+
+  const resp = await fetch('/api/history', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+
+  const data = await resp.json();
+  if (!resp.ok || !data.ok) {
+    throw new Error(data.error || 'History konnte nicht gespeichert werden.');
+  }
+
+  lastSavedHistorySignature = signature;
+}
+
+async function loadHistory() {
+  const items = await fetch('/api/history').then(r => r.json());
+  const list = document.getElementById('history-list');
+  const count = document.getElementById('history-count');
+  count.textContent = items.length;
+
+  if (!items.length) {
+    list.innerHTML = `<div class="empty">Noch keine Applikationen gespeichert.</div>`;
+    return;
+  }
+
+  list.innerHTML = items.map(item => `
+    <div class="item">
+      <div class="item-info">
+        <div class="name">${item.datum || 'Ohne Datum'} ${item.uhrzeit ? '· ' + item.uhrzeit : ''}</div>
+        <div class="meta">${item.artVerwendung || '—'}</div>
+        <div class="meta">📍 ${item.einsatzorte || '—'}</div>
+        <div class="meta">🧪 ${item.psm_namen || '—'}</div>
+        <div class="meta">🌾 ${item.kulturen || '—'}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-sm btn-ghost" onclick="showHistoryDetail(${item.id})">Ansehen</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function field(label, value) {
+  return `
+    <div class="history-field">
+      <div class="label">${escapeHtml(label)}</div>
+      <div class="value">${escapeHtml(value || '—')}</div>
+    </div>
+  `;
+}
+
+function renderSimpleList(items, emptyText = 'Keine Einträge vorhanden') {
+  if (!items || !items.length) {
+    return `<div class="empty" style="padding:1rem">${escapeHtml(emptyText)}</div>`;
+  }
+
+  return `
+    <div class="history-chip-list">
+      ${items.map(item => `<div class="history-chip">${escapeHtml(item.name || item)}</div>`).join('')}
+    </div>
+  `;
+}
+
+function renderPSMList(items) {
+  if (!items || !items.length) {
+    return `<div class="empty" style="padding:1rem">Keine Pflanzenschutzmittel vorhanden.</div>`;
+  }
+
+  return `
+    <div class="history-list-block">
+      ${items.map(psm => {
+        const menge = psm.aufwandMenge || '';
+        const einheit = psm.aufwandEinheit || '';
+        const aufwand = menge ? `${menge} ${einheit}`.trim() : '—';
+
+        return `
+          <div class="history-subitem">
+            <div class="history-subitem-title">${escapeHtml(psm.name || 'Unbenanntes Mittel')}</div>
+            <div class="history-subitem-meta"><strong>Verwendete Menge:</strong> ${escapeHtml(aufwand)}</div>
+            <div class="history-subitem-meta">Zul.-Nr.: ${escapeHtml(psm.zulassungsnr || '—')}</div>
+            <div class="history-subitem-meta">Wirkstoffe: ${escapeHtml(psm.wirkstoffe || '—')}</div>
+            <div class="history-subitem-meta">Bienen: ${escapeHtml(psm.bienen || '—')}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderEinsatzorte(items) {
+  if (!items || !items.length) {
+    return `<div class="empty" style="padding:1rem">Keine Einsatzorte vorhanden.</div>`;
+  }
+
+  return `
+    <div class="history-list-block">
+      ${items.map(ort => `
+        <div class="history-subitem">
+          <div class="history-subitem-title">${escapeHtml(ort.name || 'Unbenannter Einsatzort')}</div>
+          <div class="history-subitem-meta">Bereich: ${escapeHtml(ort.anwendungsbereich || '—')}</div>
+          <div class="history-subitem-meta">Typ: ${escapeHtml(ort.geoTyp || '—')}</div>
+          <div class="history-subitem-meta">Fläche/Volumen: ${escapeHtml(ort.flaecheVolumen || '—')} ${escapeHtml(ort.einheit || '')}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+function renderKulturenList(items) {
+  if (!items || !items.length) {
+    return `<div class="empty" style="padding:1rem">Keine Kulturen hinterlegt.</div>`;
+  }
+
+  return `
+    <div class="history-list-block">
+      ${items.map(k => `
+        <div class="history-subitem">
+          <div class="history-subitem-title">${escapeHtml(k.name || 'Unbenannte Kultur')}</div>
+          <div class="history-subitem-meta">EPPO-Code: ${escapeHtml(k.eppoCode || '—')}</div>
+          <div class="history-subitem-meta"><strong>BBCH-Stadium:</strong> ${escapeHtml(k.bbchCode || '—')}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function showHistoryDetail(id) {
+  const item = await fetch(`/api/history/${id}`).then(r => r.json());
+  const wrap = document.getElementById('history-detail-wrap');
+  const container = document.getElementById('history-detail');
+
+  const data = item.json_data || {};
+  const anwendung = data.anwendung || {};
+  const betrieb = data.betrieb || {};
+  const psm = data.pflanzenschutzmittel || [];
+  const einsatzorte = data.einsatzorte || [];
+  const kulturen = data.kulturen || [];
+
+  container.innerHTML = `
+    <div class="history-section">
+      <h4>Allgemein</h4>
+      <div class="history-grid">
+        ${field('Datum', anwendung.datum)}
+        ${field('Uhrzeit', anwendung.uhrzeit)}
+        ${field('Art der Verwendung', anwendung.artVerwendung)}
+        ${field('Verantwortlich', anwendung.verantwortlich)}
+        ${field('Anwender', anwendung.anwender)}
+        ${field('Gespeichert am', formatDateTime(item.created_at))}
+      </div>
+    </div>
+
+    <div class="history-section">
+      <h4>Betrieb</h4>
+      <div class="history-grid">
+        ${field('Firma', betrieb.firma)}
+        ${field('Nachname', betrieb.name)}
+        ${field('Vorname', betrieb.vorname)}
+        ${field('Straße / Hausnr.', betrieb.strHnr)}
+        ${field('PLZ', betrieb.plz)}
+        ${field('Ort', betrieb.ort)}
+        ${field('Bundesland', betrieb.bundesland)}
+      </div>
+    </div>
+
+    <div class="history-section">
+      <h4>Kulturen</h4>
+      ${renderKulturenList(kulturen)}
+    </div>
+
+    <div class="history-section">
+      <h4>Einsatzorte</h4>
+      ${renderEinsatzorte(einsatzorte)}
+    </div>
+
+    <div class="history-section">
+      <h4>Pflanzenschutzmittel</h4>
+      ${renderPSMList(psm)}
+    </div>
+  `;
+
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function formatDateTime(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (isNaN(d)) return value;
+  return d.toLocaleString('de-DE');
 }
 
 // ── SETTINGS ─────────────────────────────────────────────
