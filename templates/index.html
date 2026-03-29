@@ -185,17 +185,14 @@
   autocomplete-wrap { position: relative; }
 .autocomplete-results {
   display: none;
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
+  position: fixed;
   background: #fff;
   border: 1.5px solid var(--cream-dark);
   border-radius: 8px;
   box-shadow: var(--shadow);
   max-height: 220px;
   overflow-y: auto;
-  z-index: 250;
+  z-index: 9999;
 }
 .autocomplete-results.show { display: block; }
 .autocomplete-item {
