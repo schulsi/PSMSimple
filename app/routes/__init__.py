@@ -7,6 +7,7 @@ from .kulturen import bp as kulturen_bp
 from .history import bp as history_bp
 from .pages import bp as pages_bp
 from .export import bp as export_bp
+from .psm_lookup import bp as psm_lookup_bp
 
 
 def register_blueprints(app):
@@ -19,3 +20,4 @@ def register_blueprints(app):
     app.register_blueprint(history_bp)
     app.register_blueprint(pages_bp)
     app.register_blueprint(export_bp)
+    app.register_blueprint(psm_lookup_bp)

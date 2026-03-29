@@ -1,15 +1,16 @@
 from flask import Flask
+
 from .config import Config
 from .extensions import db, login_manager
+from .models import User
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
 
-from .models.user import User
-from .extensions import login_manager
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
