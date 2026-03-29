@@ -1,3 +1,9 @@
+from app import create_app
+app = create_app()
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5001, host="0.0.0.0")
+
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, send_from_directory
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
@@ -9,6 +15,12 @@ from datetime import date, datetime
 import requests
 import io
 import os
+
+from app import create_app
+app = create_app()
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5001, host="0.0.0.0")
 
 # Needed for PDF creation
 from reportlab.lib.pagesizes import A4
