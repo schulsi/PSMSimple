@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from flask_login import login_required
 
-from ..services.psm_api_service import (
+from ..services.psm_api_services  import (
     search_psm_by_term,
     get_psm_info_by_kennr,
 )
