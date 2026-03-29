@@ -35,6 +35,8 @@ DB = os.path.join(DB_DIR, "pflanzenschutz.db")
 PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
 
 app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
+DB_DIR = os.environ.get("DB_DIR", BASE_DIR)
+DB = os.path.join(DB_DIR, "pflanzenschutz.db")
 
 
 
