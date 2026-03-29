@@ -185,14 +185,17 @@
   autocomplete-wrap { position: relative; }
 .autocomplete-results {
   display: none;
-  position: fixed;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
   background: #fff;
   border: 1.5px solid var(--cream-dark);
   border-radius: 8px;
   box-shadow: var(--shadow);
   max-height: 220px;
   overflow-y: auto;
-  z-index: 9999;
+  z-index: 250;
 }
 .autocomplete-results.show { display: block; }
 .autocomplete-item {
@@ -311,6 +314,8 @@
       <a onclick="showTab('kulturen',this)"><span class="ico">🌾</span> Kulturen</a>
       <div class="section-label">Export</div>
       <a onclick="showTab('export',this)"><span class="ico">📄</span> Applikation dokumentieren</a>
+      <div class="section-label">Konfiguration</div>
+      <a onclick="showTab('settings',this)"><span class="ico">⚙️</span> Einstellungen</a>
     </div>
 
     <!-- ── User widget ── -->
@@ -446,6 +451,53 @@
         <div class="divider"></div>
         <h3 style="font-size:1rem;font-weight:600;margin-bottom:.75rem;color:var(--green-deep)">🔍 Vorschau</h3>
         <pre id="json-preview"></pre>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="tab-settings" class="tab">
+      <h2>⚙️ Einstellungen</h2>
+
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">📁 Export-Verhalten</h3>
+        <div style="display:flex;flex-direction:column;gap:.85rem">
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
+            <input type="checkbox" id="set-browser-download" style="accent-color:var(--green-mid);width:16px;height:16px">
+            <div>
+              <div style="font-weight:600;font-size:.9rem">Browser-Download</div>
+              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird direkt im Browser heruntergeladen</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
+            <input type="checkbox" id="set-local-save" style="accent-color:var(--green-mid);width:16px;height:16px">
+            <div>
+              <div style="font-weight:600;font-size:.9rem">Lokal speichern</div>
+              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird auf dem Server im Exportordner abgelegt</div>
+            </div>
+          </label>
+          <div class="field" style="max-width:480px">
+            <label>Speicherpfad <span style="font-weight:400;text-transform:none;letter-spacing:0">(leer = Standard exports/)</span></label>
+            <input id="set-save-path" placeholder="/pfad/zum/ordner">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">👤 Standard-Felder</h3>
+        <div class="form-grid" style="max-width:600px">
+          <div class="field">
+            <label>Standard-Anwender</label>
+            <input id="set-default-anwender" placeholder="Wird automatisch in Anwendung eingetragen">
+          </div>
+          <div class="field">
+            <label>Standard-Verantwortliche/r</label>
+            <input id="set-default-verantwortlich" placeholder="Wird automatisch in Anwendung eingetragen">
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.75rem;margin-top:.5rem">
+        <button class="btn btn-primary" onclick="saveSettings()">💾 Einstellungen speichern</button>
       </div>
     </div>
 
@@ -673,10 +725,6 @@ function hidePSMResults() {
 function showPSMResults(items) {
   if (!items.length) {
     psmSearchResults.innerHTML = '<div class="autocomplete-empty">Keine Treffer</div>';
-    const rect = psmNameInput.getBoundingClientRect();
-    psmSearchResults.style.top   = (rect.bottom + 4) + 'px';
-    psmSearchResults.style.left  = rect.left + 'px';
-    psmSearchResults.style.width = rect.width + 'px';
     psmSearchResults.classList.add('show');
     return;
   }
@@ -684,12 +732,6 @@ function showPSMResults(items) {
   psmSearchResults.innerHTML = items.map(item => `
     <div class="autocomplete-item" data-name="${item.name.replace(/"/g, '&quot;')}" data-kennr="${item.kennr}">${item.name}</div>
   `).join('');
-
-  // Position relative to input using fixed coords (bypasses modal overflow clipping)
-  const rect = psmNameInput.getBoundingClientRect();
-  psmSearchResults.style.top   = (rect.bottom + 4) + 'px';
-  psmSearchResults.style.left  = rect.left + 'px';
-  psmSearchResults.style.width = rect.width + 'px';
   psmSearchResults.classList.add('show');
 
   psmSearchResults.querySelectorAll('.autocomplete-item').forEach(el => {
@@ -968,11 +1010,11 @@ async function loadExportSelections() {
     document.getElementById('tab-export').addEventListener('change', validate);
     validate();
   }, 50);
-  if (betrieb.vorname) {
-    const full = `${betrieb.vorname} ${betrieb.name}`;
-    document.getElementById('anw-verantwortlich').value = full;
-    document.getElementById('anw-anwender').value = full;
-  }
+  // Prefer user settings defaults, fall back to betrieb name
+  const settings = await fetch('/api/user/settings').then(r => r.json());
+  const fullName = betrieb.vorname ? `${betrieb.vorname} ${betrieb.name}` : '';
+  document.getElementById('anw-anwender').value      = settings.default_anwender       || fullName;
+  document.getElementById('anw-verantwortlich').value = settings.default_verantwortlich || fullName;
 }
 
 function validate() {
@@ -1074,6 +1116,11 @@ async function exportJSON() {
   const resp = await fetch('/api/export', {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
   });
+  const ct = resp.headers.get('Content-Type') || '';
+  if (ct.includes('application/json')) {
+    const data = await resp.json();
+    if (data.filename) { toast(`✅ JSON gespeichert: ${data.filename}`); return; }
+  }
   const blob = await resp.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1088,6 +1135,12 @@ async function exportPDF() {
     method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
   });
   if (!resp.ok) { toast('❌ PDF-Fehler'); return; }
+  const ct = resp.headers.get('Content-Type') || '';
+  if (ct.includes('application/json')) {
+    const data = await resp.json();
+    toast(`✅ PDF gespeichert: ${data.filename}`);
+    return;
+  }
   const blob = await resp.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1117,8 +1170,36 @@ function updateArtSubkategorie() {
   sub.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
 }
 
+// ── SETTINGS ─────────────────────────────────────────────
+async function loadSettings() {
+  const s = await fetch('/api/user/settings').then(r => r.json());
+  document.getElementById('set-browser-download').checked  = s.browser_download;
+  document.getElementById('set-local-save').checked        = s.local_save;
+  document.getElementById('set-save-path').value           = s.save_path || '';
+  document.getElementById('set-default-anwender').value    = s.default_anwender || '';
+  document.getElementById('set-default-verantwortlich').value = s.default_verantwortlich || '';
+}
+
+async function saveSettings() {
+  const payload = {
+    browser_download:       document.getElementById('set-browser-download').checked,
+    local_save:             document.getElementById('set-local-save').checked,
+    save_path:              document.getElementById('set-save-path').value.trim(),
+    default_anwender:       document.getElementById('set-default-anwender').value.trim(),
+    default_verantwortlich: document.getElementById('set-default-verantwortlich').value.trim(),
+  };
+  if (!payload.browser_download && !payload.local_save) {
+    toast('⚠️ Mindestens eine Export-Option muss aktiv sein');
+    return;
+  }
+  const res = await fetch('/api/user/settings', {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+  }).then(r => r.json());
+  if (res.ok) toast('✅ Einstellungen gespeichert');
+}
+
 // ── INIT ────────────────────────────────────────────────
-loadBetrieb(); loadPSM(); loadEinsatzorte(); loadKulturen();
+loadBetrieb(); loadPSM(); loadEinsatzorte(); loadKulturen(); loadSettings();
 </script>
 </body>
 </html>
