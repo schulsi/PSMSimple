@@ -31,14 +31,6 @@
           <div class="popup-label">Angemeldet als</div>
         </div>
 
-        <div class="popup-rename">
-          <label>Benutzername ändern</label>
-          <div class="popup-rename-row">
-            <input type="text" id="rename-input" placeholder="{{ current_user.username }}">
-            <button type="button" onclick="renameUser()">Speichern</button>
-          </div>
-        </div>
-
         <a onclick="showTab('settings', this)"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
         <a class="popup-logout" href="{{ url_for('auth.logout') }}">🚪 Abmelden</a>
       </div>
@@ -211,6 +203,16 @@
           </div>
         </div>
       </div>
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">👤 Benutzername ändern</h3>
+          <div class="popup-rename">
+            <label>Benutzername ändern</label>
+            <div class="popup-rename-row">
+              <input type="text" id="rename-input" placeholder="{{ current_user.username }}">
+              <button type="button" onclick="renameUser()">Speichern</button>
+            </div>
+          </div>
+        </div>
 
       <div style="display:flex;gap:.75rem;margin-top:.5rem">
         <button type="button" class="btn btn-primary" onclick="saveSettings()">💾 Einstellungen speichern</button>
