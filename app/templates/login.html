@@ -176,7 +176,7 @@
         <h2>🔑 Anmelden</h2>
         <p class="subtitle">Melden Sie sich an, um fortzufahren.</p>
 
-        <form method="POST" action="{{ url_for('login') }}">
+        <form method="POST" action="{{ url_for('auth.login') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
           <div class="field">
             <label>Benutzername</label>
@@ -199,7 +199,7 @@
         <h2>✏️ Registrieren</h2>
         <p class="subtitle">Erstellen Sie ein neues Konto.</p>
 
-        <form method="POST" action="{{ url_for('register') }}">
+        <form method="POST" action="{{ url_for('auth.register') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
           <div class="field">
             <label>Benutzername</label>
