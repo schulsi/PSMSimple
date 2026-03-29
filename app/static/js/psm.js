@@ -66,6 +66,8 @@ function collectPSMForm() {
 function openPSMModal() {
   resetPSMForm();
   openModal('modal-psm');
+  document.getElementById("psm-bienen").value = "B4";
+  document.getElementById("psm-aufwandEinheit").value = "kg/ha";
 }
 
 async function editPSM(id) {
@@ -198,7 +200,7 @@ function initPSMSearch() {
     clearTimeout(psmSearchTimer);
     psmSearchTimer = setTimeout(() => {
       searchPSMAutocomplete(input.value);
-    }, 250);
+    }, 100);
   });
 
   document.addEventListener('click', (event) => {

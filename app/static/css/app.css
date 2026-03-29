@@ -385,3 +385,11 @@
   .export-section { margin-bottom: 1.25rem; }
   .export-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: .75rem; color: var(--green-deep); }
   .export-footer { display: flex; gap: 1rem; margin-top: 1.5rem; }
+.field input,
+.field select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 38px;
+  line-height: 38px; 
+  padding: 0 .8rem;      
+}
