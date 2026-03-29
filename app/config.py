@@ -1,6 +1,7 @@
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+EXPORTS_DIR = os.path.join(BASE_DIR, "exports")
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "change-me-in-production-supersecretkey")
