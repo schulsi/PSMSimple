@@ -1,92 +1,29 @@
-from flask import Blueprint, jsonify, request, send_file
-from flask_login import current_user, login_required
+from datetime import datetime
+from pathlib import Path
+import re
 
-from ..models.user import UserSettings
-from ..services.export_service import (
-    build_export_filename,
-    build_output_for_current_betrieb,
-    json_bytes,
-    save_buffer_to_exports,
-)
-from ..services.pdf_service import generate_pdf
+BASE_DIR = Path(__file__).resolve().parents[2]
 
-bp = Blueprint("export", __name__)
+def slugify(value: str, fallback: str = "export") -> str:
+    value = (value or "").strip()
+    if not value:
+        return fallback
+    value = value.replace(" ", "_")
+    value = re.sub(r"[^A-Za-z0-9_\-äöüÄÖÜß]", "", value)
+    return value or fallback
 
+def create_save_path(datum: str | None = None) -> Path:
+    now = datetime.strptime(datum, "%Y-%m-%d") if datum else datetime.now()
+    path = BASE_DIR / "exports" / str(now.year) / f"{now.month:02d}_{now.strftime('%B')}"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
-@bp.route("/api/preview", methods=["POST"])
-@login_required
-def preview_json():
-    payload = request.get_json(silent=True) or {}
-
-    try:
-        output = build_output_for_current_betrieb(payload)
-    except ValueError as exc:
-        return jsonify({"ok": False, "error": str(exc)}), 400
-
-    return jsonify(output)
-
-
-@bp.route("/api/export", methods=["POST"])
-@login_required
-def export_json():
-    payload = request.get_json(silent=True) or {}
-
-    try:
-        output = build_output_for_current_betrieb(payload)
-    except ValueError as exc:
-        return jsonify({"ok": False, "error": str(exc)}), 400
-
-    buf = json_bytes(output)
-    filename = build_export_filename(output, "json")
-    settings = UserSettings.for_user(current_user.id)
-
-    if settings.local_save:
-        save_buffer_to_exports(
-            buf=buf,
-            filename=filename,
-            datum=output.get("anwendung", {}).get("datum"),
-        )
-
-    if settings.browser_download:
-        buf.seek(0)
-        return send_file(
-            buf,
-            mimetype="application/json",
-            as_attachment=True,
-            download_name=filename,
-        )
-
-    return jsonify({"ok": True, "filename": filename})
-
-
-@bp.route("/api/pdf", methods=["POST"])
-@login_required
-def export_pdf():
-    payload = request.get_json(silent=True) or {}
-
-    try:
-        output = build_output_for_current_betrieb(payload)
-    except ValueError as exc:
-        return jsonify({"ok": False, "error": str(exc)}), 400
-
-    buf = generate_pdf(output)
-    filename = build_export_filename(output, "pdf")
-    settings = UserSettings.for_user(current_user.id)
-
-    if settings.local_save:
-        save_buffer_to_exports(
-            buf=buf,
-            filename=filename,
-            datum=output.get("anwendung", {}).get("datum"),
-        )
-
-    if settings.browser_download:
-        buf.seek(0)
-        return send_file(
-            buf,
-            mimetype="application/pdf",
-            as_attachment=True,
-            download_name=filename,
-        )
-
-    return jsonify({"ok": True, "filename": filename})
+def build_export_filename(data: dict, ext: str) -> str:
+    eo_name = slugify(
+        data["einsatzorte"][0]["name"] if data.get("einsatzorte") else "export"
+    )
+    datum = (data.get("anwendung", {}).get("datum") or "").replace("-", "") or "undated"
+    psm_slug = slugify(
+        data["pflanzenschutzmittel"][0]["name"] if data.get("pflanzenschutzmittel") else "PSM"
+    )
+    return f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.{ext}"

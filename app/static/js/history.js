@@ -24,7 +24,6 @@ function renderKulturenHistory(items) {
       ${items.map(k => `
         <div class="history-subitem">
           <div class="history-subitem-title">${escapeHtml(k.name || 'Unbenannte Kultur')}</div>
-          <div class="history-subitem-meta">EPPO-Code: ${escapeHtml(k.eppoCode || '—')}</div>
           <div class="history-subitem-meta"><strong>BBCH-Stadium:</strong> ${escapeHtml(k.bbchCode || '—')}</div>
         </div>
       `).join('')}
@@ -48,9 +47,6 @@ function renderPSMHistory(items) {
           <div class="history-subitem">
             <div class="history-subitem-title">${escapeHtml(psm.name || 'Unbenanntes Mittel')}</div>
             <div class="history-subitem-meta"><strong>Verwendete Menge:</strong> ${escapeHtml(aufwand)}</div>
-            <div class="history-subitem-meta">Zul.-Nr.: ${escapeHtml(psm.zulassungsnr || '—')}</div>
-            <div class="history-subitem-meta">Wirkstoffe: ${escapeHtml(psm.wirkstoffe || '—')}</div>
-            <div class="history-subitem-meta">Bienen: ${escapeHtml(psm.bienen || '—')}</div>
           </div>
         `;
       }).join('')}
@@ -69,7 +65,6 @@ function renderEinsatzorteHistory(items) {
         <div class="history-subitem">
           <div class="history-subitem-title">${escapeHtml(ort.name || 'Unbenannter Einsatzort')}</div>
           <div class="history-subitem-meta">Bereich: ${escapeHtml(ort.anwendungsbereich || '—')}</div>
-          <div class="history-subitem-meta">Typ: ${escapeHtml(ort.geoTyp || '—')}</div>
           <div class="history-subitem-meta">Fläche/Volumen: ${escapeHtml(ort.flaecheVolumen || '—')} ${escapeHtml(ort.einheit || '')}</div>
         </div>
       `).join('')}

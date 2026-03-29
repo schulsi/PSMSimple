@@ -5,7 +5,7 @@ from ..repositories.betrieb_repo import get_betrieb
 from ..repositories.einsatzorte_repo import list_einsatzorte_by_ids
 from ..repositories.kulturen_repo import list_kulturen_by_ids
 from ..repositories.psm_repo import list_psm_by_ids
-
+from ..utils.paths import create_save_path, build_export_filename
 
 def build_output(payload: dict, betrieb: dict) -> dict:
     psm_overrides = {
@@ -50,16 +50,6 @@ def build_output_for_current_betrieb(payload: dict) -> dict:
     return build_output(payload, betrieb)
 
 
-def build_export_filename(data: dict, extension: str) -> str:
-    einsatzorte = data.get("einsatzorte", [])
-    psm_list = data.get("pflanzenschutzmittel", [])
-    anwendung = data.get("anwendung", {})
-
-    eo_name = einsatzorte[0]["name"] if einsatzorte else "export"
-    datum = (anwendung.get("datum") or "").replace("-", "") or "ohne_datum"
-    psm_slug = psm_list[0]["name"].replace(" ", "_") if psm_list else "PSM"
-
-    return f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.{extension}"
 
 
 def json_bytes(output: dict) -> io.BytesIO:
