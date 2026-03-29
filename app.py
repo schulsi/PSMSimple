@@ -161,8 +161,7 @@ def api_to_string(einheit: str):
     
 def create_save_path(datum: str = None):
     now = datetime.strptime(datum, "%Y-%m-%d") if datum else datetime.now()
-    root = os.path.join(BASE_DIR, "exports")
-    path = os.path.join(root, str(now.year), f"{now.month:02d}_{now.strftime('%B')}")
+    path = os.path.join(EXPORT_DIR, str(now.year), f"{now.month:02d}_{now.strftime('%B')}")
     os.makedirs(path, exist_ok=True)
     return path
 
