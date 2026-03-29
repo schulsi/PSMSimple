@@ -29,6 +29,7 @@ share/python-wheels/
 MANIFEST
 Scripts/
 pyvenv.cfg
+pflanzenschutz.db
 
 
 # PyInstaller
