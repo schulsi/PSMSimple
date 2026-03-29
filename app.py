@@ -5,7 +5,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import json
 import uuid
-from datetime import date
+from datetime import date, datetime
+import requests
 import io
 import os
 
@@ -17,9 +18,9 @@ from reportlab.platypus import (
     SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable)
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
-from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
 
 app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
 
@@ -95,6 +96,14 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+def api_to_string(einheit: str):
+    if einheit == "GK":
+        return "g/kg"
+    elif einheit == "GL":
+        return "g/l"
+    elif einheit == "MD":
+        return "ml/dosis"
 
 # ── AUTH ROUTES ──────────────────────────────────────────
 
@@ -227,6 +236,19 @@ def get_psm():
 def add_psm():
     d = request.json
     conn = get_db()
+    cur = conn.cursor()
+
+    # Check if already exists
+    cur.execute(
+        "SELECT id FROM pflanzenschutzmittel WHERE zulassungsnr = ?", (d["zulassungsnr"],))
+    exists = cur.fetchone()
+
+    if exists:
+        conn.close()
+        return jsonify({
+            "error": "Mittel existiert bereits",
+            "existing_id": exists[0]
+        }), 409
     conn.execute("""INSERT INTO pflanzenschutzmittel (name,zulassungsnr,wirkstoffe,aufwandEinheit,bienen)
                     VALUES (?,?,?,?,?)""",
                  (d["name"], d["zulassungsnr"], d["wirkstoffe"], d["aufwandEinheit"], d["bienen"]))
@@ -607,6 +629,49 @@ def preview_json():
 def media(filename):
     return send_from_directory('media', filename)
 
+@app.route('/search/psm/<term>')
+@login_required
+def search_psm(term):
+    try:
+        resp = requests.get(
+            "https://psm-api.bvl.bund.de/ords/psm/api-v1/mittel/",
+            params={"q": json.dumps({"MITTELNAME": {"$instr": term}}), "limit": 10},
+            timeout=5
+        )
+        items = resp.json().get("items", [])
+        return jsonify([{"name": r["mittelname"], "kennr": r["kennr"]} for r in items])
+    except Exception:
+        return jsonify([])
+
+
+@app.route('/api/psm/info/<kennr>')
+@login_required
+def get_psm_info(kennr: str):
+    try:
+        wg_resp = requests.get(
+            PSM_API + "wirkstoff_gehalt/",
+            params={"q": json.dumps({"kennr": {"$eq": kennr}})},
+            timeout=5
+        ).json()
+        items = wg_resp.get("items", [])
+        wirkstoffe_parts = []
+        for item in items:
+            wirkstoff_nr = item.get("wirknr", "")
+            menge = item.get("gehalt_rein_grundstruktur", "")
+            einheit = api_to_string(item.get("gehalt_einheit", "")) or item.get("gehalt_einheit", "")
+            ws_resp = requests.get(
+                PSM_API + "wirkstoff/",
+                params={"q": json.dumps({"wirknr": {"$eq": wirkstoff_nr}})},
+                timeout=5
+            ).json()
+            ws_items = ws_resp.get("items", [])
+            if ws_items:
+                ws_name = ws_items[0].get("wirkstoffname", "")
+                wirkstoffe_parts.append(f"{ws_name} {menge} {einheit}".strip())
+        wirkstoffe = ", ".join(wirkstoffe_parts)
+        return jsonify({"wirkstoffe": wirkstoffe, "zulassungsnr": kennr})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/")
 @login_required
