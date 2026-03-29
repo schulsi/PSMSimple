@@ -23,7 +23,26 @@ function toast(message, duration = 2600) {
     el.classList.remove('show');
   }, duration);
 }
+const tabToPath = {
+  betrieb: "/farm",
+  psm: "/psm",
+  einsatzorte: "/fields",
+  kulturen: "/cultures",
+  export: "/export",
+  history: "/history",
+  settings: "/settings",
+};
 
+const pathToTab = {
+  "": "betrieb",
+  "farm": "betrieb",
+  "psm": "psm",
+  "fields": "einsatzorte",
+  "cultures": "kulturen",
+  "export": "export",
+  "history": "history",
+  "settings": "settings",
+};
 function showTab(tabName, el, push = true) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`tab-${tabName}`).classList.add('active');
@@ -31,35 +50,15 @@ function showTab(tabName, el, push = true) {
   document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
   if (el) el.classList.add('active');
 
-  // 👉 URL setzen
   if (push) {
-    history.pushState({ tab: tabName }, '', `/${tabName}`);
+    history.pushState({ tab: tabName }, '', tabToPath[tabName] || "/farm");
   }
 }
+
 function getTabFromPath() {
-  const tabMap = {
-  "": "betrieb",
-  "betrieb": "betrieb",
-  "psm": "psm",
-  "einsatzorte": "fields",
-  "kulturen": "cultures",
-  "export": "export",
-  "history": "history",
-  "settings": "settings"
-};
-  const path = window.location.pathname.replace('/', '');
-  return tabMap[path] || 'betrieb';
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  return pathToTab[path] || "betrieb";
 }
-
-window.addEventListener('DOMContentLoaded', () => {
-  const tab = getTabFromPath();
-  showTab(tab, document.querySelector(`nav a[onclick*="${tab}"]`), false);
-});
-
-window.addEventListener('popstate', (e) => {
-  const tab = e.state?.tab || getTabFromPath();
-  showTab(tab, document.querySelector(`nav a[onclick*="${tab}"]`), false);
-});
 
 
 function openModal(id) {
