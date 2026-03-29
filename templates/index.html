@@ -315,7 +315,6 @@
       <div class="section-label">Export</div>
       <a onclick="showTab('export',this)"><span class="ico">📄</span> Applikation dokumentieren</a>
       <div class="section-label">Konfiguration</div>
-      <a onclick="showTab('settings',this)"><span class="ico">⚙️</span> Einstellungen</a>
     </div>
 
     <!-- ── User widget ── -->
@@ -332,6 +331,7 @@
             <button onclick="renameUser()">Speichern</button>
           </div>
         </div>
+        <a onclick="showTab('settings',this)"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
         <a class="popup-logout" href="{{ url_for('logout') }}">🚪 Abmelden</a>
       </div>
 
