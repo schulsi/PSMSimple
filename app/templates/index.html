@@ -1,35 +1,8 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Pflanzenschutz{% endblock %}</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="{{ url_for('media', filename='favicon.png') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
-</head>
-<body>
-  {% block body %}{% endblock %}
-  {% block scripts %}{% endblock %}
-</body>
-</html>
+{% extends "base.html" %}
 
+{% block title %}Pflanzenschutz · Dokumentation{% endblock %}
 
-
-
-
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pflanzenschutz · Dokumentation</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="icon" type="image/png" href="{{ url_for('media', filename='favicon.png') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
-</head>
-<body>
-
+{% block body %}
 <header>
   <div class="logo">🌿 Pflanzen<span>schutz</span></div>
   <div class="sub">Dokumentation & JSON-Export</div>
@@ -39,35 +12,54 @@
   <nav>
     <div class="nav-items">
       <div class="section-label">Stammdaten</div>
-      <a class="active" onclick="showTab('betrieb',this)"><span class="ico">🏡</span> Betrieb</a>
-      <a onclick="showTab('psm',this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
-      <a onclick="showTab('einsatzorte',this)"><span class="ico">📍</span> Felder</a>
-      <a onclick="showTab('kulturen',this)"><span class="ico">🌾</span> Kulturen</a>
+      <a class="active" onclick="showTab('betrieb', this)">
+        <span class="ico">🏡</span> Betrieb
+      </a>
+      <a onclick="showTab('psm', this)">
+        <span class="ico">🧪</span> Pflanzenschutzmittel
+      </a>
+      <a onclick="showTab('einsatzorte', this)">
+        <span class="ico">📍</span> Felder
+      </a>
+      <a onclick="showTab('kulturen', this)">
+        <span class="ico">🌾</span> Kulturen
+      </a>
+
       <div class="section-label">Export</div>
-      <a onclick="showTab('export',this)"><span class="ico">📄</span> Applikation dokumentieren</a>
+      <a onclick="showTab('export', this)">
+        <span class="ico">📄</span> Applikation dokumentieren
+      </a>
+
       <div class="section-label">Verlauf</div>
-<a onclick="showTab('history',this); loadHistory()"><span class="ico">🕘</span> Gespeicherte Applikationen</a>
+      <a onclick="showTab('history', this); loadHistory()">
+        <span class="ico">🕘</span> History
+      </a>
     </div>
 
-    <!-- ── User widget ── -->
     <div class="nav-user">
       <div class="nav-user-popup" id="user-popup">
         <div class="popup-header">
           <div class="popup-username" id="popup-username">{{ current_user.username }}</div>
           <div class="popup-label">Angemeldet als</div>
         </div>
+
         <div class="popup-rename">
           <label>Benutzername ändern</label>
           <div class="popup-rename-row">
             <input type="text" id="rename-input" placeholder="{{ current_user.username }}">
-            <button onclick="renameUser()">Speichern</button>
+            <button type="button" onclick="renameUser()">Speichern</button>
           </div>
         </div>
-        <a onclick="showTab('settings',this)"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
-        <a class="popup-logout" href="{{ url_for('logout') }}">🚪 Abmelden</a>
+
+        <a onclick="showTab('settings', this)">
+          <span class="ico">⚙️</span>
+          <div class="popup-label">Einstellungen</div>
+        </a>
+
+        <a class="popup-logout" href="{{ url_for('auth.logout') }}">🚪 Abmelden</a>
       </div>
 
-      <button class="nav-user-btn" id="user-btn" onclick="toggleUserPopup()">
+      <button type="button" class="nav-user-btn" id="user-btn" onclick="toggleUserPopup()">
         <div class="nav-user-avatar" id="user-avatar">{{ current_user.username[0] | upper }}</div>
         <span class="nav-user-name" id="user-name-label">{{ current_user.username }}</span>
         <span class="nav-user-caret">▲</span>
@@ -76,116 +68,161 @@
   </nav>
 
   <main>
-
     <!-- BETRIEB -->
     <div id="tab-betrieb" class="tab active">
       <h2>🏡 Betrieb <span class="badge">Stammdaten</span></h2>
+
       <div class="card">
         <div class="form-grid cols-3">
-          <div class="field"><label>Firma</label><input id="b-firma"></div>
-          <div class="field"><label>Nachname</label><input id="b-name"></div>
-          <div class="field"><label>Vorname</label><input id="b-vorname"></div>
-          <div class="field"><label>Straße + Hausnr.</label><input id="b-strHnr"></div>
-          <div class="field"><label>PLZ</label><input id="b-plz"></div>
-          <div class="field"><label>Ort</label><input id="b-ort"></div>
+          <div class="field">
+            <label>Firma</label>
+            <input id="b-firma">
+          </div>
+          <div class="field">
+            <label>Nachname</label>
+            <input id="b-name">
+          </div>
+          <div class="field">
+            <label>Vorname</label>
+            <input id="b-vorname">
+          </div>
+          <div class="field">
+            <label>Straße + Hausnr.</label>
+            <input id="b-strHnr">
+          </div>
+          <div class="field">
+            <label>PLZ</label>
+            <input id="b-plz">
+          </div>
+          <div class="field">
+            <label>Ort</label>
+            <input id="b-ort">
+          </div>
           <div class="field">
             <label>Bundesland</label>
             <select id="b-bundesland">
-              <option value="BW">Baden-Württemberg</option><option value="BY">Bayern</option>
-              <option value="BE">Berlin</option><option value="BB">Brandenburg</option>
-              <option value="HB">Bremen</option><option value="HH">Hamburg</option>
-              <option value="HE">Hessen</option><option value="MV">Mecklenburg-Vorpommern</option>
-              <option value="NI">Niedersachsen</option><option value="NW">Nordrhein-Westfalen</option>
-              <option value="RP">Rheinland-Pfalz</option><option value="SL">Saarland</option>
-              <option value="SN">Sachsen</option><option value="ST">Sachsen-Anhalt</option>
-              <option value="SH">Schleswig-Holstein</option><option value="TH">Thüringen</option>
+              <option value="BW">Baden-Württemberg</option>
+              <option value="BY">Bayern</option>
+              <option value="BE">Berlin</option>
+              <option value="BB">Brandenburg</option>
+              <option value="HB">Bremen</option>
+              <option value="HH">Hamburg</option>
+              <option value="HE">Hessen</option>
+              <option value="MV">Mecklenburg-Vorpommern</option>
+              <option value="NI">Niedersachsen</option>
+              <option value="NW">Nordrhein-Westfalen</option>
+              <option value="RP">Rheinland-Pfalz</option>
+              <option value="SL">Saarland</option>
+              <option value="SN">Sachsen</option>
+              <option value="ST">Sachsen-Anhalt</option>
+              <option value="SH">Schleswig-Holstein</option>
+              <option value="TH">Thüringen</option>
             </select>
           </div>
         </div>
-        <div style="margin-top:1rem;display:flex;justify-content:flex-end">
-          <button class="btn btn-primary" onclick="saveBetrieb()">💾 Speichern</button>
+
+        <div style="margin-top:1rem">
+          <button type="button" class="btn btn-primary" onclick="saveBetrieb()">Speichern</button>
         </div>
       </div>
     </div>
 
     <!-- PSM -->
     <div id="tab-psm" class="tab">
-      <h2>🧪 Pflanzenschutzmittel <span class="badge" id="psm-count">0</span></h2>
-      <button class="btn btn-primary" onclick="openModal('psm')" style="margin-bottom:1rem">+ Neues Mittel</button>
-      <div class="item-list" id="psm-list"></div>
+      <h2>🧪 Pflanzenschutzmittel <span class="badge">Stammdaten</span></h2>
+
+      <div class="card">
+        <button type="button" class="btn btn-primary" onclick="openPSMModal()">+ Hinzufügen</button>
+      </div>
+
+      <div class="card">
+        <div class="item-list" id="psm-list"></div>
+      </div>
     </div>
 
     <!-- EINSATZORTE -->
     <div id="tab-einsatzorte" class="tab">
-      <h2>📍 Einsatzorte <span class="badge" id="eo-count">0</span></h2>
-      <button class="btn btn-primary" onclick="openModal('eo')" style="margin-bottom:1rem">+ Neuer Einsatzort</button>
-      <div class="item-list" id="eo-list"></div>
+      <h2>📍 Felder <span class="badge">Stammdaten</span></h2>
+
+      <div class="card">
+        <button type="button" class="btn btn-primary" onclick="openEinsatzortModal()">+ Hinzufügen</button>
+      </div>
+
+      <div class="card">
+        <div class="item-list" id="einsatzorte-list"></div>
+      </div>
     </div>
 
     <!-- KULTUREN -->
     <div id="tab-kulturen" class="tab">
-      <h2>🌾 Kulturen <span class="badge" id="kult-count">0</span></h2>
-      <button class="btn btn-primary" onclick="openModal('kult')" style="margin-bottom:1rem">+ Neue Kultur</button>
-      <div class="item-list" id="kult-list"></div>
+      <h2>🌾 Kulturen <span class="badge">Stammdaten</span></h2>
+
+      <div class="card">
+        <button type="button" class="btn btn-primary" onclick="openKulturModal()">+ Hinzufügen</button>
+      </div>
+
+      <div class="card">
+        <div class="item-list" id="kulturen-list"></div>
+      </div>
     </div>
 
     <!-- EXPORT -->
     <div id="tab-export" class="tab">
-      <h2>📄 JSON erstellen</h2>
+      <h2>📄 Applikation dokumentieren <span class="badge">Export</span></h2>
 
-      <div class="card export-section">
-        <h3>🧪 Pflanzenschutzmittel &amp; Aufwandsmenge</h3>
-        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.85rem">Mittel auswählen und Aufwandsmenge für diese Anwendung eingeben.</p>
-        <div id="exp-psm"></div>
-      </div>
-
-      <div class="card export-section">
-        <h3>📍 Einsatzorte auswählen</h3>
-        <div id="exp-eo"></div>
-      </div>
-
-      <div class="card export-section">
-        <h3>🌾 Kulturen &amp; BBCH-Code</h3>
-        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.85rem">Kultur auswählen und BBCH-Code für diese Anwendung eingeben.</p>
-        <div id="exp-kult"></div>
-      </div>
-
-      <div class="card export-section">
-        <h3>📋 Anwendung</h3>
+      <div class="card">
         <div class="form-grid">
-          <div class="field"><label>Datum</label><input type="date" id="anw-datum"></div>
-          <div class="field"><label>Uhrzeit</label><input type="time" id="anw-uhrzeit"></div>
+          <div class="field">
+            <label>Datum</label>
+            <input type="date" id="exp-datum">
+          </div>
+          <div class="field">
+            <label>Uhrzeit</label>
+            <input type="time" id="exp-uhrzeit">
+          </div>
           <div class="field">
             <label>Art der Verwendung</label>
-            <select id="anw-art-haupt" onchange="updateArtSubkategorie()">
-              <option value="Behandlung von Freilandflächen">Behandlung von Freilandflächen</option>
-              <option value="Behandlung geschlossener Räume bzw. in geschlossenen Räumen">Behandlung geschlossener Räume bzw. in geschlossenen Räumen</option>
-              <option value="Behandlung von Saatgut oder Pflanzenvermehrungsmaterial">Behandlung von Saatgut oder Pflanzenvermehrungsmaterial</option>
-            </select>
+            <input id="exp-artVerwendung">
           </div>
           <div class="field">
-            <label>Subkategorie</label>
-            <select id="anw-art-sub"></select>
+            <label>Anwender</label>
+            <input id="exp-anwender">
           </div>
-          <div class="field"><label>Verantwortlich</label><input id="anw-verantwortlich"></div>
-          <div class="field"><label>Anwender</label><input id="anw-anwender"></div>
+          <div class="field">
+            <label>Verantwortlich</label>
+            <input id="exp-verantwortlich">
+          </div>
         </div>
       </div>
 
-      <div class="export-footer">
-        <button id="btn-preview" class="btn btn-ghost" onclick="previewJSON()" disabled>👁 Vorschau</button>
-        <button id="btn-json"    class="btn btn-export" onclick="exportJSON()" disabled>⬇ JSON herunterladen</button>
-        <button id="btn-pdf"     class="btn btn-pdf"    onclick="exportPDF()" disabled>🖨 PDF herunterladen</button>
+      <div class="card export-section">
+        <h3>🧪 Pflanzenschutzmittel</h3>
+        <div id="exp-psm-list"></div>
       </div>
-      <div id="validation-msg" style="margin-top:.6rem;font-size:.82rem;color:var(--danger);display:none"></div>
 
-      <div id="json-preview-wrap" style="display:none;margin-top:1.5rem">
-        <div class="divider"></div>
-        <h3 style="font-size:1rem;font-weight:600;margin-bottom:.75rem;color:var(--green-deep)">🔍 Vorschau</h3>
-        <pre id="json-preview"></pre>
+      <div class="card export-section">
+        <h3>📍 Einsatzorte</h3>
+        <div id="exp-einsatzorte-list"></div>
+      </div>
+
+      <div class="card export-section">
+        <h3>🌾 Kulturen</h3>
+        <div id="exp-kulturen-list"></div>
+      </div>
+
+      <div class="card">
+        <h3>Vorschau</h3>
+        <pre id="preview-json"></pre>
+
+        <div class="export-footer">
+          <button type="button" class="btn btn-ghost" onclick="previewJSON()">Vorschau aktualisieren</button>
+          <button type="button" class="btn btn-export" onclick="exportJSON()">JSON exportieren</button>
+          <button type="button" class="btn btn-pdf" onclick="exportPDF()">PDF exportieren</button>
+        </div>
       </div>
     </div>
-    <!-- HISTORY  -->
+
+    <!-- HISTORY -->
     <div id="tab-history" class="tab">
       <h2>🕘 History <span class="badge" id="history-count">0</span></h2>
 
@@ -200,138 +237,124 @@
         <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">
           🔍 Applikationsdetails
         </h3>
-
         <div id="history-detail" class="history-detail"></div>
-      </div>
-
-    <!-- SETTINGS -->
-    <div id="tab-settings" class="tab">
-      <h2>⚙️ Einstellungen</h2>
-
-      <div class="card">
-        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">📁 Export-Verhalten</h3>
-        <div style="display:flex;flex-direction:column;gap:.85rem">
-          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
-            <input type="checkbox" id="set-browser-download" style="accent-color:var(--green-mid);width:16px;height:16px">
-            <div>
-              <div style="font-weight:600;font-size:.9rem">Browser-Download</div>
-              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird direkt im Browser heruntergeladen</div>
-            </div>
-          </label>
-          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
-            <input type="checkbox" id="set-local-save" style="accent-color:var(--green-mid);width:16px;height:16px">
-            <div>
-              <div style="font-weight:600;font-size:.9rem">Lokal speichern</div>
-              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird auf dem Server im Exportordner abgelegt</div>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">👤 Standard-Felder</h3>
-        <div class="form-grid" style="max-width:600px">
-          <div class="field">
-            <label>Standard-Anwender</label>
-            <input id="set-default-anwender" placeholder="Wird automatisch in Anwendung eingetragen">
-          </div>
-          <div class="field">
-            <label>Standard-Verantwortliche/r</label>
-            <input id="set-default-verantwortlich" placeholder="Wird automatisch in Anwendung eingetragen">
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:.75rem;margin-top:.5rem">
-        <button class="btn btn-primary" onclick="saveSettings()">💾 Einstellungen speichern</button>
       </div>
     </div>
 
+    <!-- SETTINGS -->
+    <div id="tab-settings" class="tab">
+      <h2>⚙️ Einstellungen <span class="badge">Benutzer</span></h2>
+
+      <div class="card">
+        <div class="form-grid">
+          <div class="field">
+            <label>Browser-Download</label>
+            <input type="checkbox" id="set-browser-download">
+          </div>
+          <div class="field">
+            <label>Lokal speichern</label>
+            <input type="checkbox" id="set-local-save">
+          </div>
+          <div class="field">
+            <label>Standard Anwender</label>
+            <input type="text" id="set-default-anwender">
+          </div>
+          <div class="field">
+            <label>Standard Verantwortlich</label>
+            <input type="text" id="set-default-verantwortlich">
+          </div>
+        </div>
+
+        <div style="margin-top:1rem">
+          <button type="button" class="btn btn-primary" onclick="saveSettings()">Einstellungen speichern</button>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
 <!-- MODAL PSM -->
 <div class="modal-overlay" id="modal-psm">
   <div class="modal">
-    <h3 id="psm-modal-title">Pflanzenschutzmittel</h3>
-    <input type="hidden" id="psm-edit-id">
+    <h3 id="modal-psm-title">Pflanzenschutzmittel hinzufügen</h3>
+
     <div class="form-grid">
-           <div class="field"><label>Name</label><div class="autocomplete-wrap"><input id="psm-name" autocomplete="off"><div id="psm-search-results" class="autocomplete-results"></div></div></div>
-      <div class="field"><label>Zulassungsnr.</label><input id="psm-zulassung" disabled></div>
-      <div class="field"><label>Wirkstoffe</label><input id="psm-wirkstoffe" disabled></div>
       <div class="field">
-        <label>Einheit (Aufwandsmenge)</label>
-        <select id="psm-einheit">
-          <option>kg/ha</option><option>l/ha</option><option>g/ha</option>
-          <option>ml/ha</option><option>kg/m²</option><option>l/m²</option>
-        </select>
+        <label>Name</label>
+        <div class="autocomplete-wrap">
+          <input id="psm-name" autocomplete="off">
+          <div id="psm-search-results" class="autocomplete-results"></div>
+        </div>
       </div>
-      <div class="field" style="grid-column:span 2">
-        <label>Bienengefährlichkeit</label>
-        <select id="psm-bienen" style="font-size:.8rem; padding:.35rem .65rem">
-          <option>(B1) Bienengefährlich</option>
-          <option>(B2) Bienengefährlich außer nach dem täglichen Bienenflug</option>
-          <option>(B3) Bienengefährlich, Anwendungsverbot</option>
-          <option>(B4) Nicht bienengefährlich</option>
-        </select>
+
+      <div class="field">
+        <label>Zulassungsnummer</label>
+        <input id="psm-zulassungsnr">
+      </div>
+
+      <div class="field">
+        <label>Wirkstoffe</label>
+        <input id="psm-wirkstoffe">
+      </div>
+
+      <div class="field">
+        <label>Aufwand-Einheit</label>
+        <input id="psm-aufwandEinheit">
+      </div>
+
+      <div class="field">
+        <label>Bienen</label>
+        <input id="psm-bienen">
       </div>
     </div>
+
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('psm')">Abbrechen</button>
-      <button class="btn btn-primary" onclick="savePSM()">Speichern</button>
+      <button type="button" class="btn btn-ghost" onclick="closeModal('modal-psm')">Abbrechen</button>
+      <button type="button" class="btn btn-primary" onclick="savePSM()">Speichern</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL Einsatzort -->
-<div class="modal-overlay" id="modal-eo">
+<!-- MODAL EINSATZORT -->
+<div class="modal-overlay" id="modal-einsatzort">
   <div class="modal">
-    <h3 id="eo-modal-title">Einsatzort</h3>
-    <input type="hidden" id="eo-edit-id">
+    <h3 id="modal-einsatzort-title">Einsatzort hinzufügen</h3>
+
     <div class="form-grid">
-      <div class="field" style="grid-column:span 2"><label>Name / Bezeichnung <span style="color:var(--danger)">*</span></label><input id="eo-name"></div>
-      <div class="field"><label>GPS Rechtswert (Lat) <span style="color:var(--danger)">*</span></label><input type="number" id="eo-lat" step="any" placeholder="z.B. 48.123456" required></div>
-      <div class="field"><label>GPS Hochwert (Lng) <span style="color:var(--danger)">*</span></label><input type="number" id="eo-lng" step="any" placeholder="z.B. 7.654321" required></div>
-      <div class="field">
-        <label>Anwendungsbereich</label>
-        <select id="eo-bereich"><option>Freiland</option><option>Gewächshaus</option><option>Lager</option></select>
-      </div>
-      <div class="field">
-        <label>Geo-Typ</label>
-        <select id="eo-geotyp"><option>GPS-Koordinaten</option><option>Polygon</option><option>Schlagname</option></select>
-      </div>
-      <div class="field">
-        <label>Einheit</label>
-        <select id="eo-einheit"><option>m2</option><option>ha</option><option>l</option></select>
-      </div>
-      <div class="field"><label>Fläche / Volumen <span style="color:var(--danger)">*</span></label><input type="number" id="eo-flaeche" step="0.01"></div>
+      <div class="field"><label>Name</label><input id="eo-name"></div>
+      <div class="field"><label>GPS Rechtswert</label><input id="eo-gpsRechtswert"></div>
+      <div class="field"><label>GPS Hochwert</label><input id="eo-gpsHochwert"></div>
+      <div class="field"><label>Anwendungsbereich</label><input id="eo-anwendungsbereich"></div>
+      <div class="field"><label>Geo-Typ</label><input id="eo-geoTyp"></div>
+      <div class="field"><label>Einheit</label><input id="eo-einheit"></div>
+      <div class="field"><label>Fläche / Volumen</label><input id="eo-flaecheVolumen"></div>
     </div>
+
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('eo')">Abbrechen</button>
-      <button class="btn btn-primary" onclick="saveEinsatzort()">Speichern</button>
+      <button type="button" class="btn btn-ghost" onclick="closeModal('modal-einsatzort')">Abbrechen</button>
+      <button type="button" class="btn btn-primary" onclick="saveEinsatzort()">Speichern</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL Kultur -->
-<div class="modal-overlay" id="modal-kult">
+<!-- MODAL KULTUR -->
+<div class="modal-overlay" id="modal-kultur">
   <div class="modal">
-    <h3 id="kult-modal-title">Kultur</h3>
-    <input type="hidden" id="kult-edit-id">
+    <h3 id="modal-kultur-title">Kultur hinzufügen</h3>
+
     <div class="form-grid">
-      <div class="field"><label>Name <span style="color:var(--danger)">*</span></label><input id="kult-name" placeholder="Weinbau"></div>
-      <div class="field"><label>EPPO-Code <span style="color:var(--danger)">*</span></label><input id="kult-eppo" placeholder="VITVI"></div>
+      <div class="field"><label>Name</label><input id="k-name"></div>
+      <div class="field"><label>EPPO-Code</label><input id="k-eppoCode"></div>
     </div>
+
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('kult')">Abbrechen</button>
-      <button class="btn btn-primary" onclick="saveKultur()">Speichern</button>
+      <button type="button" class="btn btn-ghost" onclick="closeModal('modal-kultur')">Abbrechen</button>
+      <button type="button" class="btn btn-primary" onclick="saveKultur()">Speichern</button>
     </div>
   </div>
 </div>
 
-<div id="toast"></div>
-
-<!-- MODAL Betriebsdaten-Wizard -->
+<!-- MODAL BETRIEB-WIZARD -->
 <div class="modal-overlay" id="modal-betrieb-wizard">
   <div class="modal">
     <h3>Willkommen 👋</h3>
@@ -340,12 +363,12 @@
     </p>
 
     <div class="form-grid cols-3">
-      <div class="field"><label>Firma</label><input id="wiz-firma" placeholder="Mustermann Gemüsebau"></div>
-      <div class="field"><label>Nachname</label><input id="wiz-name" placeholder="Mustermann"></div>
-      <div class="field"><label>Vorname</label><input id="wiz-vorname" placeholder="Max"></div>
-      <div class="field"><label>Straße + Hausnr.</label><input id="wiz-strHnr" placeholder="Musterstraße 123"></div>
-      <div class="field"><label>PLZ</label><input id="wiz-plz" placeholder="12345"></div>
-      <div class="field"><label>Ort</label><input id="wiz-ort" placeholder="Musterstadt"></div>
+      <div class="field"><label>Firma</label><input id="wiz-firma"></div>
+      <div class="field"><label>Nachname</label><input id="wiz-name"></div>
+      <div class="field"><label>Vorname</label><input id="wiz-vorname"></div>
+      <div class="field"><label>Straße + Hausnr.</label><input id="wiz-strHnr"></div>
+      <div class="field"><label>PLZ</label><input id="wiz-plz"></div>
+      <div class="field"><label>Ort</label><input id="wiz-ort"></div>
       <div class="field">
         <label>Bundesland</label>
         <select id="wiz-bundesland">
@@ -370,905 +393,23 @@
     </div>
 
     <div class="modal-footer">
-      <button class="btn btn-primary" onclick="saveBetriebWizard()">Speichern und starten</button>
+      <button type="button" class="btn btn-primary" onclick="saveBetriebWizard()">Speichern und starten</button>
     </div>
   </div>
 </div>
 
-<script>
-// ── NAV ──────────────────────────────────────────────────
-function showTab(name, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  el.classList.add('active');
-  if (name === 'export') loadExportSelections();
-}
-
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-function openModal(type, data = null) {
-  if (type === 'psm') {
-    document.getElementById('psm-modal-title').textContent = data ? 'Mittel bearbeiten' : 'Neues Pflanzenschutzmittel';
-    document.getElementById('psm-edit-id').value = data?.id || '';
-    document.getElementById('psm-name').value = data?.name || '';
-    document.getElementById('psm-zulassung').value = data?.zulassungsnr || '';
-    document.getElementById('psm-wirkstoffe').value = data?.wirkstoffe || '';
-    document.getElementById('psm-einheit').value = data?.aufwandEinheit || 'kg/ha';
-    document.getElementById('psm-bienen').value = data?.bienen || '(B4) Nicht bienengefährlich';
-  } else if (type === 'eo') {
-    document.getElementById('eo-modal-title').textContent = data ? 'Einsatzort bearbeiten' : 'Neuer Einsatzort';
-    document.getElementById('eo-edit-id').value = data?.id || '';
-    document.getElementById('eo-name').value = data?.name || '';
-    document.getElementById('eo-lat').value = data?.gpsRechtswert || '';
-    document.getElementById('eo-lng').value = data?.gpsHochwert || '';
-    document.getElementById('eo-bereich').value = data?.anwendungsbereich || 'Freiland';
-    document.getElementById('eo-geotyp').value = data?.geoTyp || 'GPS-Koordinaten';
-    document.getElementById('eo-einheit').value = data?.einheit || 'm2';
-    document.getElementById('eo-flaeche').value = data?.flaecheVolumen || '';
-  } else if (type === 'kult') {
-    document.getElementById('kult-modal-title').textContent = data ? 'Kultur bearbeiten' : 'Neue Kultur';
-    document.getElementById('kult-edit-id').value = data?.id || '';
-    document.getElementById('kult-name').value = data?.name || '';
-    document.getElementById('kult-eppo').value = data?.eppoCode || '';
-  }
-  document.getElementById('modal-' + type).classList.add('open');
-}
-function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-});
-
-// ── USER POPUP ───────────────────────────────────────────
-function toggleUserPopup() {
-  const popup = document.getElementById('user-popup');
-  const btn   = document.getElementById('user-btn');
-  const isOpen = popup.classList.contains('open');
-
-  if (isOpen) {
-    popup.classList.remove('open');
-    btn.classList.remove('open');
-    return;
-  }
-
-  // Use fixed positioning so nav overflow:hidden doesn't clip the popup
-  const rect = btn.getBoundingClientRect();
-  popup.style.left   = rect.left + 'px';
-  popup.style.width  = rect.width + 'px';
-  popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
-
-  popup.classList.add('open');
-  btn.classList.add('open');
-}
-
-document.addEventListener('click', e => {
-  const widget = document.querySelector('.nav-user');
-  if (widget && !widget.contains(e.target)) {
-    document.getElementById('user-popup').classList.remove('open');
-    document.getElementById('user-btn').classList.remove('open');
-  }
-});
-
-async function renameUser() {
-  const newName = document.getElementById('rename-input').value.trim();
-  if (!newName) { toast('⚠️ Bitte einen Namen eingeben'); return; }
-
-  const resp = await fetch('/api/user/rename', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: newName })
-  });
-  const data = await resp.json();
-
-  if (data.ok) {
-    document.getElementById('user-name-label').textContent = newName;
-    document.getElementById('popup-username').textContent = newName;
-    document.getElementById('user-avatar').textContent = newName[0].toUpperCase();
-    document.getElementById('rename-input').value = '';
-    document.getElementById('rename-input').placeholder = newName;
-    toast('✅ Benutzername geändert');
-  } else {
-    toast('❌ ' + (data.error || 'Fehler beim Umbenennen'));
-  }
-}
-
-// ── BETRIEB ──────────────────────────────────────────────
-let betriebExists = false;
-
-function openBetriebWizard() {
-  document.getElementById('modal-betrieb-wizard').classList.add('open');
-}
-
-function closeBetriebWizard() {
-  document.getElementById('modal-betrieb-wizard').classList.remove('open');
-}
-
-function fillBetriebForm(b) {
-  ['firma','name','vorname','strHnr','plz','ort'].forEach(f => {
-    document.getElementById('b-' + f).value = b[f] || '';
-  });
-  document.getElementById('b-bundesland').value = b.bundesland || 'BW';
-}
-
-async function loadBetrieb() {
-  const b = await fetch('/api/betrieb').then(r => r.json());
-
-  if (!b.id) {
-    betriebExists = false;
-    openBetriebWizard();
-    return;
-  }
-
-  betriebExists = true;
-  fillBetriebForm(b);
-}
-
-async function saveBetrieb() {
-  await fetch('/api/betrieb', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      firma: document.getElementById('b-firma').value,
-      name: document.getElementById('b-name').value,
-      vorname: document.getElementById('b-vorname').value,
-      strHnr: document.getElementById('b-strHnr').value,
-      plz: document.getElementById('b-plz').value,
-      ort: document.getElementById('b-ort').value,
-      bundesland: document.getElementById('b-bundesland').value,
-    })
-  });
-
-  betriebExists = true;
-  toast('✅ Betrieb gespeichert');
-}
-
-async function saveBetriebWizard() {
-  const payload = {
-    firma: document.getElementById('wiz-firma').value,
-    name: document.getElementById('wiz-name').value,
-    vorname: document.getElementById('wiz-vorname').value,
-    strHnr: document.getElementById('wiz-strHnr').value,
-    plz: document.getElementById('wiz-plz').value,
-    ort: document.getElementById('wiz-ort').value,
-    bundesland: document.getElementById('wiz-bundesland').value,
-  };
-
-  await fetch('/api/betrieb', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(payload)
-  });
-
-  fillBetriebForm(payload);
-  betriebExists = true;
-  closeBetriebWizard();
-  toast('✅ Betriebsdaten gespeichert');
-}
-
-// ── PSM ──────────────────────────────────────────────────
-const psmNameInput = document.getElementById('psm-name');
-const psmSearchResults = document.getElementById('psm-search-results');
-let psmSearchTimer = null;
-let psmLastSearchTerm = '';
-
-function hidePSMResults() {
-  psmSearchResults.classList.remove('show');
-  psmSearchResults.innerHTML = '';
-}
-
-function showPSMResults(items) {
-  if (!items.length) {
-    psmSearchResults.innerHTML = '<div class="autocomplete-empty">Keine Treffer</div>';
-    psmSearchResults.classList.add('show');
-    return;
-  }
-
-  psmSearchResults.innerHTML = items.map(item => `
-    <div class="autocomplete-item" data-name="${item.name.replace(/"/g, '&quot;')}" data-kennr="${item.kennr}">${item.name}</div>
-  `).join('');
-  psmSearchResults.classList.add('show');
-
-  psmSearchResults.querySelectorAll('.autocomplete-item').forEach(el => {
-    el.addEventListener('click', async () => {
-      psmNameInput.value = el.dataset.name;
-      hidePSMResults();
-      await fillPSMInfo(el.dataset.kennr);
-    });
-  });
-}
-
-async function fillPSMInfo(kennr) {
-  try {
-    const data = await fetch(`/api/psm/info/${encodeURIComponent(kennr)}`).then(r => r.json());
-    if (data.wirkstoffe !== undefined) {
-      document.getElementById('psm-wirkstoffe').value = data.wirkstoffe || '';
-      document.getElementById('psm-zulassung').value = data.zulassungsnr || '';
-    }
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-psmNameInput.addEventListener('input', () => {
-  const term = psmNameInput.value.trim();
-
-  document.getElementById('psm-zulassung').value = '';
-  document.getElementById('psm-wirkstoffe').value = '';
-
-  if (psmSearchTimer) clearTimeout(psmSearchTimer);
-  if (term.length < 2) {
-    hidePSMResults();
-    return;
-  }
-
-  psmSearchTimer = setTimeout(async () => {
-    psmLastSearchTerm = term;
-    try {
-      const result = await fetch(`/search/psm/${encodeURIComponent(term)}`).then(r => r.json());
-      if (psmLastSearchTerm !== psmNameInput.value.trim()) return;
-      showPSMResults(Array.isArray(result) ? result : []);
-    } catch (e) {
-      console.error(e);
-      hidePSMResults();
-    }
-  }, 250);
-});
-
-psmNameInput.addEventListener('blur', () => {
-  setTimeout(hidePSMResults, 150);
-});
-
-psmNameInput.addEventListener('focus', () => {
-  if (psmSearchResults.innerHTML.trim()) {
-    psmSearchResults.classList.add('show');
-  }
-});
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.autocomplete-wrap')) hidePSMResults();
-});
-async function loadPSM() {
-  const data = await fetch('/api/psm').then(r => r.json());
-  document.getElementById('psm-count').textContent = data.length;
-  const list = document.getElementById('psm-list');
-  if (!data.length) { list.innerHTML = '<div class="empty">Noch keine Mittel eingetragen</div>'; return; }
-  list.innerHTML = data.map(p => `
-    <div class="item">
-      <div class="item-info">
-        <div class="name">🧪 ${p.name}</div>
-        <div class="meta">${p.zulassungsnr} · Einheit: ${p.aufwandEinheit} · ${p.bienen}</div>
-        <div class="meta" style="font-style:italic">${p.wirkstoffe}</div>
-      </div>
-      <div class="item-actions">
-        <button class="btn btn-ghost btn-sm" onclick='openModal("psm",${JSON.stringify(p)})'>✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="deletePSM(${p.id})">🗑</button>
-      </div>
-    </div>`).join('');
-}
-function validateModalFields(fields) {
-  let valid = true;
-  fields.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const empty = !el.value.trim();
-    el.style.borderColor = empty ? 'var(--danger)' : '';
-    if (empty) valid = false;
-    el.oninput = () => { el.style.borderColor = el.value.trim() ? '' : 'var(--danger)'; };
-  });
-  return valid;
-}
-
-async function savePSM() {
-  if (!validateModalFields(['psm-name', 'psm-zulassung', 'psm-wirkstoffe'])) {
-    toast('⚠️ Bitte alle Pflichtfelder ausfüllen');
-    return;
-  }
-  const id = document.getElementById('psm-edit-id').value;
-  const data = {
-    name: document.getElementById('psm-name').value,
-    zulassungsnr: document.getElementById('psm-zulassung').value,
-    wirkstoffe: document.getElementById('psm-wirkstoffe').value,
-    aufwandEinheit: document.getElementById('psm-einheit').value,
-    bienen: document.getElementById('psm-bienen').value,
-  };
-  const res = await fetch(id ? `/api/psm/${id}` : '/api/psm', {
-    method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
-  });
-  if (res.status === 409) {
-    const data = await res.json();
-    alert(data.error || 'Dieses Mittel existiert bereits.');
-    return;
-  }
-  closeModal('psm'); loadPSM(); toast('✅ Mittel gespeichert');
-}
-async function deletePSM(id) {
-  if (!confirm('Mittel löschen?')) return;
-  await fetch(`/api/psm/${id}`, {method:'DELETE'});
-  loadPSM(); toast('🗑 Mittel gelöscht');
-}
-
-// ── EINSATZORTE ──────────────────────────────────────────
-async function loadEinsatzorte() {
-  const data = await fetch('/api/einsatzorte').then(r => r.json());
-  document.getElementById('eo-count').textContent = data.length;
-  const list = document.getElementById('eo-list');
-  if (!data.length) { list.innerHTML = '<div class="empty">Noch keine Einsatzorte eingetragen</div>'; return; }
-  list.innerHTML = data.map(e => `
-    <div class="item">
-      <div class="item-info">
-        <div class="name">📍 ${e.name}</div>
-        <div class="meta">${e.anwendungsbereich} · ${e.flaecheVolumen} ${e.einheit} · ${e.geoTyp}</div>
-        <div class="meta">${e.gpsRechtswert}, ${e.gpsHochwert}</div>
-      </div>
-      <div class="item-actions">
-        <button class="btn btn-ghost btn-sm" onclick='openModal("eo",${JSON.stringify(e)})'>✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteEinsatzort(${e.id})">🗑</button>
-      </div>
-    </div>`).join('');
-}
-async function saveEinsatzort() {
-  if (!validateModalFields(['eo-name', 'eo-lat', 'eo-lng', 'eo-flaeche'])) {
-    toast('⚠️ Bitte alle Pflichtfelder ausfüllen');
-    return;
-  }
-  const id = document.getElementById('eo-edit-id').value;
-  const data = {
-    name: document.getElementById('eo-name').value,
-    gpsRechtswert: parseFloat(document.getElementById('eo-lat').value),
-    gpsHochwert: parseFloat(document.getElementById('eo-lng').value),
-    anwendungsbereich: document.getElementById('eo-bereich').value,
-    geoTyp: document.getElementById('eo-geotyp').value,
-    einheit: document.getElementById('eo-einheit').value,
-    flaecheVolumen: parseFloat(document.getElementById('eo-flaeche').value),
-  };
-  await fetch(id ? `/api/einsatzorte/${id}` : '/api/einsatzorte', {
-    method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
-  });
-  closeModal('eo'); loadEinsatzorte(); toast('✅ Einsatzort gespeichert');
-}
-async function deleteEinsatzort(id) {
-  if (!confirm('Einsatzort löschen?')) return;
-  await fetch(`/api/einsatzorte/${id}`, {method:'DELETE'});
-  loadEinsatzorte(); toast('🗑 Einsatzort gelöscht');
-}
-
-// ── KULTUREN ─────────────────────────────────────────────
-async function loadKulturen() {
-  const data = await fetch('/api/kulturen').then(r => r.json());
-  document.getElementById('kult-count').textContent = data.length;
-  const list = document.getElementById('kult-list');
-  if (!data.length) { list.innerHTML = '<div class="empty">Noch keine Kulturen eingetragen</div>'; return; }
-  list.innerHTML = data.map(k => `
-    <div class="item">
-      <div class="item-info">
-        <div class="name">🌾 ${k.name}</div>
-        <div class="meta">EPPO: ${k.eppoCode}</div>
-      </div>
-      <div class="item-actions">
-        <button class="btn btn-ghost btn-sm" onclick='openModal("kult",${JSON.stringify(k)})'>✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteKultur(${k.id})">🗑</button>
-      </div>
-    </div>`).join('');
-}
-async function saveKultur() {
-  if (!validateModalFields(['kult-name', 'kult-eppo'])) {
-    toast('⚠️ Bitte alle Pflichtfelder ausfüllen');
-    return;
-  }
-  const id = document.getElementById('kult-edit-id').value;
-  const data = {
-    name: document.getElementById('kult-name').value,
-    eppoCode: document.getElementById('kult-eppo').value,
-  };
-  await fetch(id ? `/api/kulturen/${id}` : '/api/kulturen', {
-    method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
-  });
-  closeModal('kult'); loadKulturen(); toast('✅ Kultur gespeichert');
-}
-async function deleteKultur(id) {
-  if (!confirm('Kultur löschen?')) return;
-  await fetch(`/api/kulturen/${id}`, {method:'DELETE'});
-  loadKulturen(); toast('🗑 Kultur gelöscht');
-}
-
-// ── EXPORT ───────────────────────────────────────────────
-async function loadExportSelections() {
-  const [psm, eo, kult, betrieb] = await Promise.all([
-    fetch('/api/psm').then(r=>r.json()),
-    fetch('/api/einsatzorte').then(r=>r.json()),
-    fetch('/api/kulturen').then(r=>r.json()),
-    fetch('/api/betrieb').then(r=>r.json()),
-  ]);
-
-  document.getElementById('exp-psm').innerHTML = psm.length
-    ? psm.map(p => `
-      <div class="exp-item" id="exp-psm-${p.id}">
-        <div class="exp-item-header" onclick="toggleExpItem('psm',${p.id})">
-          <input type="checkbox" id="cb-psm-${p.id}" onclick="event.stopPropagation();toggleExpItem('psm',${p.id},this.checked)">
-          <div>
-            <div class="ci-name">🧪 ${p.name}</div>
-            <div class="ci-meta">${p.zulassungsnr} · Einheit: ${p.aufwandEinheit}</div>
-          </div>
-        </div>
-        <div class="exp-item-extra">
-          <div class="form-grid">
-            <div>
-              <label>Aufwandsmenge (${p.aufwandEinheit})</label>
-              <input type="number" step="0.01" id="psm-menge-${p.id}" placeholder="z.B. 2.0">
-            </div>
-          </div>
-        </div>
-      </div>`).join('')
-    : '<div class="empty">Keine Mittel vorhanden</div>';
-
-  document.getElementById('exp-eo').innerHTML = eo.length
-    ? eo.map(e => `
-      <div class="exp-item" id="exp-eo-${e.id}">
-        <div class="exp-item-header" onclick="toggleExpItem('eo',${e.id})">
-          <input type="checkbox" id="cb-eo-${e.id}" onclick="event.stopPropagation();toggleExpItem('eo',${e.id},this.checked)">
-          <div>
-            <div class="ci-name">📍 ${e.name}</div>
-            <div class="ci-meta">${e.flaecheVolumen} ${e.einheit} · ${e.anwendungsbereich}</div>
-          </div>
-        </div>
-      </div>`).join('')
-    : '<div class="empty">Keine Einsatzorte vorhanden</div>';
-
-  document.getElementById('exp-kult').innerHTML = kult.length
-    ? kult.map(k => `
-      <div class="exp-item" id="exp-kult-${k.id}">
-        <div class="exp-item-header" onclick="toggleExpItem('kult',${k.id})">
-          <input type="checkbox" id="cb-kult-${k.id}" onclick="event.stopPropagation();toggleExpItem('kult',${k.id},this.checked)">
-          <div>
-            <div class="ci-name">🌾 ${k.name}</div>
-            <div class="ci-meta">EPPO: ${k.eppoCode}</div>
-          </div>
-        </div>
-        <div class="exp-item-extra">
-          <div class="form-grid">
-            <div>
-              <label>BBCH-Code für diese Anwendung</label>
-              <input type="text" id="kult-bbch-${k.id}" placeholder="z.B. 20">
-            </div>
-          </div>
-        </div>
-      </div>`).join('')
-    : '<div class="empty">Keine Kulturen vorhanden</div>';
-
-  document.getElementById('anw-datum').value = new Date().toISOString().split('T')[0];
-  document.getElementById('anw-uhrzeit').value = new Date().toTimeString().slice(0,5);
-  updateArtSubkategorie();
-  // wire live validation to all dynamic inputs
-  setTimeout(() => {
-    document.getElementById('tab-export').addEventListener('input', validate);
-    document.getElementById('tab-export').addEventListener('change', validate);
-    validate();
-  }, 50);
-  // Prefer user settings defaults, fall back to betrieb name
-  const settings = await fetch('/api/user/settings').then(r => r.json());
-  const fullName = betrieb.vorname ? `${betrieb.vorname} ${betrieb.name}` : '';
-  document.getElementById('anw-anwender').value      = settings.default_anwender       || fullName;
-  document.getElementById('anw-verantwortlich').value = settings.default_verantwortlich || fullName;
-}
-
-function validate() {
-  const errors = [];
-
-  const psmChecked = [...document.querySelectorAll('[id^="cb-psm-"]')].filter(cb => cb.checked);
-  if (psmChecked.length === 0) {
-    errors.push('Mindestens 1 Pflanzenschutzmittel auswählen');
-  } else {
-    psmChecked.forEach(cb => {
-      const id = cb.id.replace('cb-psm-','');
-      const val = parseFloat(document.getElementById(`psm-menge-${id}`)?.value);
-      if (!val || val <= 0) errors.push(`Aufwandsmenge für "${cb.closest('.exp-item').querySelector('.ci-name').textContent.replace('🧪 ','')}" fehlt`);
-    });
-  }
-
-  const eoChecked = [...document.querySelectorAll('[id^="cb-eo-"]')].filter(cb => cb.checked);
-  if (eoChecked.length === 0) errors.push('Mindestens 1 Einsatzort auswählen');
-
-  const kultChecked = [...document.querySelectorAll('[id^="cb-kult-"]')].filter(cb => cb.checked);
-  if (kultChecked.length === 0) {
-    errors.push('Mindestens 1 Kultur auswählen');
-  } else {
-    kultChecked.forEach(cb => {
-      const id = cb.id.replace('cb-kult-','');
-      if (!document.getElementById(`kult-bbch-${id}`)?.value.trim())
-        errors.push(`BBCH-Code für "${cb.closest('.exp-item').querySelector('.ci-name').textContent.replace('🌾 ','')}" fehlt`);
-    });
-  }
-
-  if (!document.getElementById('anw-datum')?.value) errors.push('Datum fehlt');
-  if (!document.getElementById('anw-uhrzeit')?.value) errors.push('Uhrzeit fehlt');
-
-  const ok = errors.length === 0;
-  ['btn-preview','btn-json','btn-pdf'].forEach(id => {
-    const btn = document.getElementById(id);
-    if (btn) btn.disabled = !ok;
-  });
-  const msg = document.getElementById('validation-msg');
-  if (msg) {
-    msg.style.display = ok ? 'none' : 'block';
-    msg.innerHTML = ok ? '' : '⚠️ ' + errors.join(' &nbsp;·&nbsp; ');
-  }
-}
-
-function toggleExpItem(type, id, checked) {
-  const el = document.getElementById(`exp-${type}-${id}`);
-  const cb = document.getElementById(`cb-${type}-${id}`);
-  const isNowSelected = checked !== undefined ? checked : !cb.checked;
-  cb.checked = isNowSelected;
-  el.classList.toggle('selected', isNowSelected);
-  validate();
-}
-
-function getExportPayload() {
-  const psmOverrides = [];
-  document.querySelectorAll('[id^="cb-psm-"]').forEach(cb => {
-    if (cb.checked) {
-      const id = cb.id.replace('cb-psm-','');
-      psmOverrides.push({ id: parseInt(id), aufwandMenge: parseFloat(document.getElementById(`psm-menge-${id}`).value) || 0 });
-    }
-  });
-  const eoIds = [...document.querySelectorAll('[id^="cb-eo-"]')]
-    .filter(cb => cb.checked).map(cb => parseInt(cb.id.replace('cb-eo-','')));
-  const kultOverrides = [];
-  document.querySelectorAll('[id^="cb-kult-"]').forEach(cb => {
-    if (cb.checked) {
-      const id = cb.id.replace('cb-kult-','');
-      kultOverrides.push({ id: parseInt(id), bbchCode: document.getElementById(`kult-bbch-${id}`).value || '' });
-    }
-  });
-  return {
-    psm_overrides: psmOverrides,
-    einsatzort_ids: eoIds,
-    kult_overrides: kultOverrides,
-    anwendung: {
-      datum: document.getElementById('anw-datum').value,
-      uhrzeit: document.getElementById('anw-uhrzeit').value,
-      artVerwendung: document.getElementById('anw-art-haupt').value + ' – ' + document.getElementById('anw-art-sub').value,
-      verantwortlich: document.getElementById('anw-verantwortlich').value,
-      anwender: document.getElementById('anw-anwender').value,
-    }
-  };
-}
-
-async function previewJSON() {
-  const result = await fetch('/api/preview', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(getExportPayload())
-  }).then(r=>r.json());
-  const wrap = document.getElementById('json-preview-wrap');
-  document.getElementById('json-preview').textContent = JSON.stringify(result, null, 2);
-  wrap.style.display = 'block';
-  wrap.scrollIntoView({behavior:'smooth'});
-}
-
-async function exportJSON() {
-  const payload = getExportPayload();
-
-  try {
-    await ensureHistorySaved(payload);
-  } catch (err) {
-    toast('❌ History konnte nicht gespeichert werden');
-    return;
-  }
-
-  const resp = await fetch('/api/export', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(payload)
-  });
-
-  const ct = resp.headers.get('Content-Type') || '';
-  if (ct.includes('application/json')) {
-    const data = await resp.json();
-    if (data.filename) {
-      toast(`✅ JSON gespeichert: ${data.filename}`);
-      return;
-    }
-  }
-
-  const blob = await resp.blob();
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `pflanzenschutz_${new Date().toISOString().split('T')[0]}.json`;
-  a.click();
-  toast('✅ JSON exportiert');
-}
-
-async function exportPDF() {
-  const payload = getExportPayload();
-
-  try {
-    await ensureHistorySaved(payload);
-  } catch (err) {
-    toast('❌ History konnte nicht gespeichert werden');
-    return;
-  }
-
-  const resp = await fetch('/api/pdf', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(payload)
-  });
-
-  if (!resp.ok) {
-    toast('❌ PDF-Fehler');
-    return;
-  }
-
-  const ct = resp.headers.get('Content-Type') || '';
-  if (ct.includes('application/json')) {
-    const data = await resp.json();
-    toast(`✅ PDF gespeichert: ${data.filename}`);
-    return;
-  }
-
-  const blob = await resp.blob();
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const cd = resp.headers.get('Content-Disposition') || '';
-  const match = cd.match(/filename="?([^"]+)"?/);
-  a.download = match ? match[1] : 'pflanzenschutz.pdf';
-  a.click();
-  toast('✅ PDF exportiert');
-}
-
-
-// ── ART DER VERWENDUNG ───────────────────────────────────
-const ART_SUBKATEGORIEN = {
-  'Behandlung von Freilandflächen': ['Freiland'],
-  'Behandlung geschlossener Räume bzw. in geschlossenen Räumen': [
-    'Gewächshaus', 'Folientunnel (ortfest & begehbar)', 'Raum', 'Lager', 'Container'
-  ],
-  'Behandlung von Saatgut oder Pflanzenvermehrungsmaterial': [
-    'Freiland', 'Gewächshaus', 'Raum', 'Lager'
-  ],
-};
-
-function updateArtSubkategorie() {
-  const haupt = document.getElementById('anw-art-haupt').value;
-  const sub = document.getElementById('anw-art-sub');
-  const opts = ART_SUBKATEGORIEN[haupt] || [];
-  sub.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
-}
-let lastSavedHistorySignature = null;
-
-function getPayloadSignature(payload) {
-  return JSON.stringify(payload);
-}
-
-async function ensureHistorySaved(payload) {
-  const signature = getPayloadSignature(payload);
-  if (lastSavedHistorySignature === signature) return;
-
-  const resp = await fetch('/api/history', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(payload)
-  });
-
-  const data = await resp.json();
-  if (!resp.ok || !data.ok) {
-    throw new Error(data.error || 'History konnte nicht gespeichert werden.');
-  }
-
-  lastSavedHistorySignature = signature;
-}
-
-async function loadHistory() {
-  const items = await fetch('/api/history').then(r => r.json());
-  const list = document.getElementById('history-list');
-  const count = document.getElementById('history-count');
-  count.textContent = items.length;
-
-  if (!items.length) {
-    list.innerHTML = `<div class="empty">Noch keine Applikationen gespeichert.</div>`;
-    return;
-  }
-
-  list.innerHTML = items.map(item => `
-    <div class="item">
-      <div class="item-info">
-        <div class="name">${item.datum || 'Ohne Datum'} ${item.uhrzeit ? '· ' + item.uhrzeit : ''}</div>
-        <div class="meta">${item.artVerwendung || '—'}</div>
-        <div class="meta">📍 ${item.einsatzorte || '—'}</div>
-        <div class="meta">🧪 ${item.psm_namen || '—'}</div>
-        <div class="meta">🌾 ${item.kulturen || '—'}</div>
-      </div>
-      <div class="item-actions">
-        <button class="btn btn-sm btn-ghost" onclick="showHistoryDetail(${item.id})">Ansehen</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function escapeHtml(v) {
-  return String(v ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function field(label, value) {
-  return `
-    <div class="history-field">
-      <div class="label">${escapeHtml(label)}</div>
-      <div class="value">${escapeHtml(value || '—')}</div>
-    </div>
-  `;
-}
-
-function renderSimpleList(items, emptyText = 'Keine Einträge vorhanden') {
-  if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">${escapeHtml(emptyText)}</div>`;
-  }
-
-  return `
-    <div class="history-chip-list">
-      ${items.map(item => `<div class="history-chip">${escapeHtml(item.name || item)}</div>`).join('')}
-    </div>
-  `;
-}
-
-function renderPSMList(items) {
-  if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">Keine Pflanzenschutzmittel vorhanden.</div>`;
-  }
-
-  return `
-    <div class="history-list-block">
-      ${items.map(psm => {
-        const menge = psm.aufwandMenge || '';
-        const einheit = psm.aufwandEinheit || '';
-        const aufwand = menge ? `${menge} ${einheit}`.trim() : '—';
-
-        return `
-          <div class="history-subitem">
-            <div class="history-subitem-title">${escapeHtml(psm.name || 'Unbenanntes Mittel')}</div>
-            <div class="history-subitem-meta"><strong>Verwendete Menge:</strong> ${escapeHtml(aufwand)}</div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `;
-}
-
-function renderEinsatzorte(items) {
-  if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">Keine Einsatzorte vorhanden.</div>`;
-  }
-
-  return `
-    <div class="history-list-block">
-      ${items.map(ort => `
-        <div class="history-subitem">
-          <div class="history-subitem-title">${escapeHtml(ort.name || 'Unbenannter Einsatzort')}</div>
-          <div class="history-subitem-meta">Bereich: ${escapeHtml(ort.anwendungsbereich || '—')}</div>
-          <div class="history-subitem-meta">Fläche/Volumen: ${escapeHtml(ort.flaecheVolumen || '—')} ${escapeHtml(ort.einheit || '')}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-function renderKulturenList(items) {
-  if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">Keine Kulturen hinterlegt.</div>`;
-  }
-
-  return `
-    <div class="history-list-block">
-      ${items.map(k => `
-        <div class="history-subitem">
-          <div class="history-subitem-title">${escapeHtml(k.name || 'Unbenannte Kultur')}</div>
-          <div class="history-subitem-meta"><strong>BBCH-Stadium:</strong> ${escapeHtml(k.bbchCode || '—')}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-
-async function showHistoryDetail(id) {
-  const item = await fetch(`/api/history/${id}`).then(r => r.json());
-  const wrap = document.getElementById('history-detail-wrap');
-  const container = document.getElementById('history-detail');
-
-  const data = item.json_data || {};
-  const anwendung = data.anwendung || {};
-  const betrieb = data.betrieb || {};
-  const psm = data.pflanzenschutzmittel || [];
-  const einsatzorte = data.einsatzorte || [];
-  const kulturen = data.kulturen || [];
-
-  container.innerHTML = `
-    <div class="history-section">
-      <h4>Allgemein</h4>
-      <div class="history-grid">
-        ${field('Datum', anwendung.datum)}
-        ${field('Uhrzeit', anwendung.uhrzeit)}
-        ${field('Art der Verwendung', anwendung.artVerwendung)}
-        ${field('Verantwortlich', anwendung.verantwortlich)}
-        ${field('Anwender', anwendung.anwender)}
-        ${field('Gespeichert am', formatDateTime(item.created_at))}
-      </div>
-    </div>
-
-    <div class="history-section">
-      <h4>Betrieb</h4>
-      <div class="history-grid">
-        ${field('Firma', betrieb.firma)}
-        ${field('Nachname', betrieb.name)}
-        ${field('Vorname', betrieb.vorname)}
-        ${field('Straße / Hausnr.', betrieb.strHnr)}
-        ${field('PLZ', betrieb.plz)}
-        ${field('Ort', betrieb.ort)}
-        ${field('Bundesland', betrieb.bundesland)}
-      </div>
-    </div>
-
-    <div class="history-section">
-      <h4>Kulturen</h4>
-      ${renderKulturenList(kulturen)}
-    </div>
-
-    <div class="history-section">
-      <h4>Einsatzorte</h4>
-      ${renderEinsatzorte(einsatzorte)}
-    </div>
-
-    <div class="history-section">
-      <h4>Pflanzenschutzmittel</h4>
-      ${renderPSMList(psm)}
-    </div>
-  `;
-
-  wrap.style.display = 'block';
-  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function formatDateTime(value) {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (isNaN(d)) return value;
-  return d.toLocaleString('de-DE');
-}
-
-// ── SETTINGS ─────────────────────────────────────────────
-async function loadSettings() {
-  const s = await fetch('/api/user/settings').then(r => r.json());
-  document.getElementById('set-browser-download').checked  = s.browser_download;
-  document.getElementById('set-local-save').checked        = s.local_save;
-  document.getElementById('set-default-anwender').value    = s.default_anwender || '';
-  document.getElementById('set-default-verantwortlich').value = s.default_verantwortlich || '';
-}
-
-async function saveSettings() {
-  const payload = {
-    browser_download:       document.getElementById('set-browser-download').checked,
-    local_save:             document.getElementById('set-local-save').checked,
-    default_anwender:       document.getElementById('set-default-anwender').value.trim(),
-    default_verantwortlich: document.getElementById('set-default-verantwortlich').value.trim(),
-  };
-  if (!payload.browser_download && !payload.local_save) {
-    toast('⚠️ Mindestens eine Export-Option muss aktiv sein');
-    return;
-  }
-  const res = await fetch('/api/user/settings', {
-    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
-  }).then(r => r.json());
-  if (res.ok) toast('✅ Einstellungen gespeichert');
-}
-
-// ── INIT ────────────────────────────────────────────────
-loadBetrieb(); loadPSM(); loadEinsatzorte(); loadKulturen(); loadSettings();
-</script>
-</body>
-</html>
+<div id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+<script src="{{ url_for('static', filename='js/betrieb.js') }}"></script>
+<script src="{{ url_for('static', filename='js/psm.js') }}"></script>
+<script src="{{ url_for('static', filename='js/einsatzorte.js') }}"></script>
+<script src="{{ url_for('static', filename='js/kulturen.js') }}"></script>
+<script src="{{ url_for('static', filename='js/export.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

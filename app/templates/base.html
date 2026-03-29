@@ -4,12 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Pflanzenschutz{% endblock %}</title>
+
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="{{ url_for('media', filename='favicon.png') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('pages.media', filename='favicon.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+
+  {% block head %}{% endblock %}
 </head>
 <body>
   {% block body %}{% endblock %}
+
   {% block scripts %}{% endblock %}
 </body>
 </html>
