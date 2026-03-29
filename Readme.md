@@ -15,6 +15,18 @@ python app.py
 # http://localhost:5000
 ```
 
+## Docker
+```bash
+# 1. Image bauen
+docker build -t psmsimple .
+
+# 2. Container starten
+docker run --name PSMSimple -p 80:80 0 -v PATH_TO_VOLUME:/data psmsimple
+
+# 3. Browser öffnen
+http://localhost:5000
+```
+
 ## Funktionen
 
 - **Betrieb**: Einmalige Stammdaten (werden in jede JSON eingebettet)
