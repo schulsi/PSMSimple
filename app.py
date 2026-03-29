@@ -124,6 +124,20 @@ def init_db():
             id INTEGER PRIMARY KEY,
             name TEXT, eppoCode TEXT
         );
+    
+        CREATE TABLE IF NOT EXISTS applikationen (
+            id INTEGER PRIMARY KEY,
+            created_at TEXT NOT NULL,
+            datum TEXT,
+            uhrzeit TEXT,
+            artVerwendung TEXT,
+            verantwortlich TEXT,
+            anwender TEXT,
+            einsatzorte TEXT,
+            psm_namen TEXT,
+            kulturen TEXT,
+            json_data TEXT NOT NULL
+        );
     """)
     conn.commit()
     conn.close()
@@ -136,11 +150,43 @@ def api_to_string(einheit: str):
     elif einheit == "MD":
         return "ml/dosis"
     
-def create_save_path(datum: str = None, base: str = None):
+def create_save_path(datum: str = None):
     now = datetime.strptime(datum, "%Y-%m-%d") if datum else datetime.now()
-    path = os.path.join(BASE_DIR, "exports", str(now.year), f"{now.month:02d}_{now.strftime('%B')}")
+    root = os.path.join(BASE_DIR, "exports")
+    path = os.path.join(root, str(now.year), f"{now.month:02d}_{now.strftime('%B')}")
     os.makedirs(path, exist_ok=True)
     return path
+
+def save_application_snapshot(output):
+    anwendung = output.get("anwendung", {})
+    einsatzorte = ", ".join([e.get("name", "") for e in output.get("einsatzorte", [])])
+    psm_namen = ", ".join([p.get("name", "") for p in output.get("pflanzenschutzmittel", [])])
+    kulturen = ", ".join([k.get("name", "") for k in output.get("kulturen", [])])
+
+    conn = get_db()
+    conn.execute("""
+        INSERT INTO applikationen (
+            created_at, datum, uhrzeit, artVerwendung,
+            verantwortlich, anwender, einsatzorte,
+            psm_namen, kulturen, json_data
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        datetime.now().isoformat(timespec="seconds"),
+        anwendung.get("datum", ""),
+        anwendung.get("uhrzeit", ""),
+        anwendung.get("artVerwendung", ""),
+        anwendung.get("verantwortlich", ""),
+        anwendung.get("anwender", ""),
+        einsatzorte,
+        psm_namen,
+        kulturen,
+        json.dumps(output, ensure_ascii=False)
+    ))
+    conn.commit()
+    app_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    conn.close()
+    return app_id
 
 # ── AUTH ROUTES ──────────────────────────────────────────
 
@@ -655,7 +701,7 @@ def export_pdf():
     filename = f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.pdf"
     settings = UserSettings.for_user(current_user.id)
     if settings.local_save:
-        with open(os.path.join(create_save_path(data["anwendung"]["datum"], settings.save_path or None), filename), "wb") as f:
+        with open(os.path.join(create_save_path(data["anwendung"]["datum"]), filename), "wb") as f:
             f.write(buf.getbuffer())
     if settings.browser_download:
         buf.seek(0)
@@ -680,7 +726,7 @@ def export_json():
     filename = f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.json"
     settings = UserSettings.for_user(current_user.id)
     if settings.local_save:
-        with open(os.path.join(create_save_path(output["anwendung"]["datum"], settings.save_path or None), filename), "wb") as f:
+        with open(os.path.join(create_save_path(output["anwendung"]["datum"]), filename), "wb") as f:
             f.write(buf.getbuffer())
     if settings.browser_download:
         buf.seek(0)
@@ -746,6 +792,49 @@ def get_psm_info(kennr: str):
         return jsonify({"wirkstoffe": wirkstoffe, "zulassungsnr": kennr})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/history", methods=["GET"])
+@login_required
+def get_history():
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT id, created_at, datum, uhrzeit, artVerwendung,
+               verantwortlich, anwender, einsatzorte, psm_namen, kulturen
+        FROM applikationen
+        ORDER BY datetime(created_at) DESC, id DESC
+    """).fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+
+@app.route("/api/history", methods=["POST"])
+@login_required
+def save_history():
+    d = request.json
+    conn = get_db()
+    betrieb_row = conn.execute("SELECT * FROM betrieb LIMIT 1").fetchone()
+    conn.close()
+
+    if not betrieb_row:
+        return jsonify({"ok": False, "error": "Kein Betrieb vorhanden."}), 400
+
+    output = build_output(d, dict(betrieb_row))
+    app_id = save_application_snapshot(output)
+    return jsonify({"ok": True, "id": app_id})
+
+@app.route("/api/history/<int:hid>", methods=["GET"])
+@login_required
+def get_history_entry(hid):
+    conn = get_db()
+    row = conn.execute("SELECT * FROM applikationen WHERE id=?", (hid,)).fetchone()
+    conn.close()
+
+    if not row:
+        return jsonify({"ok": False, "error": "Nicht gefunden."}), 404
+
+    data = dict(row)
+    data["json_data"] = json.loads(data["json_data"])
+    return jsonify(data)
 
 @app.route("/")
 @login_required
