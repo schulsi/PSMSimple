@@ -577,6 +577,50 @@
 
 <div id="toast"></div>
 
+<!-- MODAL Betriebsdaten-Wizard -->
+<div class="modal-overlay" id="modal-betrieb-wizard">
+  <div class="modal">
+    <h3>Willkommen 👋</h3>
+    <p style="margin-bottom:1rem;color:var(--text-muted)">
+      Bevor du loslegst, trage bitte einmal die Betriebsdaten ein.
+    </p>
+
+    <div class="form-grid cols-3">
+      <div class="field"><label>Firma</label><input id="wiz-firma" placeholder="Mustermann Gemüsebau"></div>
+      <div class="field"><label>Nachname</label><input id="wiz-name" placeholder="Mustermann"></div>
+      <div class="field"><label>Vorname</label><input id="wiz-vorname" placeholder="Max"></div>
+      <div class="field"><label>Straße + Hausnr.</label><input id="wiz-strHnr" placeholder="Musterstraße 123"></div>
+      <div class="field"><label>PLZ</label><input id="wiz-plz" placeholder="12345"></div>
+      <div class="field"><label>Ort</label><input id="wiz-ort" placeholder="Musterstadt"></div>
+      <div class="field">
+        <label>Bundesland</label>
+        <select id="wiz-bundesland">
+          <option value="BW">Baden-Württemberg</option>
+          <option value="BY">Bayern</option>
+          <option value="BE">Berlin</option>
+          <option value="BB">Brandenburg</option>
+          <option value="HB">Bremen</option>
+          <option value="HH">Hamburg</option>
+          <option value="HE">Hessen</option>
+          <option value="MV">Mecklenburg-Vorpommern</option>
+          <option value="NI">Niedersachsen</option>
+          <option value="NW">Nordrhein-Westfalen</option>
+          <option value="RP">Rheinland-Pfalz</option>
+          <option value="SL">Saarland</option>
+          <option value="SN">Sachsen</option>
+          <option value="ST">Sachsen-Anhalt</option>
+          <option value="SH">Schleswig-Holstein</option>
+          <option value="TH">Thüringen</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveBetriebWizard()">Speichern und starten</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── NAV ──────────────────────────────────────────────────
 function showTab(name, el) {
@@ -679,28 +723,76 @@ async function renameUser() {
 }
 
 // ── BETRIEB ──────────────────────────────────────────────
-async function loadBetrieb() {
-  const b = await fetch('/api/betrieb').then(r => r.json());
-  if (!b.id) return;
+let betriebExists = false;
+
+function openBetriebWizard() {
+  document.getElementById('modal-betrieb-wizard').classList.add('open');
+}
+
+function closeBetriebWizard() {
+  document.getElementById('modal-betrieb-wizard').classList.remove('open');
+}
+
+function fillBetriebForm(b) {
   ['firma','name','vorname','strHnr','plz','ort'].forEach(f => {
     document.getElementById('b-' + f).value = b[f] || '';
   });
   document.getElementById('b-bundesland').value = b.bundesland || 'BW';
 }
+
+async function loadBetrieb() {
+  const b = await fetch('/api/betrieb').then(r => r.json());
+
+  if (!b.id) {
+    betriebExists = false;
+    openBetriebWizard();
+    return;
+  }
+
+  betriebExists = true;
+  fillBetriebForm(b);
+}
+
 async function saveBetrieb() {
   await fetch('/api/betrieb', {
-    method: 'POST', headers: {'Content-Type':'application/json'},
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
       firma: document.getElementById('b-firma').value,
-      name:  document.getElementById('b-name').value,
+      name: document.getElementById('b-name').value,
       vorname: document.getElementById('b-vorname').value,
       strHnr: document.getElementById('b-strHnr').value,
-      plz:   document.getElementById('b-plz').value,
-      ort:   document.getElementById('b-ort').value,
+      plz: document.getElementById('b-plz').value,
+      ort: document.getElementById('b-ort').value,
       bundesland: document.getElementById('b-bundesland').value,
     })
   });
+
+  betriebExists = true;
   toast('✅ Betrieb gespeichert');
+}
+
+async function saveBetriebWizard() {
+  const payload = {
+    firma: document.getElementById('wiz-firma').value,
+    name: document.getElementById('wiz-name').value,
+    vorname: document.getElementById('wiz-vorname').value,
+    strHnr: document.getElementById('wiz-strHnr').value,
+    plz: document.getElementById('wiz-plz').value,
+    ort: document.getElementById('wiz-ort').value,
+    bundesland: document.getElementById('wiz-bundesland').value,
+  };
+
+  await fetch('/api/betrieb', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+
+  fillBetriebForm(payload);
+  betriebExists = true;
+  closeBetriebWizard();
+  toast('✅ Betriebsdaten gespeichert');
 }
 
 // ── PSM ──────────────────────────────────────────────────

@@ -113,13 +113,6 @@ def init_db():
             name TEXT, eppoCode TEXT
         );
     """)
-
-    if not c.execute("SELECT id FROM betrieb LIMIT 1").fetchone():
-        c.execute("""INSERT INTO betrieb (firma,name,vorname,strHnr,plz,ort,bundesland,guid)
-                     VALUES (?,?,?,?,?,?,?,?)""",
-                  ("Schulz", "Schulz", "Silas", "Am Dreschschopf 4", "79268", "Bötzingen", "BW",
-                   str(uuid.uuid4())))
-
     conn.commit()
     conn.close()
 
