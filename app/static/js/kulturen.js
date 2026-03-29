@@ -26,7 +26,7 @@ function renderKulturenList(items = kulturenItems) {
 
 async function loadKulturen() {
   try {
-    kulturenItems = ahttp://10.0.200.6:5001/historywait apiGet('/api/kulturen');
+    kulturenItems = await apiGet('/api/kulturen');
     const list = document.getElementById('kulturen-list');
     const count = document.getElementById('kult-count');
     renderKulturenList();
