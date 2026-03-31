@@ -1,7 +1,6 @@
-from .sqlite import get_appdata_connection
-
+from .sqlite import get_db
 def get_application_settings():
-    conn = get_appdata_connection()
+    conn = get_db()
     cur = conn.cursor()
     cur.execute("""
         SELECT *
@@ -22,7 +21,7 @@ def get_application_settings():
 
 
 def update_application_settings(key: str, value: str):
-    conn = get_appdata_connection()
+    conn = get_db()
     cur = conn.cursor()
     cur.execute("""
         UPDATE application_settings
