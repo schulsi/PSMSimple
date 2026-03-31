@@ -14,6 +14,8 @@ VOLUME ["/data"]
 
 ENV DATA_DIR=/data
 
+ENV SECRET_KEY="my-secret-key"
+
 EXPOSE 80
 
-CMD ["flask", "run", "--host=0.0.0.0", "--port=80"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "run:app"]
