@@ -83,10 +83,6 @@ async function saveBetriebWizard() {
   try {
     const payload = collectWizardBetriebForm();
     await apiPost('/api/betrieb', payload);
-    const settings = await apiGet('/api/user/settings');
-    settings.default_anwender = payload.anwender;
-    settings.default_verantwortlich = payload.verantwortlicher;
-    await apiPost('/api/user/settings', settings);
 
     applyDefaultSettingsToExport({
       default_anwender: payload.anwender,
