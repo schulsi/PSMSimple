@@ -393,3 +393,168 @@
   line-height: 38px; 
   padding: 0 .8rem;      
 }
+
+/* ══════════════════════════════════════════════
+   MOBILE HAMBURGER & OVERLAY NAV
+   ══════════════════════════════════════════════ */
+
+/* Mobile toggle button — hidden on desktop */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: .25rem .4rem;
+  line-height: 1;
+  margin-right: .5rem;
+  flex-shrink: 0;
+}
+
+/* Overlay behind open nav on mobile */
+.nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 90;
+}
+.nav-overlay.open { display: block; }
+
+/* ══════════════════════════════════════════════
+   TABLET  (≤ 900px)
+   ══════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 180px 1fr; }
+  main { padding: 1.5rem 1.5rem; }
+  .form-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ══════════════════════════════════════════════
+   MOBILE  (≤ 640px)
+   ══════════════════════════════════════════════ */
+@media (max-width: 640px) {
+
+  /* ── Header ── */
+  header {
+    padding: 0 1rem;
+    height: 56px;
+    gap: .5rem;
+  }
+  header .logo { font-size: 1.2rem; }
+  header .sub { display: none; }
+
+  /* Show hamburger */
+  .nav-toggle { display: flex; align-items: center; justify-content: center; }
+
+  /* ── Layout: stack nav on top of content ── */
+  .app { grid-template-columns: 1fr; }
+
+  /* Nav becomes an off-canvas drawer */
+  nav {
+    position: fixed;
+    top: 56px;
+    left: -240px;
+    width: 240px;
+    height: calc(100vh - 56px);
+    z-index: 100;
+    transition: left .25s ease;
+    overflow-y: auto;
+    box-shadow: 4px 0 20px rgba(0,0,0,.25);
+  }
+  nav.open { left: 0; }
+
+  /* ── Main area takes full width ── */
+  main {
+    padding: 1rem;
+    max-width: 100%;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ── Typography ── */
+  h2 { font-size: 1.3rem; margin-bottom: 1rem; }
+
+  /* ── Cards ── */
+  .card { padding: 1rem; }
+
+  /* ── Form grids collapse to single column ── */
+  .form-grid,
+  .form-grid.cols-3 { grid-template-columns: 1fr; }
+
+  /* Spans don't overflow in single-col */
+  [style*="grid-column:span 2"],
+  [style*="grid-column: span 2"] { grid-column: span 1 !important; }
+
+  /* ── Touch-friendly inputs ── */
+  .field input,
+  .field select {
+    height: 44px;
+    font-size: 1rem;
+    padding: 0 .9rem;
+  }
+
+  /* ── Buttons ── */
+  .btn { font-size: .9rem; padding: .6rem 1rem; }
+  .btn-sm { padding: .5rem .75rem; font-size: .82rem; }
+
+  /* Export footer: stack buttons vertically */
+  .export-footer {
+    flex-direction: column;
+    gap: .6rem;
+  }
+  .btn-export, .btn-pdf {
+    width: 100%;
+    justify-content: center;
+    font-size: .95rem;
+    padding: .75rem 1rem;
+  }
+
+  /* ── Item list: tighten action buttons ── */
+  .item { flex-wrap: wrap; gap: .6rem; }
+  .item-actions { flex-wrap: wrap; }
+
+  /* ── Modals: full-screen on mobile ── */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 1.5rem 1.25rem 2rem;
+    max-height: 92vh;
+  }
+  .modal .form-grid { grid-template-columns: 1fr; }
+  .modal .form-grid [style*="grid-column:span 2"] { grid-column: span 1 !important; }
+  .modal .field input,
+  .modal .field select { height: 44px; font-size: 1rem; }
+  .modal-footer { flex-direction: column-reverse; }
+  .modal-footer .btn { width: 100%; justify-content: center; padding: .7rem 1rem; }
+
+  /* ── History grid ── */
+  .history-grid { grid-template-columns: 1fr; }
+
+  /* ── User popup: attach to bottom of screen instead of nav ── */
+  .nav-user-popup {
+    bottom: 70px !important;
+    left: 8px !important;
+    width: calc(240px - 16px) !important;
+  }
+
+  /* ── Export items: full-width extra fields ── */
+  .exp-item-extra .form-grid { grid-template-columns: 1fr; }
+
+  /* ── Section labels ── */
+  nav .section-label { padding: 1.25rem 1.5rem .4rem; }
+
+  /* ── Pre / JSON preview ── */
+  pre { font-size: .72rem; max-height: 280px; }
+}
+
+/* ══════════════════════════════════════════════
+   SMALL MOBILE  (≤ 380px)
+   ══════════════════════════════════════════════ */
+@media (max-width: 380px) {
+  header .logo { font-size: 1rem; }
+  main { padding: .75rem; }
+  .card { padding: .85rem; }
+}
