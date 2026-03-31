@@ -9,9 +9,11 @@
 
 {% block body %}
 <header>
+  <button class="nav-toggle" id="nav-toggle" onclick="toggleMobileNav()" aria-label="Menü öffnen">☰</button>
   <div class="logo">🌿 Pflanzen<span>schutz</span></div>
   <div class="sub">Dokumentation & JSON-Export</div>
 </header>
+<div class="nav-overlay" id="nav-overlay" onclick="closeMobileNav()"></div>
 
 <div class="app">
   <nav>
@@ -480,6 +482,24 @@
   document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => {
       if (e.target === m) m.classList.remove('open');
+    });
+  });
+
+  /* ── Mobile nav helpers ── */
+  function toggleMobileNav() {
+    const nav = document.querySelector('nav');
+    const overlay = document.getElementById('nav-overlay');
+    const open = nav.classList.toggle('open');
+    overlay.classList.toggle('open', open);
+  }
+  function closeMobileNav() {
+    document.querySelector('nav').classList.remove('open');
+    document.getElementById('nav-overlay').classList.remove('open');
+  }
+  /* Close nav on any nav link click on mobile */
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 640) closeMobileNav();
     });
   });
 
