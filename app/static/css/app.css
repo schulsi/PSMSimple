@@ -616,29 +616,3 @@
   main { padding: .75rem; }
   .card { padding: .85rem; }
 }
-  #modal-map .modal {
-    width: 720px;
-    max-width: 96vw;
-    padding: 1.5rem;
-  }
-  #eo-map {
-    height: 420px;
-    border-radius: 8px;
-    border: 1.5px solid var(--cream-dark);
-    cursor: crosshair;
-  }
-  .map-coords-bar {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    margin-top: .75rem;
-    font-size: .82rem;
-    color: var(--text-muted);
-    flex-wrap: wrap;
-  }
-  .map-coords-bar strong { color: var(--green-deep); font-variant-numeric: tabular-nums; }
-  .map-hint { font-size: .75rem; color: var(--text-muted); margin-top: .5rem; }
-  @media (max-width: 640px) {
-    #eo-map { height: 300px; }
-    #modal-map .modal { padding: 1rem 1rem 1.5rem; }
-  }
