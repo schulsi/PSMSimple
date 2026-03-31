@@ -165,7 +165,7 @@ async function exportJSON() {
     const resp = await fetch('/api/export', {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
       body: JSON.stringify(payload)
     });
 
@@ -209,7 +209,7 @@ async function exportPDF() {
     const resp = await fetch('/api/pdf', {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
       body: JSON.stringify(payload)
     });
 
