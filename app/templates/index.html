@@ -9,6 +9,7 @@
 
 {% block body %}
 <header>
+  <button class="nav-toggle" id="nav-toggle" onclick="toggleMobileNav()" aria-label="Menü öffnen">☰</button>
   <div class="logo">🌿 Pflanzen<span>schutz</span></div>
   <div class="sub">Dokumentation & JSON-Export</div>
 </header>
@@ -491,9 +492,19 @@
     }
   });
 
-  document.querySelectorAll('.modal-overlay').forEach(m => {
-    m.addEventListener('click', e => {
-      if (e.target === m) m.classList.remove('open');
+function toggleMobileNav() {
+    const nav = document.querySelector('nav');
+    const overlay = document.getElementById('nav-overlay');
+    const open = nav.classList.toggle('open');
+    overlay.classList.toggle('open', open);
+  }
+  function closeMobileNav() {
+    document.querySelector('nav').classList.remove('open');
+    document.getElementById('nav-overlay').classList.remove('open');
+  }
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 640) closeMobileNav();
     });
   });
 
