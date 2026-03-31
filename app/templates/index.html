@@ -9,11 +9,9 @@
 
 {% block body %}
 <header>
-  <button class="nav-toggle" id="nav-toggle" onclick="toggleMobileNav()" aria-label="Menü öffnen">☰</button>
   <div class="logo">🌿 Pflanzen<span>schutz</span></div>
   <div class="sub">Dokumentation & JSON-Export</div>
 </header>
-<div class="nav-overlay" id="nav-overlay" onclick="closeMobileNav()"></div>
 
 <div class="app">
   <nav>
@@ -270,23 +268,37 @@
     <h3 id="modal-einsatzort-title">Einsatzort</h3>
     <div class="form-grid">
       <div class="field" style="grid-column:span 2"><label>Name / Bezeichnung <span style="color:var(--danger)">*</span></label><input id="eo-name"></div>
-    </div>
-
-    <!-- Map picker -->
-    <div id="eo-map"></div>
-    <p class="eo-map-hint">Auf die Karte klicken um Koordinaten zu setzen · Marker verschiebbar</p>
-
-    <div class="form-grid">
-      <div class="field"><label>GPS Rechtswert (Lat) <span style="color:var(--danger)">*</span></label><input type="number" id="eo-gpsRechtswert" step="any" placeholder="z.B. 48.123456" oninput="eoSyncMapFromInputs()"></div>
-      <div class="field"><label>GPS Hochwert (Lng) <span style="color:var(--danger)">*</span></label><input type="number" id="eo-gpsHochwert" step="any" placeholder="z.B. 7.654321" oninput="eoSyncMapFromInputs()"></div>
+      <div class="field" style="grid-column:span 2">
+        <label>Koordinaten</label>
+        <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+          <input type="number" id="eo-gpsRechtswert" step="any" placeholder="Lat, z.B. 48.123456" required style="flex:1;min-width:130px">
+          <input type="number" id="eo-gpsHochwert" step="any" placeholder="Lng, z.B. 7.654321" required style="flex:1;min-width:130px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="openMapModal()" style="white-space:nowrap;flex-shrink:0">🗺 Auf Karte wählen</button>
+        </div>
+      </div>
       <div class="field"><label>Anwendungsbereich</label><select id="eo-anwendungsbereich"><option value="Freiland" selected>Freiland</option><option value="Gewächshaus">Gewächshaus</option><option value="Lager">Lager</option></select></div>
       <div class="field"><label>Geo-Typ</label><select id="eo-geoTyp"><option value="GPS-Koordinaten">GPS-Koordinaten</option><option value="Polygon">Polygon</option><option value="Schlagname">Schlagname</option></select></div>
-      <div class="field"><label>Einheit</label><select id="eo-einheit"><option value="m2">m2</option><option value="ha">ha</option><option value="ar">ar</option></select></div>
       <div class="field"><label>Fläche / Volumen <span style="color:var(--danger)">*</span></label><input type="number" id="eo-flaecheVolumen" step="0.01"></div>
+      <div class="field"><label>Einheit</label><select id="eo-einheit"><option value="m2">m2</option><option value="ha">ha</option><option value="ar">ar</option></select></div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-ghost" onclick="closeModal('modal-einsatzort')">Abbrechen</button>
       <button type="button" class="btn btn-primary" onclick="saveEinsatzort()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-map">
+  <div class="modal">
+    <h3>🗺 Standort auf Karte wählen</h3>
+    <div id="eo-map"></div>
+    <div class="map-coords-bar">
+      📍 Gewählt: <strong id="map-lat-display">—</strong> / <strong id="map-lng-display">—</strong>
+    </div>
+    <p class="map-hint">Auf die Karte klicken um einen Punkt zu setzen · Marker ist verschiebbar</p>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeMapModal()">Abbrechen</button>
+      <button type="button" id="map-confirm-btn" class="btn btn-primary" onclick="confirmMapSelection()" disabled>✅ Koordinaten übernehmen</button>
     </div>
   </div>
 </div>
@@ -482,24 +494,6 @@
   document.querySelectorAll('.modal-overlay').forEach(m => {
     m.addEventListener('click', e => {
       if (e.target === m) m.classList.remove('open');
-    });
-  });
-
-  /* ── Mobile nav helpers ── */
-  function toggleMobileNav() {
-    const nav = document.querySelector('nav');
-    const overlay = document.getElementById('nav-overlay');
-    const open = nav.classList.toggle('open');
-    overlay.classList.toggle('open', open);
-  }
-  function closeMobileNav() {
-    document.querySelector('nav').classList.remove('open');
-    document.getElementById('nav-overlay').classList.remove('open');
-  }
-  /* Close nav on any nav link click on mobile */
-  document.querySelectorAll('nav a').forEach(a => {
-    a.addEventListener('click', () => {
-      if (window.innerWidth <= 640) closeMobileNav();
     });
   });
 
