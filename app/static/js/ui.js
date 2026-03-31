@@ -23,25 +23,43 @@ function toast(message, duration = 2600) {
     el.classList.remove('show');
   }, duration);
 }
+const tabToPath = {
+  betrieb: "/farm",
+  psm: "/psm",
+  einsatzorte: "/fields",
+  kulturen: "/cultures",
+  export: "/export",
+  history: "/history",
+  settings: "/settings",
+};
 
-function showTab(tabName, navEl = null) {
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.classList.remove('active');
-  });
+const pathToTab = {
+  "": "betrieb",
+  "farm": "betrieb",
+  "psm": "psm",
+  "fields": "einsatzorte",
+  "cultures": "kulturen",
+  "export": "export",
+  "history": "history",
+  "settings": "settings",
+};
+function showTab(tabName, el, push = true) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tabName}`).classList.add('active');
 
-  const target = document.getElementById(`tab-${tabName}`);
-  if (target) target.classList.add('active');
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  if (el) el.classList.add('active');
 
-  document.querySelectorAll('nav a').forEach(a => {
-    a.classList.remove('active');
-  });
-
-  if (navEl) {
-    navEl.classList.add('active');
+  if (push) {
+    history.pushState({ tab: tabName }, '', tabToPath[tabName] || "/farm");
   }
-
-  closeUserPopup();
 }
+
+function getTabFromPath() {
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  return pathToTab[path] || "betrieb";
+}
+
 
 function openModal(id) {
   const el = $(id);
@@ -112,4 +130,29 @@ window.addEventListener('resize', () => {
   if (popup && popup.classList.contains('open')) {
     positionUserPopup();
   }
+});
+
+window.addEventListener('popstate', (event) => {
+  const tabName = (event.state && event.state.tab)
+    ? event.state.tab
+    : getTabFromPath();
+ 
+  const navLink = document.querySelector(`nav a[onclick*="'${tabName}'"]`);
+  showTab(tabName, navLink, false);  // false = don't push again
+ 
+  // Re-run loaders that need fresh data
+  if (tabName === 'history' && typeof loadHistory === 'function') loadHistory();
+  if (tabName === 'export'  && typeof loadExportSelections === 'function') {
+    loadExportSelections();
+    if (typeof syncLegacyExportUI === 'function') syncLegacyExportUI();
+  }
+});
+ 
+// ── On initial page load: activate correct tab from URL & set initial state ──
+document.addEventListener('DOMContentLoaded', () => {
+  const tabName = getTabFromPath();
+  const navLink = document.querySelector(`nav a[onclick*="'${tabName}'"]`);
+  showTab(tabName, navLink, false);
+  // Replace so the initial entry also carries state for popstate
+  history.replaceState({ tab: tabName }, '', window.location.pathname);
 });

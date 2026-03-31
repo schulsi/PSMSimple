@@ -30,7 +30,10 @@ function renderPSMList(items = psmItems) {
 async function loadPSM() {
   try {
     psmItems = await apiGet('/api/psm');
+    const list = document.getElementById('psm-list');
     renderPSMList();
+    const count = document.getElementById('psm-count');
+    if (count) count.textContent = String(psmItems.length);
     if (typeof loadExportSelections === 'function') {
       loadExportSelections();
     }
