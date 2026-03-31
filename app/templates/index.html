@@ -243,9 +243,12 @@
       <div class="field"><label>Wirkstoffe</label><input id="psm-wirkstoffe" disabled></div>
       <div class="field">
         <label>Einheit (Aufwandsmenge)</label>
-        <select id="psm-aufwandEinheit">
-          <option value="kg/ha">kg/ha</option><option value="l/ha">l/ha</option><option value="g/ha">g/ha</option>
-          <option value="ml/ha">ml/ha</option><option value="kg/m²">kg/m²</option><option value="l/m²">l/m²</option>
+        <input id="psm-aufwandEinheit" list="einheiten">
+        <datalist id="einheiten">
+          <option value="kg/ha">
+          <option value="l/ha">
+          <option value="g/ha">
+          <option value="ml/ha">
         </select>
       </div>
       <div class="field" style="grid-column:span 2">
@@ -254,7 +257,7 @@
           <option value="B1">(B1) Bienengefährlich</option>
           <option value="B2">(B2) Bienengefährlich außer nach dem täglichen Bienenflug</option>
           <option value="B3">(B3) Bienengefährlich, Anwendungsverbot</option>
-          <option value="B4" selected>(B4) Nicht bienengefährlich</option>
+          <option value="B4">(B4) Nicht bienengefährlich</option>
         </select>
       </div>
     </div>

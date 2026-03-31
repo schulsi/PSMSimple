@@ -69,8 +69,7 @@ function collectPSMForm() {
 function openPSMModal() {
   resetPSMForm();
   openModal('modal-psm');
-  document.getElementById("psm-bienen").value = "B4";
-  document.getElementById("psm-aufwandEinheit").value = "kg/ha";
+ document.getElementById("psm-aufwandEinheit").value = "kg/ha";
 }
 
 async function editPSM(id) {
@@ -187,6 +186,12 @@ async function selectPSMSearchResult(name, kennr) {
 
     if ($('psm-zulassungsnr')) $('psm-zulassungsnr').value = info.zulassungsnr || kennr;
     if ($('psm-wirkstoffe')) $('psm-wirkstoffe').value = info.wirkstoffe || '';
+    if ($('psm-bienen')) {
+      const beeClass = (info.bienenfreundlichkeit || '').split(',')[0].trim();
+      if (['B1', 'B2', 'B3', 'B4'].includes(beeClass)) {
+        $('psm-bienen').value = beeClass;
+      }
+    }
   } catch (err) {
     console.error(err);
     toast('⚠️ Wirkstoffdaten konnten nicht geladen werden');
