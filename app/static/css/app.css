@@ -425,7 +425,7 @@
     transition: all .15s;
   }
   #eo-locate-btn:hover { border-color: var(--green-light); color: var(--green-deep); background: #fff; }
-  /* Make modal wider for map */
+  /* Make modal wider for */
   #modal-einsatzort .modal { width: 680px; }
 
 /* ══════════════════════════════════════════════
