@@ -1,6 +1,22 @@
 let psmItems = [];
 let currentPsmEditId = null;
 let psmSearchTimer = null;
+let psmInfoLoading = false;
+
+function setPSMInfoLoading(isLoading) {
+  psmInfoLoading = isLoading;
+
+  const saveBtn = $('psm-save-btn');
+  if (saveBtn) {
+    saveBtn.disabled = isLoading;
+    saveBtn.textContent = isLoading ? 'Lade Daten ...' : 'Speichern';
+  }
+
+  const nameInput = $('psm-name');
+  if (nameInput) {
+    nameInput.disabled = isLoading;
+  }
+}
 
 function renderPSMList(items = psmItems) {
   const list = $('psm-list');
@@ -45,6 +61,7 @@ async function loadPSM() {
 
 function resetPSMForm() {
   currentPsmEditId = null;
+  setPSMInfoLoading(false);
 
   const fields = ['name', 'zulassungsnr', 'wirkstoffe', 'aufwandEinheit', 'bienen'];
   fields.forEach(field => {
@@ -69,7 +86,6 @@ function collectPSMForm() {
 function openPSMModal() {
   resetPSMForm();
   openModal('modal-psm');
- //document.getElementById("psm-aufwandEinheit").value = "kg/ha";
 }
 
 async function editPSM(id) {
@@ -94,6 +110,10 @@ async function editPSM(id) {
 
 async function savePSM() {
   try {
+    if (psmInfoLoading) {
+      toast('⚠️ Bitte warten, bis die Daten geladen sind');
+      return;
+    }
     const payload = collectPSMForm();
 
     if (!payload.name) {
@@ -180,6 +200,7 @@ async function selectPSMSearchResult(name, kennr) {
   const resultsBox = $('psm-search-results');
   if (resultsBox) resultsBox.classList.remove('show');
 
+  setPSMInfoLoading(true);
   try {
     const info = await apiGet(`/api/psm/info/${encodeURIComponent(kennr)}`);
 
@@ -195,6 +216,8 @@ async function selectPSMSearchResult(name, kennr) {
   } catch (err) {
     console.error(err);
     toast('⚠️ Wirkstoffdaten konnten nicht geladen werden');
+  } finally {
+    setPSMInfoLoading(false);
   }
 }
 
