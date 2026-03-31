@@ -33,7 +33,9 @@ function collectWizardBetriebForm() {
     strHnr: $('wiz-strHnr') ? $('wiz-strHnr').value.trim() : '',
     plz: $('wiz-plz') ? $('wiz-plz').value.trim() : '',
     ort: $('wiz-ort') ? $('wiz-ort').value.trim() : '',
-    bundesland: $('wiz-bundesland') ? $('wiz-bundesland').value : 'BW'
+    bundesland: $('wiz-bundesland') ? $('wiz-bundesland').value : 'BW',
+    verantwortlicher: $('wiz-anwendungsverantwortlicher') ? $('wiz-anwendungsverantwortlicher').value.trim() : '',
+    anwender: $('wiz-anwender') ? $('wiz-anwender').value.trim() : ''
   };
 }
 
@@ -81,6 +83,10 @@ async function saveBetriebWizard() {
   try {
     const payload = collectWizardBetriebForm();
     await apiPost('/api/betrieb', payload);
+    settings = await apiGet('/api/user/settings')
+    settings.default_anwender = payload.anwender;
+    settings.default_verantwortlich = payload.verantwortlicher;
+    await apiPost('/api/user/settings', settings);
 
     fillBetriebForm(payload);
     betriebExists = true;
