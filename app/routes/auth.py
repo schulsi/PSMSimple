@@ -2,13 +2,20 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from ..extensions import db
+from ..extensions import db, limiter
 from ..models.user import User
 
 bp = Blueprint("auth", __name__)
 
+def login_bucket():
+    username = (request.form.get("username") or "").strip().lower()
+    if username:
+        return f"{request.remote_addr}:{username}"
+    return request.remote_addr or "unknown"
 
 @bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
+@limiter.limit("5 per 10 minute", key_func=login_bucket, methods=["POST"])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("pages.index"))
@@ -29,6 +36,7 @@ def login():
 
 
 @bp.route("/register", methods=["POST"])
+@limiter.limit("3 per hour", methods=["POST"])
 def register():
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")

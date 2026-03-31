@@ -16,6 +16,8 @@ ENV DATA_DIR=/data
 
 ENV SECRET_KEY="my-secret-key"
 
+ENV RATELIMIT_STORAGE_URI="redis://redis:6379/0"
+
 EXPOSE 80
 
 CMD ["gunicorn", "-b", "0.0.0.0:80", "run:app"]

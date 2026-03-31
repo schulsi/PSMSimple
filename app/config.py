@@ -19,6 +19,9 @@ class Config:
  #   REMEMBER_COOKIE_SECURE = True
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = "Lax"
+    RATELIMIT_STORAGE_URL = os.environ.get("RATELIMIT_STORAGE_URI", "redis://localhost:6379/0")
+    RATELIMIT_STRATEGY = "fixed-window"
+    RATELIMIT_HEADER_ENABLED = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR, "users.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     APP_DATA_DB = os.path.join(DB_DIR, "pflanzenschutz.db")
