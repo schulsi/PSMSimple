@@ -429,6 +429,19 @@
   .app { grid-template-columns: 180px 1fr; }
   main { padding: 1.5rem 1.5rem; }
   .form-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+
+  nav a {
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
+    align-items: flex-start;
+    padding: .55rem 1rem .55rem 1.25rem;
+    font-size: .82rem;
+  }
+  nav .ico {
+    margin-top: .15rem;
+    flex-shrink: 0;
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -462,6 +475,17 @@
     transition: left .25s ease;
     overflow-y: auto;
     box-shadow: 4px 0 20px rgba(0,0,0,.25);
+  }
+  nav a {
+    white-space: normal;
+    line-height: 1.3;
+    align-items: flex-start;
+    padding-top: .55rem;
+    padding-bottom: .55rem;
+  }
+  nav .ico {
+    margin-top: .1rem;   
+    flex-shrink: 0;
   }
   nav.open { left: 0; }
 
