@@ -1,10 +1,12 @@
-from flask import Flask
+from flask import Flask, jsonify, request, render_template, flash, redirect, url_for
+from flask_wtf.csrf import CSRFError
 
 from .config import Config
-from .extensions import db, login_manager
+from .extensions import db, login_manager, csrf
 from .models import User
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
+
 
 
 @login_manager.user_loader
@@ -18,6 +20,14 @@ def create_app():
 
     db.init_app(app)
     login_manager.init_app(app)
+    csrf.init_app(app)
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        if request.path.startswith("/api/"):
+            return jsonify({"ok": False, "error": f"CSRF-Fehler: {e.description}"}), 400
+        flash(f"CSRF-Fehler: {e.description}", "error")
+        return redirect(url_for("auth.login"))
 
     @app.after_request
     def add_security_headers(response):

@@ -13,10 +13,10 @@ DB = os.path.join(DB_DIR, "pflanzenschutz.db")
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    SESSION_COOKIE_SECURE = True
+ #   SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    REMEMBER_COOKIE_SECURE = True
+ #   REMEMBER_COOKIE_SECURE = True
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = "Lax"
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR, "users.db")
