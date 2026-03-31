@@ -4,6 +4,10 @@ function getPayloadSignature(payload) {
   return JSON.stringify(payload);
 }
 
+function getCsrfToken() {
+  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
 function renderExportSelectionList(containerId, items, type) {
   const container = $(containerId);
   if (!container) return;
@@ -162,7 +166,12 @@ async function exportJSON() {
     const payload = getExportPayload();
     await ensureHistorySaved(payload);
 
-    const resp = await apiPost('/api/export', payload);
+    const resp = await fetch('/api/export', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+      body: JSON.stringify(payload)
+    });
 
     const ct = resp.headers.get('Content-Type') || '';
 
@@ -201,7 +210,12 @@ async function exportPDF() {
     const payload = getExportPayload();
     await ensureHistorySaved(payload);
 
-    const resp = await apiPost('/api/pdf', payload);
+    const resp = await fetch('/api/pdf', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+      body: JSON.stringify(payload)
+    });
 
     const ct = resp.headers.get('Content-Type') || '';
 
