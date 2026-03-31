@@ -243,10 +243,13 @@
       <div class="field"><label>Wirkstoffe</label><input id="psm-wirkstoffe" disabled></div>
       <div class="field">
         <label>Einheit (Aufwandsmenge)</label>
-        <select id="psm-aufwandEinheit">
-          <option value="kg/ha">kg/ha</option><option value="l/ha">l/ha</option><option value="g/ha">g/ha</option>
-          <option value="ml/ha">ml/ha</option><option value="kg/m²">kg/m²</option><option value="l/m²">l/m²</option>
-        </select>
+        <input id="psm-aufwandEinheit" name="einheit" list="einheiten">
+        <datalist id="einheiten">
+          <option value="kg/ha">
+          <option value="l/ha">
+          <option value="g/ha">
+          <option value="ml/ha">
+        </datalist>
       </div>
       <div class="field" style="grid-column:span 2">
         <label>Bienengefährlichkeit</label>
@@ -254,13 +257,13 @@
           <option value="B1">(B1) Bienengefährlich</option>
           <option value="B2">(B2) Bienengefährlich außer nach dem täglichen Bienenflug</option>
           <option value="B3">(B3) Bienengefährlich, Anwendungsverbot</option>
-          <option value="B4" selected>(B4) Nicht bienengefährlich</option>
+          <option value="B4">(B4) Nicht bienengefährlich</option>
         </select>
       </div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-ghost" onclick="closeModal('modal-psm')">Abbrechen</button>
-      <button type="button" class="btn btn-primary" onclick="savePSM()">Speichern</button>
+      <button type="button" class="btn btn-primary" onclick="savePSM()" id="psm-save-btn">Speichern</button>
     </div>
   </div>
 </div>
@@ -275,12 +278,12 @@
         <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
           <input type="number" id="eo-gpsRechtswert" step="any" placeholder="Lat, z.B. 48.123456" required style="flex:1;min-width:130px">
           <input type="number" id="eo-gpsHochwert" step="any" placeholder="Lng, z.B. 7.654321" required style="flex:1;min-width:130px">
-          <button type="button" class="btn btn-ghost btn-sm" onclick="openMapModal()" style="white-space:nowrap;flex-shrink:0">🗺 Auf Karte wählen</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="openMapModal()" style="white-space:nowrap;flex-shrink:0">🗺 Karte anzeigen</button>
         </div>
       </div>
       <div class="field"><label>Anwendungsbereich</label><select id="eo-anwendungsbereich"><option value="Freiland" selected>Freiland</option><option value="Gewächshaus">Gewächshaus</option><option value="Lager">Lager</option></select></div>
       <div class="field"><label>Geo-Typ</label><select id="eo-geoTyp"><option value="GPS-Koordinaten">GPS-Koordinaten</option><option value="Polygon">Polygon</option><option value="Schlagname">Schlagname</option></select></div>
-      <div class="field"><label>Fläche / Volumen <span style="color:var(--danger)">*</span></label><input type="number" id="eo-flaecheVolumen" step="0.01"></div>
+      <div class="field"><label>Fläche <span style="color:var(--danger)">*</span></label><input type="number" id="eo-flaecheVolumen" step="0.01"></div>
       <div class="field"><label>Einheit</label><select id="eo-einheit"><option value="m2">m2</option><option value="ha">ha</option><option value="ar">ar</option></select></div>
     </div>
     <div class="modal-footer">
@@ -354,6 +357,8 @@
           <option value="TH">Thüringen</option>
         </select>
       </div>
+      <div class="field"><label>Anwendungsverantwortlicher</label><input id="wiz-anwendungsverantwortlicher" placeholder="Max Mustermann"></div>
+      <div class="field"><label>Anwender</label><input id="wiz-anwender" placeholder="Max Mustermann"></div>
     </div>
 
     <div class="modal-footer">

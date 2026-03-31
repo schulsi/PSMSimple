@@ -1,6 +1,22 @@
 let psmItems = [];
 let currentPsmEditId = null;
 let psmSearchTimer = null;
+let psmInfoLoading = false;
+
+function setPSMInfoLoading(isLoading) {
+  psmInfoLoading = isLoading;
+
+  const saveBtn = $('psm-save-btn');
+  if (saveBtn) {
+    saveBtn.disabled = isLoading;
+    saveBtn.textContent = isLoading ? 'Lade Daten ...' : 'Speichern';
+  }
+
+  const nameInput = $('psm-name');
+  if (nameInput) {
+    nameInput.disabled = isLoading;
+  }
+}
 
 function renderPSMList(items = psmItems) {
   const list = $('psm-list');
@@ -45,6 +61,7 @@ async function loadPSM() {
 
 function resetPSMForm() {
   currentPsmEditId = null;
+  setPSMInfoLoading(false);
 
   const fields = ['name', 'zulassungsnr', 'wirkstoffe', 'aufwandEinheit', 'bienen'];
   fields.forEach(field => {
@@ -69,8 +86,6 @@ function collectPSMForm() {
 function openPSMModal() {
   resetPSMForm();
   openModal('modal-psm');
-  document.getElementById("psm-bienen").value = "B4";
-  document.getElementById("psm-aufwandEinheit").value = "kg/ha";
 }
 
 async function editPSM(id) {
@@ -83,7 +98,6 @@ async function editPSM(id) {
     if ($('psm-wirkstoffe')) $('psm-wirkstoffe').value = item.wirkstoffe || '';
     if ($('psm-aufwandEinheit')) $('psm-aufwandEinheit').value = item.aufwandEinheit || '';
     if ($('psm-bienen')) $('psm-bienen').value = item.bienen || '';
-
     const modalTitle = $('modal-psm-title');
     if (modalTitle) modalTitle.textContent = 'Pflanzenschutzmittel bearbeiten';
 
@@ -96,6 +110,10 @@ async function editPSM(id) {
 
 async function savePSM() {
   try {
+    if (psmInfoLoading) {
+      toast('⚠️ Bitte warten, bis die Daten geladen sind');
+      return;
+    }
     const payload = collectPSMForm();
 
     if (!payload.name) {
@@ -182,14 +200,24 @@ async function selectPSMSearchResult(name, kennr) {
   const resultsBox = $('psm-search-results');
   if (resultsBox) resultsBox.classList.remove('show');
 
+  setPSMInfoLoading(true);
   try {
     const info = await apiGet(`/api/psm/info/${encodeURIComponent(kennr)}`);
 
     if ($('psm-zulassungsnr')) $('psm-zulassungsnr').value = info.zulassungsnr || kennr;
     if ($('psm-wirkstoffe')) $('psm-wirkstoffe').value = info.wirkstoffe || '';
+    if ($('psm-bienen')) {
+      const beeClass = (info.bienenfreundlichkeit || '').split(',')[0].trim();
+      if (['B1', 'B2', 'B3', 'B4'].includes(beeClass)) {
+        $('psm-bienen').value = beeClass;
+      }
+    }
+    if ($('psm-aufwandEinheit')) $('psm-aufwandEinheit').value = info.aufwand_einheit || '';
   } catch (err) {
     console.error(err);
     toast('⚠️ Wirkstoffdaten konnten nicht geladen werden');
+  } finally {
+    setPSMInfoLoading(false);
   }
 }
 
