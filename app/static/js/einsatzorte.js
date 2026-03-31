@@ -1,3 +1,78 @@
+
+/* ══════════════════════════════════════════════
+   MAP PICKER  (Leaflet + OpenStreetMap)
+   ══════════════════════════════════════════════ */
+let _eoMap = null;
+let _eoMarker = null;
+
+// Default center: Germany center; overridden by existing coords on edit
+const EO_MAP_DEFAULT = [51.1657, 10.4515];
+const EO_MAP_DEFAULT_ZOOM = 6;
+const EO_MAP_POINT_ZOOM = 15;
+
+function eoInitMap() {
+  // Already initialised — just invalidate size in case modal was hidden
+  if (_eoMap) {
+    setTimeout(() => _eoMap.invalidateSize(), 120);
+    return;
+  }
+
+  _eoMap = L.map('eo-map', { zoomControl: true }).setView(EO_MAP_DEFAULT, EO_MAP_DEFAULT_ZOOM);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(_eoMap);
+
+  // Click on map → place / move marker & fill inputs
+  _eoMap.on('click', (e) => {
+    eoSetMapPoint(e.latlng.lat, e.latlng.lng);
+  });
+}
+
+function eoSetMapPoint(lat, lng, panTo = true) {
+  const latRounded = parseFloat(lat.toFixed(6));
+  const lngRounded = parseFloat(lng.toFixed(6));
+
+  // Update inputs
+  const latInput = document.getElementById('eo-gpsRechtswert');
+  const lngInput = document.getElementById('eo-gpsHochwert');
+  if (latInput) latInput.value = latRounded;
+  if (lngInput) lngInput.value = lngRounded;
+
+  // Place or move draggable marker
+  if (_eoMarker) {
+    _eoMarker.setLatLng([latRounded, lngRounded]);
+  } else {
+    _eoMarker = L.marker([latRounded, lngRounded], { draggable: true }).addTo(_eoMap);
+    _eoMarker.on('dragend', (e) => {
+      const pos = e.target.getLatLng();
+      eoSetMapPoint(pos.lat, pos.lng, false);
+    });
+  }
+
+  if (panTo) _eoMap.setView([latRounded, lngRounded], Math.max(_eoMap.getZoom(), EO_MAP_POINT_ZOOM));
+}
+
+function eoSyncMapFromInputs() {
+  const lat = parseFloat(document.getElementById('eo-gpsRechtswert')?.value);
+  const lng = parseFloat(document.getElementById('eo-gpsHochwert')?.value);
+  if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+    eoSetMapPoint(lat, lng);
+  }
+}
+
+function eoResetMap() {
+  if (_eoMarker) {
+    _eoMarker.remove();
+    _eoMarker = null;
+  }
+  if (_eoMap) {
+    _eoMap.setView(EO_MAP_DEFAULT, EO_MAP_DEFAULT_ZOOM);
+    setTimeout(() => _eoMap.invalidateSize(), 120);
+  }
+}
+
 let einsatzorteItems = [];
 let currentEinsatzortEditId = null;
 
@@ -60,6 +135,7 @@ function resetEinsatzortForm() {
 
   const modalTitle = $('modal-einsatzort-title');
   if (modalTitle) modalTitle.textContent = 'Einsatzort hinzufügen';
+  eoResetMap();
 }
 
 function collectEinsatzortForm() {
@@ -77,6 +153,7 @@ function collectEinsatzortForm() {
 function openEinsatzortModal() {
   resetEinsatzortForm();
   openModal('modal-einsatzort');
+  setTimeout(eoInitMap, 80);  // slight delay so modal is visible before Leaflet measures it
 }
 
 async function editEinsatzort(id) {
@@ -93,6 +170,14 @@ async function editEinsatzort(id) {
     if (modalTitle) modalTitle.textContent = 'Einsatzort bearbeiten';
 
     openModal('modal-einsatzort');
+
+    // Init map and fly to existing coordinates
+    setTimeout(() => {
+      eoInitMap();
+      const lat = parseFloat(item.gpsRechtswert);
+      const lng = parseFloat(item.gpsHochwert);
+      if (!isNaN(lat) && !isNaN(lng)) eoSetMapPoint(lat, lng);
+    }, 80);
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);
