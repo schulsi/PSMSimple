@@ -9,15 +9,7 @@ def api_to_string(einheit: str | None) -> str:
         "GL": "g/l",
         "MD": "ml/dosis",
     }
-    return mapping.get(einheit or "", einheit or "")
-
-def menge_to_string(menge: str | None) -> str:
-    mapping = {
-        "LH": "l/ha",  
-        "KH": "kg/ha",
-        "GH": "g/ha",
-    }
-    return mapping.get(menge or "", menge or "")    
+    return mapping.get(einheit or "", einheit or "")  
 
 def _psm_api_base() -> str:
     base = current_app.config["PSM_API"]
@@ -57,6 +49,61 @@ def _get_bee_class(base: str, kennr: str) -> str:
 
     return ", ".join(sorted(bee_classes))
 
+import requests
+
+
+def _decode_code(base: str, table: str, field: str, code: str, sprache: str = "DE") -> str:
+    code = (code or "").strip()
+    if not code:
+        return ""
+
+    # passende Kodeliste zum Feld ermitteln
+    map_resp = requests.get(
+        base + "kodeliste_feldname",
+        params={
+            "tabelle": table,
+            "feldname": field,
+        },
+        timeout=5,
+    )
+    map_resp.raise_for_status()
+    map_items = map_resp.json().get("items", [])
+
+    if not map_items:
+        return code  # Fallback: Rohkode zurückgeben
+
+    kodeliste = str(
+        map_items[0].get("kodeliste")
+        or map_items[0].get("KODELISTE")
+        or ""
+    ).strip()
+
+    if not kodeliste:
+        return code
+
+    # Kode in Klartext dekodieren
+    kode_resp = requests.get(
+        base + "kode",
+        params={
+            "kodeliste": kodeliste,
+            "kode": code,
+            "sprache": sprache,
+        },
+        timeout=5,
+    )
+    kode_resp.raise_for_status()
+    kode_items = kode_resp.json().get("items", [])
+
+    if not kode_items:
+        return code
+
+    return str(
+        kode_items[0].get("kodetext")
+        or kode_items[0].get("KODETEXT")
+        or code
+    ).strip()
+
+
 def _get_application_rate(base: str, kennr: str) -> str:
     awg_resp = requests.get(
         base + "awg/",
@@ -85,9 +132,17 @@ def _get_application_rate(base: str, kennr: str) -> str:
         return ""
 
     item = aufwand_items[0]
-    einheit = item.get("m_aufwand_einheit")
+    code = str(item.get("m_aufwand_einheit") or "").strip()
+    if not code:
+        return ""
 
-    return einheit.strip()
+    return _decode_code(
+        base=base,
+        table="AWG_AUFWAND",
+        field="M_AUFWAND_EINHEIT",
+        code=code,
+        sprache="DE",
+    )
 
 def search_psm_by_term(term: str, limit: int = 10) -> list[dict]:
     term = (term or "").strip()
@@ -159,10 +214,13 @@ def get_psm_info_by_kennr(kennr: str) -> dict:
                 if text:
                     wirkstoffe_parts.append(text)
             bee_class = _get_bee_class(base, kennr)
+            einheit = _get_application_rate(base, kennr)
         return {
             "wirkstoffe": ", ".join(wirkstoffe_parts),
             "zulassungsnr": kennr,
             "bienenfreundlichkeit": bee_class,
+            "aufwand_einheit": einheit,
+
 
         }
 

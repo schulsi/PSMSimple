@@ -69,7 +69,7 @@ function collectPSMForm() {
 function openPSMModal() {
   resetPSMForm();
   openModal('modal-psm');
- document.getElementById("psm-aufwandEinheit").value = "kg/ha";
+ //document.getElementById("psm-aufwandEinheit").value = "kg/ha";
 }
 
 async function editPSM(id) {
@@ -82,7 +82,6 @@ async function editPSM(id) {
     if ($('psm-wirkstoffe')) $('psm-wirkstoffe').value = item.wirkstoffe || '';
     if ($('psm-aufwandEinheit')) $('psm-aufwandEinheit').value = item.aufwandEinheit || '';
     if ($('psm-bienen')) $('psm-bienen').value = item.bienen || '';
-
     const modalTitle = $('modal-psm-title');
     if (modalTitle) modalTitle.textContent = 'Pflanzenschutzmittel bearbeiten';
 
@@ -192,6 +191,7 @@ async function selectPSMSearchResult(name, kennr) {
         $('psm-bienen').value = beeClass;
       }
     }
+    if ($('psm-aufwandEinheit')) $('psm-aufwandEinheit').value = info.aufwand_einheit || '';
   } catch (err) {
     console.error(err);
     toast('⚠️ Wirkstoffdaten konnten nicht geladen werden');
