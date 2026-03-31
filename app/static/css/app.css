@@ -393,6 +393,40 @@
   line-height: 38px; 
   padding: 0 .8rem;      
 }
+#eo-map {
+    height: 280px;
+    border-radius: 8px;
+    border: 1.5px solid var(--cream-dark);
+    margin-bottom: .5rem;
+    cursor: crosshair;
+  }
+  .eo-map-hint {
+    font-size: .75rem;
+    color: var(--text-muted);
+    margin-bottom: .85rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+  #eo-locate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .78rem;
+    padding: .3rem .7rem;
+    margin-bottom: .75rem;
+    border-radius: 6px;
+    border: 1.5px solid var(--cream-dark);
+    background: var(--cream);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    transition: all .15s;
+  }
+  #eo-locate-btn:hover { border-color: var(--green-light); color: var(--green-deep); background: #fff; }
+  /* Make modal wider for */
+  #modal-einsatzort .modal { width: 680px; }
 
 /* ══════════════════════════════════════════════
    MOBILE HAMBURGER & OVERLAY NAV

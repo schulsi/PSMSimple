@@ -1,3 +1,96 @@
+/* ══════════════════════════════════════════════
+   MAP PICKER  (Leaflet + OpenStreetMap)
+   ══════════════════════════════════════════════ */
+let _eoMap = null;
+let _eoMarker = null;
+let _eoMapSelection = null; // { lat, lng } confirmed in map modal
+
+const EO_MAP_DEFAULT     = [51.1657, 10.4515]; // Germany center
+const EO_MAP_DEFAULT_ZOOM = 6;
+const EO_MAP_POINT_ZOOM   = 15;
+
+function openMapModal() {
+  openModal('modal-map');
+
+  setTimeout(() => {
+    if (!_eoMap) {
+      _eoMap = L.map('eo-map', { zoomControl: true })
+               .setView(EO_MAP_DEFAULT, EO_MAP_DEFAULT_ZOOM);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+      }).addTo(_eoMap);
+
+      _eoMap.on('click', (e) => _eoMapSetPoint(e.latlng.lat, e.latlng.lng));
+    }
+    _eoMap.invalidateSize();
+
+    // If inputs already have valid coords, show them on the map
+    const lat = parseFloat(document.getElementById('eo-gpsRechtswert')?.value);
+    const lng = parseFloat(document.getElementById('eo-gpsHochwert')?.value);
+    if (!isNaN(lat) && !isNaN(lng)) _eoMapSetPoint(lat, lng);
+  }, 80);
+}
+
+function closeMapModal() {
+  closeModal('modal-map');
+}
+
+function _eoMapSetPoint(lat, lng) {
+  const latR = parseFloat(lat.toFixed(6));
+  const lngR = parseFloat(lng.toFixed(6));
+
+  _eoMapSelection = { lat: latR, lng: lngR };
+
+  // Update coord display bar
+  const latEl = document.getElementById('map-lat-display');
+  const lngEl = document.getElementById('map-lng-display');
+  if (latEl) latEl.textContent = latR;
+  if (lngEl) lngEl.textContent = lngR;
+
+  // Enable confirm button
+  const btn = document.getElementById('map-confirm-btn');
+  if (btn) btn.disabled = false;
+
+  // Place / move draggable marker
+  if (_eoMarker) {
+    _eoMarker.setLatLng([latR, lngR]);
+  } else {
+    _eoMarker = L.marker([latR, lngR], { draggable: true }).addTo(_eoMap);
+    _eoMarker.on('dragend', (e) => {
+      const p = e.target.getLatLng();
+      _eoMapSetPoint(p.lat, p.lng);
+    });
+  }
+
+  _eoMap.setView([latR, lngR], Math.max(_eoMap.getZoom(), EO_MAP_POINT_ZOOM));
+}
+
+function confirmMapSelection() {
+  if (!_eoMapSelection) return;
+
+  const latInput = document.getElementById('eo-gpsRechtswert');
+  const lngInput = document.getElementById('eo-gpsHochwert');
+  if (latInput) latInput.value = _eoMapSelection.lat;
+  if (lngInput) lngInput.value = _eoMapSelection.lng;
+
+  closeMapModal();
+  toast('📍 Koordinaten übernommen');
+}
+
+function _eoResetMap() {
+  if (_eoMarker) { _eoMarker.remove(); _eoMarker = null; }
+  _eoMapSelection = null;
+  const latEl = document.getElementById('map-lat-display');
+  const lngEl = document.getElementById('map-lng-display');
+  if (latEl) latEl.textContent = '—';
+  if (lngEl) lngEl.textContent = '—';
+  const btn = document.getElementById('map-confirm-btn');
+  if (btn) btn.disabled = true;
+  if (_eoMap) _eoMap.setView(EO_MAP_DEFAULT, EO_MAP_DEFAULT_ZOOM);
+}
+
 let einsatzorteItems = [];
 let currentEinsatzortEditId = null;
 
@@ -60,6 +153,7 @@ function resetEinsatzortForm() {
 
   const modalTitle = $('modal-einsatzort-title');
   if (modalTitle) modalTitle.textContent = 'Einsatzort hinzufügen';
+  _eoResetMap();
 }
 
 function collectEinsatzortForm() {
@@ -93,6 +187,10 @@ async function editEinsatzort(id) {
     if (modalTitle) modalTitle.textContent = 'Einsatzort bearbeiten';
 
     openModal('modal-einsatzort');
+    // Pre-load map marker if coords exist (lazy — map opened on demand)
+    const _lat = parseFloat(item.gpsRechtswert);
+    const _lng = parseFloat(item.gpsHochwert);
+    if (!isNaN(_lat) && !isNaN(_lng)) _eoMapSelection = { lat: _lat, lng: _lng };
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);
