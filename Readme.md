@@ -21,7 +21,7 @@ http://localhost:5001
 docker build -t psmsimple .
 
 # 2. Container starten
-docker run --name PSMSimple -p 80:80 0 -v PATH_TO_VOLUME:/data psmsimple
+docker run --name PSMSimple -p 80:80 0 -v PATH_TO_VOLUME:/data -e SECRET_KEY ="KEY" psmsimple
 
 # 3. Browser öffnen
 http://DOCKER_IP:80
