@@ -131,3 +131,28 @@ window.addEventListener('resize', () => {
     positionUserPopup();
   }
 });
+
+window.addEventListener('popstate', (event) => {
+  const tabName = (event.state && event.state.tab)
+    ? event.state.tab
+    : getTabFromPath();
+ 
+  const navLink = document.querySelector(`nav a[onclick*="'${tabName}'"]`);
+  showTab(tabName, navLink, false);  // false = don't push again
+ 
+  // Re-run loaders that need fresh data
+  if (tabName === 'history' && typeof loadHistory === 'function') loadHistory();
+  if (tabName === 'export'  && typeof loadExportSelections === 'function') {
+    loadExportSelections();
+    if (typeof syncLegacyExportUI === 'function') syncLegacyExportUI();
+  }
+});
+ 
+// ── On initial page load: activate correct tab from URL & set initial state ──
+document.addEventListener('DOMContentLoaded', () => {
+  const tabName = getTabFromPath();
+  const navLink = document.querySelector(`nav a[onclick*="'${tabName}'"]`);
+  showTab(tabName, navLink, false);
+  // Replace so the initial entry also carries state for popstate
+  history.replaceState({ tab: tabName }, '', window.location.pathname);
+});
