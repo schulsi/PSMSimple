@@ -88,6 +88,11 @@ async function saveBetriebWizard() {
     settings.default_verantwortlich = payload.verantwortlicher;
     await apiPost('/api/user/settings', settings);
 
+    applyDefaultSettingsToExport({
+      default_anwender: payload.anwender,
+      default_verantwortlich: payload.verantwortlicher
+    });
+
     fillBetriebForm(payload);
     betriebExists = true;
     closeBetriebWizard();
