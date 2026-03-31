@@ -49,6 +49,14 @@ def init_appdata_db():
             kulturen TEXT,
             json_data TEXT NOT NULL
         );
+                    
+        CREATE TABLE IF NOT EXISTS application_settings (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            key VARCHAR(255) NOT NULL,
+            value VARCHAR(255) NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
     """)
     conn.commit()
     conn.close()

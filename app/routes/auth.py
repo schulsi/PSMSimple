@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from ..extensions import db, limiter
 from ..models.user import User
+from ..repositories.application_settings_repo import get_application_settings
 
 bp = Blueprint("auth", __name__)
 
@@ -38,35 +39,42 @@ def login():
 @bp.route("/register", methods=["POST"])
 @limiter.limit("3 per hour", methods=["POST"])
 def register():
-    username = request.form.get("username", "").strip()
-    password = request.form.get("password", "")
-    password2 = request.form.get("password2", "")
+    settings = get_application_settings()
+    
+    if not settings["allow_registration"]:
+        flash("Die Registrierung neuer Benutzer ist derzeit deaktiviert.", "error")
+        return redirect(url_for("auth.login"))
+    
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        password2 = request.form.get("password2", "")
 
-    if not username or not password:
-        flash("Bitte alle Felder ausfüllen.", "error")
-        return redirect(url_for("auth.login") + "?tab=register")
+        if not username or not password:
+            flash("Bitte alle Felder ausfüllen.", "error")
+            return redirect(url_for("auth.login") + "?tab=register")
 
-    if password != password2:
-        flash("Die Passwörter stimmen nicht überein.", "error")
-        return redirect(url_for("auth.login") + "?tab=register")
+        if password != password2:
+            flash("Die Passwörter stimmen nicht überein.", "error")
+            return redirect(url_for("auth.login") + "?tab=register")
 
-    if len(password) < 6:
-        flash("Das Passwort muss mindestens 6 Zeichen lang sein.", "error")
-        return redirect(url_for("auth.login") + "?tab=register")
+        if len(password) < 6:
+            flash("Das Passwort muss mindestens 6 Zeichen lang sein.", "error")
+            return redirect(url_for("auth.login") + "?tab=register")
 
-    if User.query.filter_by(username=username).first():
-        flash("Dieser Benutzername ist bereits vergeben.", "error")
-        return redirect(url_for("auth.login") + "?tab=register")
+        if User.query.filter_by(username=username).first():
+            flash("Dieser Benutzername ist bereits vergeben.", "error")
+            return redirect(url_for("auth.login") + "?tab=register")
 
-    new_user = User(
-        username=username,
-        password=generate_password_hash(password)
-    )
-    db.session.add(new_user)
-    db.session.commit()
+        new_user = User(
+            username=username,
+            password=generate_password_hash(password)
+        )
+        db.session.add(new_user)
+        db.session.commit()
 
-    flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
-    return redirect(url_for("auth.login"))
+        flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
+        return redirect(url_for("auth.login"))
 
 
 @bp.route("/logout")
