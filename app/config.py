@@ -19,7 +19,7 @@ class Config:
  #   REMEMBER_COOKIE_SECURE = True
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = "Lax"
-    RATELIMIT_STORAGE_URL = os.environ.get("RATELIMIT_STORAGE_URI", "redis://localhost:6379/0")
+    RATELIMIT_STORAGE_URL = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
     RATELIMIT_STRATEGY = "fixed-window"
     RATELIMIT_HEADER_ENABLED = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR, "users.db")
