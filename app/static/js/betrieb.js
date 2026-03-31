@@ -82,12 +82,37 @@ async function saveBetrieb() {
 async function saveBetriebWizard() {
   try {
     const payload = collectWizardBetriebForm();
-    await apiPost('/api/betrieb', payload);
+
+    await apiPost('/api/betrieb', {
+      firma: payload.firma,
+      name: payload.name,
+      vorname: payload.vorname,
+      strHnr: payload.strHnr,
+      plz: payload.plz,
+      ort: payload.ort,
+      bundesland: payload.bundesland
+    });
+
+    const currentSettings = await apiGet('/api/user/settings');
+
+    await apiPost('/api/user/settings', {
+      browser_download: currentSettings.browser_download,
+      local_save: currentSettings.local_save,
+      default_anwender: payload.anwender,
+      default_verantwortlich: payload.verantwortlicher
+    });
 
     applyDefaultSettingsToExport({
       default_anwender: payload.anwender,
       default_verantwortlich: payload.verantwortlicher
     });
+
+    if ($('set-default-anwender')) {
+      $('set-default-anwender').value = payload.anwender || '';
+    }
+    if ($('set-default-verantwortlich')) {
+      $('set-default-verantwortlich').value = payload.verantwortlicher || '';
+    }
 
     fillBetriebForm(payload);
     betriebExists = true;
