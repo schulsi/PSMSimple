@@ -26,7 +26,7 @@ function renderExportSelectionList(containerId, items, type) {
           </label>
           <div class="exp-item-extra">
             <label>Aufwandsmenge</label>
-            <input type="text" class="exp-psm-amount" data-id="${item.id}" placeholder="z. B. 1,5">
+            <input type="number" class="exp-psm-amount" data-id="${item.id}" placeholder="z. B. 1,5">
           </div>
         </div>
       `;
@@ -58,7 +58,7 @@ function renderExportSelectionList(containerId, items, type) {
           </label>
           <div class="exp-item-extra">
             <label>BBCH-Code</label>
-            <input type="text" class="exp-kultur-bbch" data-id="${item.id}" placeholder="z. B. 39">
+            <input type="number" class="exp-kultur-bbch" data-id="${item.id}" placeholder="z. B. 39">
           </div>
         </div>
       `;
