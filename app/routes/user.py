@@ -3,6 +3,8 @@ from flask_login import login_required, current_user
 
 from ..extensions import db
 from ..models.user import User
+from ..services.permissions import build_permissions, require_admin, require_write_access
+from ..repositories.role_repo import get_role_id
 from ..services.settings_service import (
     get_user_settings_dict,
     normalize_settings_payload,
@@ -10,6 +12,40 @@ from ..services.settings_service import (
 )
 
 bp = Blueprint("user", __name__)
+
+@bp.route("/api/me", methods=["GET"])
+@login_required
+def api_me():
+    return jsonify({
+        "ok": True,
+        "user": current_user.to_public_dict(),
+        "permissions": build_permissions(current_user),
+    })
+
+@bp.route("/api/users", methods=["GET"])
+@require_admin
+def list_users():
+    users = User.query.order_by(User.username.asc()).all()
+    return jsonify([u.to_public_dict() for u in users])
+
+@bp.route("/api/users/<int:user_id>/role", methods=["PUT"])
+@require_admin
+def update_user_role(user_id):
+    data = request.get_json(silent=True) or {}
+    new_role = (data.get("role") or "").strip()
+
+    allowed_roles = {User.ROLE_ADMIN, User.ROLE_USER, User.ROLE_READ_ONLY}
+    if new_role not in allowed_roles:
+        return jsonify({"ok": False, "error": "Ungültige Rolle."}), 400
+
+    user = User.query.get_or_404(user_id)
+
+    if user.id == current_user.id and new_role != User.ROLE_ADMIN:
+        return jsonify({"ok": False, "error": "Eigene Admin-Rolle kann nicht entfernt werden."}), 400
+
+    user.role = new_role
+    db.session.commit()
+    return jsonify({"ok": True, "user": user.to_public_dict()})
 
 
 @bp.route("/api/user/rename", methods=["POST"])
