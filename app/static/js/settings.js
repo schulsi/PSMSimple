@@ -6,29 +6,29 @@ async function loadSettings() {
 
     const settings = await apiGet('/api/user/settings');
 
-    const browserDownload = $('set-browser-download');
-    const localSave = $('set-local-save');
-    const defaultAnwender = $('set-default-anwender');
+    const toggle                = $('save-mode-toggle');
+    const defaultAnwender       = $('set-default-anwender');
     const defaultVerantwortlich = $('set-default-verantwortlich');
-    const registrationAllowed = $('set-registration-allowed');
+    const registrationAllowed   = $('set-registration-allowed');
 
     if (registrationAllowed) {
       registrationAllowed.checked = !!settings.registration_allowed;
     }
-    if (browserDownload) {
-      browserDownload.checked = !!settings.browser_download;
+
+    const localSave = settings.local_save !== undefined ? !!settings.local_save : true;
+
+    if (toggle) {
+      toggle.checked = localSave;
+      updateSaveModeLabels(localSave);
     }
 
-    if (localSave) {
-      localSave.checked = !!settings.local_save;
-    }
+    updateExportButtons(localSave);
+    if (defaultAnwender)       defaultAnwender.value       = settings.default_anwender       || '';
+    if (defaultVerantwortlich) defaultVerantwortlich.value = settings.default_verantwortlich || '';
 
-    if (defaultAnwender) {
-      defaultAnwender.value = settings.default_anwender || '';
-    }
+    if (APP_PERMISSIONS?.can_manage_users) {
+      await loadUserRoles();
 
-    if (defaultVerantwortlich) {
-      defaultVerantwortlich.value = settings.default_verantwortlich || '';
     }
 
     if (APP_PERMISSIONS?.can_manage_users) {
@@ -44,12 +44,20 @@ async function loadSettings() {
 }
 
 function collectSettingsForm() {
+  const toggle    = $('save-mode-toggle');
+  const localSave = toggle ? toggle.checked : true;
   return {
-    browser_download: $('set-browser-download') ? $('set-browser-download').checked : true,
-    local_save: $('set-local-save') ? $('set-local-save').checked : true,
-    default_anwender: $('set-default-anwender') ? $('set-default-anwender').value.trim() : '',
+    browser_download:       !localSave,
+    local_save:              localSave,
+    default_anwender:       $('set-default-anwender')       ? $('set-default-anwender').value.trim()       : '',
     default_verantwortlich: $('set-default-verantwortlich') ? $('set-default-verantwortlich').value.trim() : ''
   };
+}
+
+function collectWizardSaveMode() {
+  const wizToggle = $('wiz-save-mode-toggle');
+  const localSave = wizToggle ? wizToggle.checked : true;
+  return { browser_download: !localSave, local_save: localSave };
 }
 
 function collectAppSettings() {
@@ -69,6 +77,7 @@ async function saveSettings() {
       await apiPost('/api/app/settings', payloadApp);
     }
     applyDefaultSettingsToExport(result.settings || payload);
+    updateExportButtons(payload.local_save);
     toast('✅ Einstellungen gespeichert');
   } catch (err) {
     console.error(err);
@@ -77,13 +86,11 @@ async function saveSettings() {
 }
 
 function applyDefaultSettingsToExport(settings) {
-  const anwenderInput = $('exp-anwender');
+  const anwenderInput       = $('exp-anwender');
   const verantwortlichInput = $('exp-verantwortlich');
-
   if (anwenderInput && !anwenderInput.value.trim() && settings.default_anwender) {
     anwenderInput.value = settings.default_anwender;
   }
-
   if (verantwortlichInput && !verantwortlichInput.value.trim() && settings.default_verantwortlich) {
     verantwortlichInput.value = settings.default_verantwortlich;
   }
@@ -92,28 +99,76 @@ function applyDefaultSettingsToExport(settings) {
 async function renameUser() {
   const input = $('rename-input');
   if (!input) return;
-
   const username = input.value.trim();
-  if (!username) {
-    toast('❌ Bitte einen Benutzernamen eingeben');
-    return;
-  }
-
+  if (!username) { toast('❌ Bitte einen Benutzernamen eingeben'); return; }
   try {
     await apiPost('/api/user/rename', { username });
-
-    const nameLabel = $('user-name-label');
+    const nameLabel     = $('user-name-label');
     const popupUsername = $('popup-username');
-    const avatar = $('user-avatar');
-
-    if (nameLabel) nameLabel.textContent = username;
+    const avatar        = $('user-avatar');
+    if (nameLabel)     nameLabel.textContent     = username;
     if (popupUsername) popupUsername.textContent = username;
-    if (avatar) avatar.textContent = username.charAt(0).toUpperCase();
-
-    input.value = '';
+    if (avatar)        avatar.textContent        = username.charAt(0).toUpperCase();
+    input.value       = '';
     input.placeholder = username;
-
     toast('✅ Benutzername geändert');
+  } catch (err) {
+    console.error(err);
+    toast(`❌ ${err.message}`);
+  }
+}
+
+
+async function loadUserRoles() {
+  const wrap = document.getElementById('user-role-list');
+  if (!wrap) return;
+
+  try {
+    const users = await apiGet('/api/users');
+
+    wrap.innerHTML = users.map(user => `
+      <div class="item-row" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.75rem;padding:.75rem;border:1px solid #ddd;border-radius:.5rem">
+        <div>
+          <div style="font-weight:600">${escapeHtml(user.username)}</div>
+          <div style="font-size:.8rem;color:#666">ID: ${user.id}</div>
+          <div style="font-size:.8rem;color:#666">Rolle: ${user.role}</div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <select id="role-user-${user.id}">
+            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+            <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+            <option value="read-only" ${user.role === 'read-only' ? 'selected' : ''}>Read-only</option>
+          </select>
+
+          <button type="button" class="btn btn-primary" style="width:auto" onclick="saveUserRole(${user.id})">
+            Speichern
+          </button>
+
+          <button 
+            type="button"
+            class="btn btn-danger"
+            style="width:auto"
+            onclick="openDeleteUserConfirm(${user.id}, '${escapeJs(user.username)}')"
+            ${user.is_current_user ? 'disabled' : ''}
+          >
+            Löschen
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = '<div style="color:#b00020">Benutzer konnten nicht geladen werden.</div>';
+  }
+}
+async function saveUserRole(userId) {
+  const select = document.getElementById(`role-user-${userId}`);
+  if (!select) return;
+
+  try {
+    await apiPut(`/api/users/${userId}/role`, { role: select.value });
+    toast('✅ Rolle gespeichert');
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);

@@ -74,33 +74,26 @@ function renderExportSelectionList(containerId, items, type) {
 
 function toggleExpItem(type, id) {
   let wrap = null;
-
-  if (type === 'psm') wrap = $(`exp-psm-${id}`);
+  if (type === 'psm')        wrap = $(`exp-psm-${id}`);
   if (type === 'einsatzort') wrap = $(`exp-einsatzort-${id}`);
-  if (type === 'kultur') wrap = $(`exp-kultur-${id}`);
-
+  if (type === 'kultur')     wrap = $(`exp-kultur-${id}`);
   if (!wrap) return;
-
   const checkbox = wrap.querySelector('input[type="checkbox"]');
   if (!checkbox) return;
-
   wrap.classList.toggle('selected', checkbox.checked);
 }
 
 function loadExportSelections() {
-  renderExportSelectionList('exp-psm-list', psmItems || [], 'psm');
+  renderExportSelectionList('exp-psm-list',       psmItems        || [], 'psm');
   renderExportSelectionList('exp-einsatzorte-list', einsatzorteItems || [], 'einsatzort');
-  renderExportSelectionList('exp-kulturen-list', kulturenItems || [], 'kultur');
+  renderExportSelectionList('exp-kulturen-list',   kulturenItems   || [], 'kultur');
 }
 
 function getExportPayload() {
   const psm_overrides = [...document.querySelectorAll('.exp-psm-check:checked')].map(check => {
     const id = Number(check.dataset.id);
     const amountInput = document.querySelector(`.exp-psm-amount[data-id="${id}"]`);
-    return {
-      id,
-      aufwandMenge: amountInput ? amountInput.value.trim() : ''
-    };
+    return { id, aufwandMenge: amountInput ? amountInput.value.trim() : '' };
   });
 
   const einsatzort_ids = [...document.querySelectorAll('.exp-einsatzort-check:checked')].map(check =>
@@ -110,18 +103,15 @@ function getExportPayload() {
   const kult_overrides = [...document.querySelectorAll('.exp-kultur-check:checked')].map(check => {
     const id = Number(check.dataset.id);
     const bbchInput = document.querySelector(`.exp-kultur-bbch[data-id="${id}"]`);
-    return {
-      id,
-      bbchCode: bbchInput ? bbchInput.value.trim() : ''
-    };
+    return { id, bbchCode: bbchInput ? bbchInput.value.trim() : '' };
   });
 
   return {
     anwendung: {
-      datum: $('exp-datum') ? $('exp-datum').value : '',
-      uhrzeit: $('exp-uhrzeit') ? $('exp-uhrzeit').value : '',
-      artVerwendung: $('exp-artVerwendung') ? $('exp-artVerwendung').value.trim() : '',
-      anwender: $('exp-anwender') ? $('exp-anwender').value.trim() : '',
+      datum:          $('exp-datum')          ? $('exp-datum').value           : '',
+      uhrzeit:        $('exp-uhrzeit')        ? $('exp-uhrzeit').value         : '',
+      artVerwendung:  $('exp-artVerwendung')  ? $('exp-artVerwendung').value.trim()  : '',
+      anwender:       $('exp-anwender')       ? $('exp-anwender').value.trim()       : '',
       verantwortlich: $('exp-verantwortlich') ? $('exp-verantwortlich').value.trim() : ''
     },
     psm_overrides,
@@ -134,12 +124,8 @@ async function previewJSON() {
   try {
     const payload = getExportPayload();
     const data = await apiPost('/api/preview', payload);
-
     const pre = $('preview-json');
-    if (pre) {
-      pre.textContent = JSON.stringify(data, null, 2);
-    }
-
+    if (pre) pre.textContent = JSON.stringify(data, null, 2);
     toast('✅ Vorschau aktualisiert');
   } catch (err) {
     console.error(err);
@@ -150,104 +136,159 @@ async function previewJSON() {
 async function ensureHistorySaved(payload) {
   const signature = getPayloadSignature(payload);
   if (lastSavedHistorySignature === signature) return;
-
   const preview = await apiPost('/api/preview', payload);
-  const result = await apiPost('/api/history', preview);
-
-  if (!result.ok) {
-    throw new Error(result.error || 'History konnte nicht gespeichert werden.');
-  }
-
+  const result  = await apiPost('/api/history', preview);
+  if (!result.ok) throw new Error(result.error || 'History konnte nicht gespeichert werden.');
   lastSavedHistorySignature = signature;
 }
 
-async function exportJSON() {
+// ── Build a nice filename base from the current export payload ────────────────
+function buildExportBasename() {
+  const datum  = $('exp-datum')  ? $('exp-datum').value  : '';
+  const datePart = datum ? datum.replace(/-/g, '') : new Date().toISOString().split('T')[0].replace(/-/g, '');
+
+  // First selected PSM name
+  const firstPsmCheck = document.querySelector('.exp-psm-check:checked');
+  let psmPart = '';
+  if (firstPsmCheck) {
+    const id    = Number(firstPsmCheck.dataset.id);
+    const wrap  = $(`exp-psm-${id}`);
+    const name  = wrap ? (wrap.querySelector('.ci-name') || {}).textContent || '' : '';
+    psmPart = name.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_äöüÄÖÜß\-]/g, '').slice(0, 40);
+  }
+
+  return psmPart ? `PSM_Anwendung_${datePart}_${psmPart}` : `PSM_Anwendung_${datePart}`;
+}
+
+// ── "Lokal speichern" — saves both JSON and PDF on the server ─────────────────
+async function exportSave() {
   try {
     const payload = getExportPayload();
     await ensureHistorySaved(payload);
 
-    const resp = await fetch('/api/export', {
+    // Save JSON
+    const jsonResp = await fetch('/api/export', {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
       body: JSON.stringify(payload)
     });
-
-    const ct = resp.headers.get('Content-Type') || '';
-
-    if (!resp.ok) {
-      let message = 'JSON-Export fehlgeschlagen';
-      if (ct.includes('application/json')) {
-        try {
-          const body = await resp.json();
-          if (body.error) message = body.error;
-        } catch (_) {}
-      }
-      throw new Error(message);
+    if (!jsonResp.ok) {
+      const body = await jsonResp.json().catch(() => ({}));
+      throw new Error(body.error || 'JSON-Speichern fehlgeschlagen');
     }
+    const jsonData = await jsonResp.json();
 
-    if (ct.includes('application/json')) {
-      const data = await resp.json();
-      toast(`✅ JSON gespeichert: ${data.filename}`);
-      return;
+    // Save PDF
+    const pdfResp = await fetch('/api/pdf', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!pdfResp.ok) {
+      const body = await pdfResp.json().catch(() => ({}));
+      throw new Error(body.error || 'PDF-Speichern fehlgeschlagen');
     }
+    const pdfData = await pdfResp.json();
 
-    const blob = await resp.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `pflanzenschutz_${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-
-    toast('✅ JSON exportiert');
+    toast(`✅ Gespeichert: ${jsonData.filename || 'JSON'} & ${pdfData.filename || 'PDF'}`);
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);
   }
 }
 
-async function exportPDF() {
+// ── "Browser-Download" — downloads a ZIP containing JSON + PDF ───────────────
+async function exportDownloadZip() {
   try {
-    const payload = getExportPayload();
+    const payload  = getExportPayload();
     await ensureHistorySaved(payload);
+    const basename = buildExportBasename();
 
-    const resp = await fetch('/api/pdf', {
+    // Fetch JSON blob (browser-download mode: server returns raw file)
+    const jsonResp = await fetch('/api/export', {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
       body: JSON.stringify(payload)
     });
+    if (!jsonResp.ok) {
+      const body = await jsonResp.json().catch(() => ({}));
+      throw new Error(body.error || 'JSON-Export fehlgeschlagen');
+    }
 
-    const ct = resp.headers.get('Content-Type') || '';
+    let jsonBlob;
+    const jsonCt = jsonResp.headers.get('Content-Type') || '';
+    if (jsonCt.includes('application/json')) {
+      // Server saved locally and returned metadata — re-fetch as blob or stringify
+      const jsonData = await jsonResp.json();
+      jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+    } else {
+      jsonBlob = await jsonResp.blob();
+    }
 
-    if (!resp.ok) {
-      let message = 'PDF-Export fehlgeschlagen';
-      if (ct.includes('application/json')) {
-        try {
-          const body = await resp.json();
-          if (body.error) message = body.error;
-        } catch (_) {}
+    // Fetch PDF blob
+    const pdfResp = await fetch('/api/pdf', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!pdfResp.ok) {
+      const body = await pdfResp.json().catch(() => ({}));
+      throw new Error(body.error || 'PDF-Export fehlgeschlagen');
+    }
+
+    let pdfBlob;
+    const pdfCt = pdfResp.headers.get('Content-Type') || '';
+    if (pdfCt.includes('application/json')) {
+      // Local-save mode returned metadata — fetch the actual file from disk if possible
+      // Fallback: show warning
+      toast('⚠️ PDF konnte nicht als Download bereitgestellt werden (Server-Modus).');
+      pdfBlob = null;
+    } else {
+      pdfBlob = await pdfResp.blob();
+    }
+
+    // Build ZIP using JSZip (loaded from CDN in base.html) or a manual approach
+    if (typeof JSZip !== 'undefined') {
+      const zip = new JSZip();
+      zip.file(`${basename}.json`, jsonBlob);
+      if (pdfBlob) zip.file(`${basename}.pdf`, pdfBlob);
+
+      const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(zipBlob);
+      a.download = `${basename}.zip`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('✅ ZIP heruntergeladen');
+    } else {
+      // Fallback: download files individually if JSZip not available
+      const a = document.createElement('a');
+
+      a.href = URL.createObjectURL(jsonBlob);
+      a.download = `${basename}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+
+      if (pdfBlob) {
+        await new Promise(r => setTimeout(r, 300));
+        const b = document.createElement('a');
+        b.href = URL.createObjectURL(pdfBlob);
+        b.download = `${basename}.pdf`;
+        b.click();
+        URL.revokeObjectURL(b.href);
       }
-      throw new Error(message);
+      toast('✅ Dateien heruntergeladen');
     }
-
-    if (ct.includes('application/json')) {
-      const data = await resp.json();
-      toast(`✅ PDF gespeichert: ${data.filename}`);
-      return;
-    }
-
-    const blob = await resp.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-
-    const cd = resp.headers.get('Content-Disposition') || '';
-    const match = cd.match(/filename="?([^"]+)"?/);
-    a.download = match ? match[1] : 'pflanzenschutz.pdf';
-    a.click();
-
-    toast('✅ PDF exportiert');
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);
   }
 }
+
+// Keep legacy functions as aliases so any other code that calls them still works
+async function exportJSON() { return exportSave(); }
+async function exportPDF()  { return exportSave(); }
