@@ -1,13 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+import re
 
 from ..extensions import db, limiter
 from ..models.user import User
 from ..models.settings import get_setting
 from ..repositories.role_repo import get_role_id
  
-
+USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{2,50}$")
 bp = Blueprint("auth", __name__)
 
 def login_bucket():
@@ -68,6 +69,10 @@ def register():
         flash("Dieser Benutzername ist bereits vergeben.", "error")
         return redirect(url_for("auth.login") + "?tab=register")
 
+    if re.match(USERNAME_RE, username) is None:
+        flash("Ungültige Zeichen im Benutzernamen. Erlaubt sind Buchstaben, Zahlen, Unterstrich, Bindestrich und Punkt.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
+    
     is_first_user = User.query.count() == 0
     if is_first_user:
         role = int(get_role_id("admin"))
@@ -86,7 +91,7 @@ def register():
     return redirect(url_for("auth.login"))
 
 
-@bp.route("/logout")
+@bp.route("/logout", methods=["POST"])
 @login_required
 def logout():
     logout_user()
