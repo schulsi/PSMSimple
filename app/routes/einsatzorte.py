@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
+from ..services.permissions import require_write_access
 from ..repositories.einsatzorte_repo import (
     list_einsatzorte,
     get_einsatzort_by_id,
@@ -20,6 +21,7 @@ def api_get_einsatzorte():
 
 @bp.route("/api/einsatzorte", methods=["POST"])
 @login_required
+@require_write_access
 def api_add_einsatzort():
     data = request.get_json(silent=True) or {}
     result = create_einsatzort(data)
@@ -37,6 +39,7 @@ def api_get_einsatzort_by_id(eid):
 
 @bp.route("/api/einsatzorte/<int:eid>", methods=["PUT"])
 @login_required
+@require_write_access
 def api_update_einsatzort(eid):
     data = request.get_json(silent=True) or {}
     update_einsatzort(eid, data)
@@ -45,6 +48,7 @@ def api_update_einsatzort(eid):
 
 @bp.route("/api/einsatzorte/<int:eid>", methods=["DELETE"])
 @login_required
+@require_write_access
 def api_delete_einsatzort(eid):
     delete_einsatzort(eid)
     return jsonify({"ok": True})

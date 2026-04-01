@@ -24,10 +24,10 @@
       <a href="/psm" onclick="event.preventDefault(); showTab('psm', this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
       <a href="/fields" onclick="event.preventDefault(); showTab('einsatzorte', this)"><span class="ico">📍</span> Felder</a>
       <a href="/cultures" onclick="event.preventDefault(); showTab('kulturen', this)"><span class="ico">🌾</span> Kulturen</a>
-
+      {% if permissions.can_export %}
       <div class="section-label">Export</div>
       <a href="/export" onclick="event.preventDefault(); showTab('export', this); loadExportSelections(); syncLegacyExportUI()"><span class="ico">📄</span> Applikation dokumentieren</a>
-
+      {% endif %}
       <div class="section-label">Verlauf</div>
       <a href="/history" onclick="event.preventDefault(); showTab('history', this); loadHistory()"><span class="ico">🕘</span> Gespeicherte Applikationen</a>
     </div>
@@ -37,6 +37,7 @@
         <div class="popup-header">
           <div class="popup-username" id="popup-username">{{ current_user.username }}</div>
           <div class="popup-label">Angemeldet als</div>
+          <div class="popup-label">Rolle: {{ permissions.role }}</div>
         </div>
 
         <a href="/settings" onclick="event.preventDefault(); showTab('settings', this)"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
@@ -96,7 +97,9 @@
 
     <div id="tab-psm" class="tab">
       <h2>🧪 Pflanzenschutzmittel <span class="badge" id="psm-count">0</span></h2>
-      <button type="button" class="btn btn-primary" onclick="openPSMModal()" style="margin-bottom:1rem">+ Neues Mittel</button>
+      {% if permissions.can_write %}
+        <button type="button" class="btn btn-primary" onclick="openPSMModal()" style="margin-bottom:1rem">+ Neues Mittel</button>
+      {% endif %}
       <div class="item-list" id="psm-list"></div>
     </div>
 
@@ -228,6 +231,13 @@
           </label>
         </div>
       </div>
+      {% if permissions.can_manage_users %}
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">👥 Benutzerverwaltung</h3>
+        <div style="display:flex;flex-direction:column;gap:.85rem" id="user-role-list">
+      </div>
+      </div>
+      {% endif %}
       <div class="card">
         <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">👤 Benutzername ändern</h3>
           <div class="popup-rename">
