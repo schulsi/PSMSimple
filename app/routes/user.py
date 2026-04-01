@@ -34,8 +34,7 @@ def list_users():
 def update_user_role(user_id):
     data = request.get_json(silent=True) or {}
     new_role = (data.get("role") or "").strip()
-    print(f"Requested role change for user {user_id} to '{new_role}'")
-
+    
     allowed_roles = {"admin", "user", "read-only"}
     if new_role not in allowed_roles:
         return jsonify({"ok": False, "error": "Ungültige Rolle."}), 400

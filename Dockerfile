@@ -14,7 +14,7 @@ VOLUME ["/data"]
 
 ENV DATA_DIR=/data
 
-ENV SECRET_KEY="my-secret-key"
+ENV SECRET_KEY=""
 
 ENV RATELIMIT_STORAGE_URI="redis://redis:6379/0"
 

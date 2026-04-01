@@ -63,9 +63,11 @@ async function saveSettings() {
     const payload = collectSettingsForm();
     const result = await apiPost('/api/user/settings', payload);
 
-    const payloadApp = collectAppSettings();
-    await apiPost('/api/app/settings', payloadApp);
-    
+    const registrationAllowed = $('set-registration-allowed');
+    if (registrationAllowed) {
+      const payloadApp = collectAppSettings();
+      await apiPost('/api/app/settings', payloadApp);
+    }
     applyDefaultSettingsToExport(result.settings || payload);
     toast('✅ Einstellungen gespeichert');
   } catch (err) {

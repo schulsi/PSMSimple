@@ -4,7 +4,7 @@ from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import Config
-from .extensions import db, login_manager, csrf
+from .extensions import db, login_manager, csrf, limiter
 from .models import User
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
@@ -24,6 +24,7 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
+    limiter.init_app(app)
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
