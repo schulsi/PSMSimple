@@ -37,7 +37,7 @@ def require_write_access(fn):
     @wraps(fn)
     @login_required
     def wrapper(*args, **kwargs):
-        if current_user.role == "read-only":
+        if current_user.role_id == get_role_id("read-only"):
             return jsonify({"ok": False, "error": "Nur lesender Zugriff."}), 403
         return fn(*args, **kwargs)
     return wrapper

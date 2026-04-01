@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, send_file
 from flask_login import current_user, login_required
 
 from ..models.user import UserSettings
+from ..services.permissions import require_write_access
 from ..services.export_service import (
     build_export_filename,
     build_output_for_current_betrieb,
@@ -15,6 +16,7 @@ bp = Blueprint("export", __name__)
 
 @bp.route("/api/preview", methods=["POST"])
 @login_required
+@require_write_access
 def preview_json():
     payload = request.get_json(silent=True) or {}
 
@@ -28,6 +30,7 @@ def preview_json():
 
 @bp.route("/api/export", methods=["POST"])
 @login_required
+@require_write_access
 def export_json():
     payload = request.get_json(silent=True) or {}
 
@@ -61,6 +64,7 @@ def export_json():
 
 @bp.route("/api/pdf", methods=["POST"])
 @login_required
+@require_write_access
 def export_pdf():
     payload = request.get_json(silent=True) or {}
 

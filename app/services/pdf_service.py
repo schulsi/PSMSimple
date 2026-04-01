@@ -6,6 +6,7 @@ from reportlab.lib.enums import TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
+from xml.sax.saxutils import escape
 from reportlab.platypus import (
     HRFlowable,
     Paragraph,
@@ -80,8 +81,8 @@ def generate_pdf(data: dict) -> io.BytesIO:
     col_w = width - 2 * margin
 
     header_data = [[
-        Paragraph("<b>PSM Anwendung</b><br/>", ps("hl", fontSize=7.5, textColor=muted)),
-        Paragraph(f"<b>{b_firma}</b><br/>{b_name_full}", ps("hr", fontSize=8, alignment=TA_RIGHT)),
+        Paragraph(escape("<b>PSM Anwendung</b><br/>"), ps("hl", fontSize=7.5, textColor=muted)),
+        Paragraph(escape(f"<b>{b_firma}</b><br/>{b_name_full}"), ps("hr", fontSize=8, alignment=TA_RIGHT)),
     ]]
 
     header_table = Table(header_data, colWidths=[col_w * 0.5, col_w * 0.5])
@@ -93,7 +94,7 @@ def generate_pdf(data: dict) -> io.BytesIO:
     story.append(HRFlowable(width="100%", thickness=1, color=green, spaceAfter=6))
 
     title_str = f"{datum_fmt} | {eo_name}" if eo_name else datum_fmt
-    story.append(Paragraph(f"<b>{title_str}</b>", s_title))
+    story.append(Paragraph(escape(f"<b>{title_str}</b>", s_title)))
 
     erstellt = f"erstellt am: {now_fmt}"
     if uhrzeit:

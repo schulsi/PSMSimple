@@ -1,6 +1,10 @@
 flask>=3.0.0
 flask_login
 flask_sqlalchemy
+flask_wtf
+flask-limiter
+redis
 werkzeug
 reportlab
 requests
+gunicorn

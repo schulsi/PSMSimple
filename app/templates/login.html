@@ -234,7 +234,7 @@
         <p class="subtitle">Melden Sie sich an, um fortzufahren.</p>
 
         <form method="POST" action="{{ url_for('auth.login') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="field">
             <label>Benutzername</label>
             <input type="text" name="username" placeholder="Ihr Benutzername" required autofocus>
