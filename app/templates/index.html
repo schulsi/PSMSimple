@@ -18,8 +18,9 @@
 <div class="app">
   <nav>
     <div class="nav-items">
+      <a class="active" href="/" onclick="event.preventDefault(); showTab('home', this)"><span class="ico">🏠</span> Home</a>
       <div class="section-label">Stammdaten</div>
-      <a class="active" href="/betrieb" onclick="event.preventDefault(); showTab('betrieb', this)"><span class="ico">🏡</span> Betrieb</a>
+      <a href="/betrieb" onclick="event.preventDefault(); showTab('betrieb', this)"><span class="ico">🏡</span> Betrieb</a>
       <a href="/psm" onclick="event.preventDefault(); showTab('psm', this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
       <a href="/fields" onclick="event.preventDefault(); showTab('einsatzorte', this)"><span class="ico">📍</span> Felder</a>
       <a href="/cultures" onclick="event.preventDefault(); showTab('kulturen', this)"><span class="ico">🌾</span> Kulturen</a>
@@ -52,7 +53,19 @@
   </nav>
 
   <main>
-    <div id="tab-betrieb" class="tab active">
+    <div id="tab-home" class="tab active">
+      <div class="home-landing">
+        <h1 class="home-title">Willkommen bei PSMSimple</h1>
+        <div class="home-logo-wrap">
+          <img src="{{ url_for('pages.media', filename='logo.png') }}" alt="PSMSimple Logo" class="home-logo">
+        </div>
+        <a href="/export" class="btn-home-cta" onclick="event.preventDefault(); showTab('export', document.querySelector('nav a[href=\'/export\']')); loadExportSelections(); syncLegacyExportUI()">
+          Jetzt dokumentieren <span class="cta-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <div id="tab-betrieb" class="tab">
       <h2>🏡 Betrieb <span class="badge">Stammdaten</span></h2>
       <div class="card">
         <div class="form-grid cols-3">
@@ -147,8 +160,8 @@
 
       <div class="export-footer">
         <button type="button" id="btn-preview" class="btn btn-ghost" onclick="previewJSON()" disabled>👁 Vorschau</button>
-        <button type="button" id="btn-json" class="btn btn-export" onclick="exportJSON()" disabled>⬇ JSON herunterladen</button>
-        <button type="button" id="btn-pdf" class="btn btn-pdf" onclick="exportPDF()" disabled>🖨 PDF herunterladen</button>
+        <button type="button" id="btn-save" class="btn btn-export" onclick="exportSave()" disabled>💾 Speichern</button>
+        <button type="button" id="btn-download" class="btn btn-export" onclick="exportDownloadZip()" disabled>⬇ Download</button>
       </div>
       <div id="validation-msg" style="margin-top:.6rem;font-size:.82rem;color:var(--danger);display:none"></div>
 
@@ -182,22 +195,15 @@
 
       <div class="card">
         <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">📁 Export-Verhalten</h3>
-        <div style="display:flex;flex-direction:column;gap:.85rem">
-          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
-            <input type="checkbox" id="set-browser-download" style="accent-color:var(--green-mid);width:16px;height:16px">
-            <div>
-              <div style="font-weight:600;font-size:.9rem">Browser-Download</div>
-              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird direkt im Browser heruntergeladen</div>
-            </div>
+        <div style="display:flex;align-items:center;gap:1rem">
+          <span style="font-size:.9rem;font-weight:600;color:var(--text-muted)" id="lbl-browser-download">Browser-Download</span>
+          <label class="save-toggle" title="Umschalten zwischen Browser-Download und lokalem Speichern">
+            <input type="checkbox" id="save-mode-toggle" onchange="onSaveModeToggle(this)">
+            <span class="save-toggle-track"></span>
           </label>
-          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
-            <input type="checkbox" id="set-local-save" style="accent-color:var(--green-mid);width:16px;height:16px">
-            <div>
-              <div style="font-weight:600;font-size:.9rem">Lokal speichern</div>
-              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird auf dem Server im Exportordner abgelegt</div>
-            </div>
-          </label>
+          <span style="font-size:.9rem;font-weight:600" id="lbl-local-save">Lokal speichern</span>
         </div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-top:.5rem" id="save-mode-desc">Datei wird auf dem Server im Exportordner abgelegt</div>
       </div>
 
       <div class="card">
@@ -383,6 +389,19 @@
       <div class="field"><label>Anwender</label><input id="wiz-anwender" placeholder="Max Mustermann"></div>
     </div>
 
+    <div style="margin-top:1.25rem;padding:1rem;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
+      <div style="font-size:.9rem;font-weight:600;color:var(--green-deep);margin-bottom:.6rem">📁 Speicher-Einstellung</div>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span style="font-size:.88rem;font-weight:600;color:var(--text-muted)" id="wiz-lbl-browser">Browser-Download</span>
+        <label class="save-toggle" title="Umschalten zwischen Browser-Download und lokalem Speichern">
+          <input type="checkbox" id="wiz-save-mode-toggle" checked onchange="onWizSaveModeToggle(this)">
+          <span class="save-toggle-track"></span>
+        </label>
+        <span style="font-size:.88rem;font-weight:600" id="wiz-lbl-local">Lokal speichern</span>
+      </div>
+      <div style="font-size:.78rem;color:var(--text-muted);margin-top:.4rem" id="wiz-save-mode-desc">Datei wird auf dem Server im Exportordner abgelegt</div>
+    </div>
+
     <div class="modal-footer">
       <button type="button" class="btn btn-primary" onclick="saveBetriebWizard()">Speichern und starten</button>
     </div>
@@ -454,23 +473,32 @@
 
   function syncLegacyExportUI() {
     const payload = (typeof getExportPayload === 'function') ? getExportPayload() : null;
-    const previewBtn = document.getElementById('btn-preview');
-    const jsonBtn = document.getElementById('btn-json');
-    const pdfBtn = document.getElementById('btn-pdf');
+    const previewBtn  = document.getElementById('btn-preview');
+    const btnSave     = document.getElementById('btn-save');
+    const btnDownload = document.getElementById('btn-download');
     const msg = document.getElementById('validation-msg');
     if (!payload) return;
 
-    const hasPSM = payload.psm_overrides.length > 0;
-    const hasEO = payload.einsatzort_ids.length > 0;
+    const hasPSM  = payload.psm_overrides.length > 0;
+    const hasEO   = payload.einsatzort_ids.length > 0;
     const hasKult = payload.kult_overrides.length > 0;
     const hasDate = !!payload.anwendung.datum;
     const hasTime = !!payload.anwendung.uhrzeit;
-    const hasArt = !!payload.anwendung.artVerwendung;
-    const valid = hasPSM && hasEO && hasKult && hasDate && hasTime && hasArt;
+    const hasArt  = !!payload.anwendung.artVerwendung;
+    const valid   = hasPSM && hasEO && hasKult && hasDate && hasTime && hasArt;
 
-    [previewBtn, jsonBtn, pdfBtn].forEach(btn => {
-      if (btn) btn.disabled = !valid;
-    });
+    if (previewBtn) previewBtn.disabled = !valid;
+
+    // Determine which action button is active based on current save mode
+    const localSave = (typeof isLocalSaveMode === 'function') ? isLocalSaveMode() : true;
+    if (btnSave) {
+      btnSave.style.display = localSave ? '' : 'none';
+      btnSave.disabled = !valid;
+    }
+    if (btnDownload) {
+      btnDownload.style.display = localSave ? 'none' : '';
+      btnDownload.disabled = !valid;
+    }
 
     if (msg) {
       if (valid) {
@@ -507,7 +535,7 @@
   document.addEventListener('change', (event) => {
     const watched = [
       'exp-datum', 'exp-uhrzeit', 'exp-anwender', 'exp-verantwortlich',
-      'exp-art-haupt', 'exp-art-sub', 'set-browser-download', 'set-local-save'
+      'exp-art-haupt', 'exp-art-sub', 'save-mode-toggle'
     ];
     if (watched.includes(event.target.id) || event.target.matches('.exp-psm-check, .exp-einsatzort-check, .exp-kultur-check, .exp-psm-amount, .exp-kultur-bbch')) {
       syncLegacyExportUI();
@@ -557,6 +585,18 @@ function toggleMobileNav() {
   document.addEventListener('DOMContentLoaded', () => {
     updateArtSubkategorie();
     syncLegacyExportUI();
+
+    // Init wizard toggle labels (local save is default = checked)
+    if (typeof updateWizSaveModeLabels === 'function') {
+      const wizToggle = document.getElementById('wiz-save-mode-toggle');
+      updateWizSaveModeLabels(wizToggle ? wizToggle.checked : true);
+    }
+
+    // Init settings toggle labels — driven by loadSettings() once settings arrive
+    // but set a sane default immediately so the UI isn't blank
+    if (typeof updateExportButtons === 'function') {
+      updateExportButtons(true); // default: local save
+    }
 
     const hidden = document.getElementById('exp-artVerwendung');
     if (hidden && hidden.value) {

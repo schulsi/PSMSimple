@@ -84,35 +84,43 @@ async function saveBetriebWizard() {
     const payload = collectWizardBetriebForm();
 
     await apiPost('/api/betrieb', {
-      firma: payload.firma,
-      name: payload.name,
-      vorname: payload.vorname,
-      strHnr: payload.strHnr,
-      plz: payload.plz,
-      ort: payload.ort,
+      firma:      payload.firma,
+      name:       payload.name,
+      vorname:    payload.vorname,
+      strHnr:     payload.strHnr,
+      plz:        payload.plz,
+      ort:        payload.ort,
       bundesland: payload.bundesland
     });
 
-    const currentSettings = await apiGet('/api/user/settings');
+    // Read save mode from the wizard toggle (default: local save = true)
+    const wizSaveMode = (typeof collectWizardSaveMode === 'function')
+      ? collectWizardSaveMode()
+      : { local_save: true, browser_download: false };
 
     await apiPost('/api/user/settings', {
-      browser_download: currentSettings.browser_download,
-      local_save: currentSettings.local_save,
-      default_anwender: payload.anwender,
-      default_verantwortlich: payload.verantwortlicher
+      browser_download:       wizSaveMode.browser_download,
+      local_save:              wizSaveMode.local_save,
+      default_anwender:        payload.anwender,
+      default_verantwortlich:  payload.verantwortlicher
     });
+
+    // Sync the settings-tab toggle to match what was chosen in the wizard
+    const settingsToggle = $('save-mode-toggle');
+    if (settingsToggle) {
+      settingsToggle.checked = wizSaveMode.local_save;
+      if (typeof updateSaveModeLabels === 'function') updateSaveModeLabels(wizSaveMode.local_save);
+    }
+
+    if (typeof updateExportButtons === 'function') updateExportButtons(wizSaveMode.local_save);
 
     applyDefaultSettingsToExport({
-      default_anwender: payload.anwender,
-      default_verantwortlich: payload.verantwortlicher
+      default_anwender:        payload.anwender,
+      default_verantwortlich:  payload.verantwortlicher
     });
 
-    if ($('set-default-anwender')) {
-      $('set-default-anwender').value = payload.anwender || '';
-    }
-    if ($('set-default-verantwortlich')) {
-      $('set-default-verantwortlich').value = payload.verantwortlicher || '';
-    }
+    if ($('set-default-anwender'))       $('set-default-anwender').value       = payload.anwender       || '';
+    if ($('set-default-verantwortlich')) $('set-default-verantwortlich').value = payload.verantwortlicher || '';
 
     fillBetriebForm(payload);
     betriebExists = true;
