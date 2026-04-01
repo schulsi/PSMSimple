@@ -636,7 +636,7 @@
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background: var(--border);
+  background: var(--green-mid);
   border-radius: 26px;
   transition: background .2s;
 }

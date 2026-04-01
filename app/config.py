@@ -27,3 +27,4 @@ class Config:
     APP_DATA_DB = os.path.join(DB_DIR, "pflanzenschutz.db")
     EXPORTS_DIR = os.path.join(EXPORT_DIR)
     PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
+    BASE_DIR = BASE_DIR
