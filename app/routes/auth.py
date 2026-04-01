@@ -52,21 +52,21 @@ def register():
     password = request.form.get("password", "")
     password2 = request.form.get("password2", "")
 
-        if not username or not password:
-            flash("Bitte alle Felder ausfüllen.", "error")
-            return redirect(url_for("auth.login") + "?tab=register")
+    if not username or not password:
+        flash("Bitte alle Felder ausfüllen.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
 
-        if password != password2:
-            flash("Die Passwörter stimmen nicht überein.", "error")
-            return redirect(url_for("auth.login") + "?tab=register")
+    if password != password2:
+        flash("Die Passwörter stimmen nicht überein.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
 
-        if len(password) < 6:
-            flash("Das Passwort muss mindestens 6 Zeichen lang sein.", "error")
-            return redirect(url_for("auth.login") + "?tab=register")
+    if len(password) < 6:
+        flash("Das Passwort muss mindestens 6 Zeichen lang sein.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
 
-        if User.query.filter_by(username=username).first():
-            flash("Dieser Benutzername ist bereits vergeben.", "error")
-            return redirect(url_for("auth.login") + "?tab=register")
+    if User.query.filter_by(username=username).first():
+        flash("Dieser Benutzername ist bereits vergeben.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
 
     is_first_user = User.query.count() == 0
     if is_first_user:
@@ -82,8 +82,8 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-        flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
-        return redirect(url_for("auth.login"))
+    flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
+    return redirect(url_for("auth.login"))
 
 
 @bp.route("/logout")
