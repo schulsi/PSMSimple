@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
+from ..services.permissions import require_write_access
 from ..repositories.kulturen_repo import (
     list_kulturen,
     get_kultur_by_id,
@@ -20,6 +21,7 @@ def api_get_kulturen():
 
 @bp.route("/api/kulturen", methods=["POST"])
 @login_required
+@require_write_access
 def api_add_kultur():
     data = request.get_json(silent=True) or {}
     result = create_kultur(data)
@@ -37,6 +39,7 @@ def api_get_kultur_by_id(kid):
 
 @bp.route("/api/kulturen/<int:kid>", methods=["PUT"])
 @login_required
+@require_write_access
 def api_update_kultur(kid):
     data = request.get_json(silent=True) or {}
     update_kultur(kid, data)
@@ -45,6 +48,7 @@ def api_update_kultur(kid):
 
 @bp.route("/api/kulturen/<int:kid>", methods=["DELETE"])
 @login_required
+@require_write_access
 def api_delete_kultur(kid):
     delete_kultur(kid)
     return jsonify({"ok": True})

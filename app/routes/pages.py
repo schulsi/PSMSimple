@@ -1,6 +1,8 @@
 import os
 from flask import Blueprint, render_template, send_from_directory, current_app
-from flask_login import login_required
+from flask_login import login_required, current_user
+
+from ..services.permissions import build_permissions
 
 bp = Blueprint("pages", __name__)
 
@@ -14,7 +16,8 @@ bp = Blueprint("pages", __name__)
 @bp.route("/")
 @login_required
 def index():
-    return render_template("index.html")
+    permissions = build_permissions(current_user)
+    return render_template("index.html", permissions=permissions)
 
 
 @bp.route("/media/<path:filename>")

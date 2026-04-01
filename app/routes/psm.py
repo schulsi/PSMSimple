@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
+from ..services.permissions import require_write_access
 from ..repositories.psm_repo import (
     list_psm,
     create_psm,
@@ -20,6 +21,7 @@ def api_get_psm():
 
 @bp.route("/api/psm", methods=["POST"])
 @login_required
+@require_write_access
 def api_add_psm():
     data = request.get_json(silent=True) or {}
     result = create_psm(data)
@@ -41,6 +43,7 @@ def api_get_psm_by_id(pid):
 
 @bp.route("/api/psm/<int:pid>", methods=["PUT"])
 @login_required
+@require_write_access
 def api_update_psm(pid):
     data = request.get_json(silent=True) or {}
     update_psm(pid, data)
@@ -49,6 +52,7 @@ def api_update_psm(pid):
 
 @bp.route("/api/psm/<int:pid>", methods=["DELETE"])
 @login_required
+@require_write_access
 def api_delete_psm(pid):
     delete_psm(pid)
     return jsonify({"ok": True})
