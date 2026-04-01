@@ -59,7 +59,7 @@ def init_appdata_db():
     conn.commit()
     c.execute("""
         INSERT OR IGNORE INTO application_settings (key, value)
-        VALUES ('allow_registration', '1')
+        VALUES ('registration_allowed', '1')
     """)
     conn.commit()
     conn.close()

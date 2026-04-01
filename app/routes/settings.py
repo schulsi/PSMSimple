@@ -16,6 +16,6 @@ def settings():
             set_setting(key, value)
         return jsonify({"ok": True})
 
-    allow_registration = get_setting("registration_allowed") == "1"
+    registration_allowed = get_setting("registration_allowed") == "1"
 
-    return jsonify({"allow_registration": allow_registration})
+    return jsonify({"registration_allowed": registration_allowed})
