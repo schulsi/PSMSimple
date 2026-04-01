@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
+import re
 
 from ..extensions import db
 from ..models.user import User
@@ -10,7 +11,7 @@ from ..services.settings_service import (
     normalize_settings_payload,
     save_user_settings,
 )
-
+USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{2,50}$")
 bp = Blueprint("user", __name__)
 
 @bp.route("/api/me", methods=["GET"])
@@ -33,8 +34,7 @@ def list_users():
 def update_user_role(user_id):
     data = request.get_json(silent=True) or {}
     new_role = (data.get("role") or "").strip()
-    print(f"Requested role change for user {user_id} to '{new_role}'")
-
+    
     allowed_roles = {"admin", "user", "read-only"}
     if new_role not in allowed_roles:
         return jsonify({"ok": False, "error": "Ungültige Rolle."}), 400
@@ -60,6 +60,9 @@ def rename_user():
 
     if len(new_name) < 2:
         return jsonify({"ok": False, "error": "Mindestens 2 Zeichen erforderlich."}), 400
+
+    if re.match(USERNAME_RE, new_name) is None:
+        return jsonify({"ok": False, "error": "Ungültige Zeichen im Namen."}), 400
 
     existing = User.query.filter_by(username=new_name).first()
     if existing and existing.id != current_user.id:

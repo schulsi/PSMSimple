@@ -54,7 +54,7 @@ function showTab(tabName, el, push = true) {
   if (el) el.classList.add('active');
 
   if (push) {
-    history.pushState({ tab: tabName }, '', tabToPath[tabName] || "/farm");
+    history.pushState({ tab: tabName }, '', tabToPath[tabName] || "/betrieb");
   }
 }
 

@@ -4,6 +4,10 @@ function getPayloadSignature(payload) {
   return JSON.stringify(payload);
 }
 
+function getCsrfToken() {
+  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
 function renderExportSelectionList(containerId, items, type) {
   const container = $(containerId);
   if (!container) return;
@@ -26,7 +30,7 @@ function renderExportSelectionList(containerId, items, type) {
           </label>
           <div class="exp-item-extra">
             <label>Aufwandsmenge</label>
-            <input type="text" class="exp-psm-amount" data-id="${item.id}" placeholder="z. B. 1,5">
+            <input type="number" class="exp-psm-amount" data-id="${item.id}" placeholder="z. B. 1,5">
           </div>
         </div>
       `;
@@ -58,7 +62,7 @@ function renderExportSelectionList(containerId, items, type) {
           </label>
           <div class="exp-item-extra">
             <label>BBCH-Code</label>
-            <input type="text" class="exp-kultur-bbch" data-id="${item.id}" placeholder="z. B. 39">
+            <input type="number" class="exp-kultur-bbch" data-id="${item.id}" placeholder="z. B. 39">
           </div>
         </div>
       `;
@@ -166,7 +170,7 @@ async function exportSave() {
     const jsonResp = await fetch('/api/export', {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
       body: JSON.stringify(payload)
     });
     if (!jsonResp.ok) {
@@ -206,7 +210,7 @@ async function exportDownloadZip() {
     const jsonResp = await fetch('/api/export', {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
       body: JSON.stringify(payload)
     });
     if (!jsonResp.ok) {

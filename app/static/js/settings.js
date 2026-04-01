@@ -49,9 +49,6 @@ function updateExportButtons(localSave) {
   if (btnSave)     btnSave.style.display     = localSave ? '' : 'none';
   if (btnDownload) btnDownload.style.display = localSave ? 'none' : '';
 }
-
-// ── Settings load / save ──────────────────────────────────────────────────────
-
 let APP_PERMISSIONS = null;
 async function loadSettings() {
   try {
@@ -79,6 +76,11 @@ async function loadSettings() {
     updateExportButtons(localSave);
     if (defaultAnwender)       defaultAnwender.value       = settings.default_anwender       || '';
     if (defaultVerantwortlich) defaultVerantwortlich.value = settings.default_verantwortlich || '';
+
+    if (APP_PERMISSIONS?.can_manage_users) {
+      await loadUserRoles();
+
+    }
 
     if (APP_PERMISSIONS?.can_manage_users) {
       await loadUserRoles();
@@ -117,10 +119,14 @@ function collectAppSettings() {
 
 async function saveSettings() {
   try {
-    const payload    = collectSettingsForm();
-    const result     = await apiPost('/api/user/settings', payload);
-    const payloadApp = collectAppSettings();
-    await apiPost('/api/app/settings', payloadApp);
+    const payload = collectSettingsForm();
+    const result = await apiPost('/api/user/settings', payload);
+
+    const registrationAllowed = $('set-registration-allowed');
+    if (registrationAllowed) {
+      const payloadApp = collectAppSettings();
+      await apiPost('/api/app/settings', payloadApp);
+    }
     applyDefaultSettingsToExport(result.settings || payload);
     updateExportButtons(payload.local_save);
     toast('✅ Einstellungen gespeichert');
@@ -157,6 +163,63 @@ async function renameUser() {
     input.value       = '';
     input.placeholder = username;
     toast('✅ Benutzername geändert');
+  } catch (err) {
+    console.error(err);
+    toast(`❌ ${err.message}`);
+  }
+}
+
+
+async function loadUserRoles() {
+  const wrap = document.getElementById('user-role-list');
+  if (!wrap) return;
+
+  try {
+    const users = await apiGet('/api/users');
+
+    wrap.innerHTML = users.map(user => `
+      <div class="item-row" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.75rem;padding:.75rem;border:1px solid #ddd;border-radius:.5rem">
+        <div>
+          <div style="font-weight:600">${escapeHtml(user.username)}</div>
+          <div style="font-size:.8rem;color:#666">ID: ${user.id}</div>
+          <div style="font-size:.8rem;color:#666">Rolle: ${user.role}</div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <select id="role-user-${user.id}">
+            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+            <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+            <option value="read-only" ${user.role === 'read-only' ? 'selected' : ''}>Read-only</option>
+          </select>
+
+          <button type="button" class="btn btn-primary" style="width:auto" onclick="saveUserRole(${user.id})">
+            Speichern
+          </button>
+
+          <button 
+            type="button"
+            class="btn btn-danger"
+            style="width:auto"
+            onclick="openDeleteUserConfirm(${user.id}, '${escapeJs(user.username)}')"
+            ${user.is_current_user ? 'disabled' : ''}
+          >
+            Löschen
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = '<div style="color:#b00020">Benutzer konnten nicht geladen werden.</div>';
+  }
+}
+async function saveUserRole(userId) {
+  const select = document.getElementById(`role-user-${userId}`);
+  if (!select) return;
+
+  try {
+    await apiPut(`/api/users/${userId}/role`, { role: select.value });
+    toast('✅ Rolle gespeichert');
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);

@@ -6,6 +6,10 @@ from ..config import Config
 EXPORT_DIR =Path(Config.EXPORTS_DIR)  
 BASE_DIR =Path(__file__).resolve().parents[2]
 
+from ..config import Config
+
+BASE_DIR = Config.BASE_DIR
+EXPORT_DIR = Config.EXPORT_DIR
 
 def slugify(value: str, fallback: str = "export") -> str:
     value = (value or "").strip()
