@@ -137,14 +137,69 @@
   /* Tab switcher (hidden, toggled by JS) */
   .auth-panel { display: none; }
   .auth-panel.active { display: block; }
+
+  /* ── Hamburger button ── */
+  .nav-toggle {
+    display: none;
+    background: none; border: none;
+    color: #fff; font-size: 1.5rem; cursor: pointer;
+    padding: .25rem .4rem; line-height: 1; flex-shrink: 0;
+  }
+  .nav-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 90;
+  }
+  .nav-overlay.open { display: block; }
+
+  /* ── Tablet ── */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 180px 1fr; }
+    main { padding: 1.5rem; }
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 640px) {
+    header { padding: 0 1rem; height: 56px; }
+    header .logo { font-size: 1.2rem; }
+    header .sub { display: none; }
+    .nav-toggle { display: flex; align-items: center; justify-content: center; margin-right: .5rem; }
+
+    .app { grid-template-columns: 1fr; }
+
+    nav {
+      position: fixed;
+      top: 56px; left: -240px;
+      width: 240px;
+      height: calc(100vh - 56px);
+      z-index: 100;
+      transition: left .25s ease;
+      box-shadow: 4px 0 20px rgba(0,0,0,.25);
+    }
+    nav.open { left: 0; }
+
+    main {
+      padding: 1.25rem 1rem;
+      justify-content: center;
+    }
+
+    .auth-card {
+      max-width: 100%;
+      padding: 1.5rem 1.25rem;
+    }
+
+    .field input { height: 44px; font-size: 1rem; }
+    .btn { font-size: .95rem; padding: .7rem 1rem; min-height: 44px; }
+  }
 </style>
 </head>
 <body>
 
 <header>
+  <button class="nav-toggle" id="nav-toggle" onclick="toggleMobileNav()" aria-label="Menü öffnen">☰</button>
   <div class="logo">Pflanzen<span>schutz</span></div>
   <span class="sub">· Dokumentation</span>
 </header>
+<div class="nav-overlay" id="nav-overlay" onclick="closeMobileNav()"></div>
 
 <div class="app">
   <nav>
@@ -176,7 +231,7 @@
         <h2>🔑 Anmelden</h2>
         <p class="subtitle">Melden Sie sich an, um fortzufahren.</p>
 
-        <form method="POST" action="{{ url_for('login') }}">
+        <form method="POST" action="{{ url_for('auth.login') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
           <div class="field">
             <label>Benutzername</label>
@@ -199,7 +254,7 @@
         <h2>✏️ Registrieren</h2>
         <p class="subtitle">Erstellen Sie ein neues Konto.</p>
 
-        <form method="POST" action="{{ url_for('register') }}">
+        <form method="POST" action="{{ url_for('auth.register') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
           <div class="field">
             <label>Benutzername</label>
@@ -236,6 +291,22 @@
   // If the URL has ?tab=register (redirected after failed register), open register panel
   const params = new URLSearchParams(window.location.search);
   if (params.get('tab') === 'register') showPanel('register');
+
+  function toggleMobileNav() {
+    const nav = document.querySelector('nav');
+    const overlay = document.getElementById('nav-overlay');
+    const open = nav.classList.toggle('open');
+    overlay.classList.toggle('open', open);
+  }
+  function closeMobileNav() {
+    document.querySelector('nav').classList.remove('open');
+    document.getElementById('nav-overlay').classList.remove('open');
+  }
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 640) closeMobileNav();
+    });
+  });
 </script>
 </body>
 </html>

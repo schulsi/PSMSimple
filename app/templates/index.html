@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+
+{% block title %}Pflanzenschutz · Dokumentation{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+{% endblock %}
+
+{% block body %}
+<header>
+  <button class="nav-toggle" id="nav-toggle" onclick="toggleMobileNav()" aria-label="Menü öffnen">☰</button>
+  <div class="logo">🌿 Pflanzen<span>schutz</span></div>
+  <div class="sub">Dokumentation & JSON-Export</div>
+</header>
+<div class="nav-overlay" id="nav-overlay" onclick="closeMobileNav()"></div>
+
+<div class="app">
+  <nav>
+    <div class="nav-items">
+      <div class="section-label">Stammdaten</div>
+      <a class="active" href="/betrieb" onclick="event.preventDefault(); showTab('betrieb', this)"><span class="ico">🏡</span> Betrieb</a>
+      <a href="/psm" onclick="event.preventDefault(); showTab('psm', this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
+      <a href="/fields" onclick="event.preventDefault(); showTab('einsatzorte', this)"><span class="ico">📍</span> Felder</a>
+      <a href="/cultures" onclick="event.preventDefault(); showTab('kulturen', this)"><span class="ico">🌾</span> Kulturen</a>
+
+      <div class="section-label">Export</div>
+      <a href="/export" onclick="event.preventDefault(); showTab('export', this); loadExportSelections(); syncLegacyExportUI()"><span class="ico">📄</span> Applikation dokumentieren</a>
+
+      <div class="section-label">Verlauf</div>
+      <a href="/history" onclick="event.preventDefault(); showTab('history', this); loadHistory()"><span class="ico">🕘</span> Gespeicherte Applikationen</a>
+    </div>
+
+    <div class="nav-user">
+      <div class="nav-user-popup" id="user-popup">
+        <div class="popup-header">
+          <div class="popup-username" id="popup-username">{{ current_user.username }}</div>
+          <div class="popup-label">Angemeldet als</div>
+        </div>
+
+        <a href="/settings" onclick="event.preventDefault(); showTab('settings', this)"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
+        <a class="popup-logout" href="{{ url_for('auth.logout') }}">🚪 Abmelden</a>
+      </div>
+
+      <button type="button" class="nav-user-btn" id="user-btn" onclick="toggleUserPopup()">
+        <div class="nav-user-avatar" id="user-avatar">{{ current_user.username[0] | upper }}</div>
+        <span class="nav-user-name" id="user-name-label">{{ current_user.username }}</span>
+        <span class="nav-user-caret">▲</span>
+      </button>
+    </div>
+  </nav>
+
+  <main>
+    <div id="tab-betrieb" class="tab active">
+      <h2>🏡 Betrieb <span class="badge">Stammdaten</span></h2>
+      <div class="card">
+        <div class="form-grid cols-3">
+          <div class="field"><label>Firma</label><input id="b-firma"></div>
+          <div class="field"><label>Nachname</label><input id="b-name"></div>
+          <div class="field"><label>Vorname</label><input id="b-vorname"></div>
+          <div class="field"><label>Straße + Hausnr.</label><input id="b-strHnr"></div>
+          <div class="field"><label>PLZ</label><input id="b-plz"></div>
+          <div class="field"><label>Ort</label><input id="b-ort"></div>
+          <div class="field">
+            <label>Bundesland</label>
+            <select id="b-bundesland">
+              <option value="BW">Baden-Württemberg</option><option value="BY">Bayern</option>
+              <option value="BE">Berlin</option><option value="BB">Brandenburg</option>
+              <option value="HB">Bremen</option><option value="HH">Hamburg</option>
+              <option value="HE">Hessen</option><option value="MV">Mecklenburg-Vorpommern</option>
+              <option value="NI">Niedersachsen</option><option value="NW">Nordrhein-Westfalen</option>
+              <option value="RP">Rheinland-Pfalz</option><option value="SL">Saarland</option>
+              <option value="SN">Sachsen</option><option value="ST">Sachsen-Anhalt</option>
+              <option value="SH">Schleswig-Holstein</option><option value="TH">Thüringen</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:1rem;display:flex;justify-content:flex-end">
+          <button type="button" class="btn btn-primary" onclick="saveBetrieb()">💾 Speichern</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-psm" class="tab">
+      <h2>🧪 Pflanzenschutzmittel <span class="badge" id="psm-count">0</span></h2>
+      <button type="button" class="btn btn-primary" onclick="openPSMModal()" style="margin-bottom:1rem">+ Neues Mittel</button>
+      <div class="item-list" id="psm-list"></div>
+    </div>
+
+    <div id="tab-einsatzorte" class="tab">
+      <h2>📍 Einsatzorte <span class="badge" id="eo-count">0</span></h2>
+      <button type="button" class="btn btn-primary" onclick="openEinsatzortModal()" style="margin-bottom:1rem">+ Neuer Einsatzort</button>
+      <div class="item-list" id="einsatzorte-list"></div>
+    </div>
+
+    <div id="tab-kulturen" class="tab">
+      <h2>🌾 Kulturen <span class="badge" id="kult-count">0</span></h2>
+      <button type="button" class="btn btn-primary" onclick="openKulturModal()" style="margin-bottom:1rem">+ Neue Kultur</button>
+      <div class="item-list" id="kulturen-list"></div>
+    </div>
+
+    <div id="tab-export" class="tab">
+      <h2>📄 JSON erstellen</h2>
+
+      <div class="card export-section">
+        <h3>🧪 Pflanzenschutzmittel &amp; Aufwandsmenge</h3>
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.85rem">Mittel auswählen und Aufwandsmenge für diese Anwendung eingeben.</p>
+        <div id="exp-psm-list"></div>
+      </div>
+
+      <div class="card export-section">
+        <h3>📍 Einsatzorte auswählen</h3>
+        <div id="exp-einsatzorte-list"></div>
+      </div>
+
+      <div class="card export-section">
+        <h3>🌾 Kulturen &amp; BBCH-Code</h3>
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.85rem">Kultur auswählen und BBCH-Code für diese Anwendung eingeben.</p>
+        <div id="exp-kulturen-list"></div>
+      </div>
+
+      <div class="card export-section">
+        <h3>📋 Anwendung</h3>
+        <div class="form-grid">
+          <div class="field"><label>Datum</label><input type="date" id="exp-datum"></div>
+          <div class="field"><label>Uhrzeit</label><input type="time" id="exp-uhrzeit"></div>
+          <div class="field">
+            <label>Art der Verwendung</label>
+            <select id="exp-art-haupt" onchange="updateArtSubkategorie()">
+              <option value="Behandlung von Freilandflächen">Behandlung von Freilandflächen</option>
+              <option value="Behandlung geschlossener Räume bzw. in geschlossenen Räumen">Behandlung geschlossener Räume bzw. in geschlossenen Räumen</option>
+              <option value="Behandlung von Saatgut oder Pflanzenvermehrungsmaterial">Behandlung von Saatgut oder Pflanzenvermehrungsmaterial</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Subkategorie</label>
+            <select id="exp-art-sub" onchange="syncArtVerwendungField()"></select>
+          </div>
+          <div class="field"><label>Verantwortlich</label><input id="exp-verantwortlich"></div>
+          <div class="field"><label>Anwender</label><input id="exp-anwender"></div>
+        </div>
+        <input type="hidden" id="exp-artVerwendung">
+      </div>
+
+      <div class="export-footer">
+        <button type="button" id="btn-preview" class="btn btn-ghost" onclick="previewJSON()" disabled>👁 Vorschau</button>
+        <button type="button" id="btn-json" class="btn btn-export" onclick="exportJSON()" disabled>⬇ JSON herunterladen</button>
+        <button type="button" id="btn-pdf" class="btn btn-pdf" onclick="exportPDF()" disabled>🖨 PDF herunterladen</button>
+      </div>
+      <div id="validation-msg" style="margin-top:.6rem;font-size:.82rem;color:var(--danger);display:none"></div>
+
+      <div id="json-preview-wrap" style="display:none;margin-top:1.5rem">
+        <div class="divider"></div>
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:.75rem;color:var(--green-deep)">🔍 Vorschau</h3>
+        <pre id="preview-json"></pre>
+      </div>
+    </div>
+
+    <div id="tab-history" class="tab">
+      <h2>🕘 History <span class="badge" id="history-count">0</span></h2>
+
+      <div class="card">
+        <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
+          Hier siehst du alle gespeicherten Applikationen.
+        </p>
+        <div class="item-list" id="history-list"></div>
+      </div>
+
+      <div class="card" id="history-detail-wrap" style="display:none">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">
+          🔍 Applikationsdetails
+        </h3>
+        <div id="history-detail" class="history-detail"></div>
+      </div>
+    </div>
+
+    <div id="tab-settings" class="tab">
+      <h2>⚙️ Einstellungen</h2>
+
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">📁 Export-Verhalten</h3>
+        <div style="display:flex;flex-direction:column;gap:.85rem">
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
+            <input type="checkbox" id="set-browser-download" style="accent-color:var(--green-mid);width:16px;height:16px">
+            <div>
+              <div style="font-weight:600;font-size:.9rem">Browser-Download</div>
+              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird direkt im Browser heruntergeladen</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer">
+            <input type="checkbox" id="set-local-save" style="accent-color:var(--green-mid);width:16px;height:16px">
+            <div>
+              <div style="font-weight:600;font-size:.9rem">Lokal speichern</div>
+              <div style="font-size:.78rem;color:var(--text-muted)">Datei wird auf dem Server im Exportordner abgelegt</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">👤 Standard-Felder</h3>
+        <div class="form-grid" style="max-width:600px">
+          <div class="field">
+            <label>Standard-Anwender</label>
+            <input id="set-default-anwender" placeholder="Wird automatisch in Anwendung eingetragen">
+          </div>
+          <div class="field">
+            <label>Standard-Verantwortliche/r</label>
+            <input id="set-default-verantwortlich" placeholder="Wird automatisch in Anwendung eingetragen">
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">👤 Benutzername ändern</h3>
+          <div class="popup-rename">
+            <label>Benutzername ändern</label>
+            <div class="popup-rename-row">
+              <input type="text" id="rename-input" placeholder="{{ current_user.username }}">
+              <button type="button" onclick="renameUser()">Speichern</button>
+            </div>
+          </div>
+        </div>
+
+      <div style="display:flex;gap:.75rem;margin-top:.5rem">
+        <button type="button" class="btn btn-primary" onclick="saveSettings()">💾 Einstellungen speichern</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-psm">
+  <div class="modal">
+    <h3 id="modal-psm-title">Pflanzenschutzmittel</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>Name</label>
+        <div class="autocomplete-wrap">
+          <input id="psm-name" autocomplete="off">
+          <div id="psm-search-results" class="autocomplete-results"></div>
+        </div>
+      </div>
+      <div class="field"><label>Zulassungsnr.</label><input id="psm-zulassungsnr" disabled></div>
+      <div class="field"><label>Wirkstoffe</label><input id="psm-wirkstoffe" disabled></div>
+      <div class="field">
+        <label>Einheit (Aufwandsmenge)</label>
+        <input id="psm-aufwandEinheit" name="einheit" list="einheiten">
+        <datalist id="einheiten">
+          <option value="kg/ha">
+          <option value="l/ha">
+          <option value="g/ha">
+          <option value="ml/ha">
+        </datalist>
+      </div>
+      <div class="field" style="grid-column:span 2">
+        <label>Bienengefährlichkeit</label>
+        <select id="psm-bienen" style="font-size:.8rem; padding:.35rem .65rem">
+          <option value="B1">(B1) Bienengefährlich</option>
+          <option value="B2">(B2) Bienengefährlich außer nach dem täglichen Bienenflug</option>
+          <option value="B3">(B3) Bienengefährlich, Anwendungsverbot</option>
+          <option value="B4">(B4) Nicht bienengefährlich</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('modal-psm')">Abbrechen</button>
+      <button type="button" class="btn btn-primary" onclick="savePSM()" id="psm-save-btn">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-einsatzort">
+  <div class="modal">
+    <h3 id="modal-einsatzort-title">Einsatzort</h3>
+    <div class="form-grid">
+      <div class="field" style="grid-column:span 2"><label>Name / Bezeichnung <span style="color:var(--danger)">*</span></label><input id="eo-name"></div>
+      <div class="field" style="grid-column:span 2">
+        <label>Koordinaten</label>
+        <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+          <input type="number" id="eo-gpsRechtswert" step="any" placeholder="Lat, z.B. 48.123456" required style="flex:1;min-width:130px">
+          <input type="number" id="eo-gpsHochwert" step="any" placeholder="Lng, z.B. 7.654321" required style="flex:1;min-width:130px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="openMapModal()" style="white-space:nowrap;flex-shrink:0">🗺 Karte anzeigen</button>
+        </div>
+      </div>
+      <div class="field"><label>Anwendungsbereich</label><select id="eo-anwendungsbereich"><option value="Freiland" selected>Freiland</option><option value="Gewächshaus">Gewächshaus</option><option value="Lager">Lager</option></select></div>
+      <div class="field"><label>Geo-Typ</label><select id="eo-geoTyp"><option value="GPS-Koordinaten">GPS-Koordinaten</option><option value="Polygon">Polygon</option><option value="Schlagname">Schlagname</option></select></div>
+      <div class="field"><label>Fläche <span style="color:var(--danger)">*</span></label><input type="number" id="eo-flaecheVolumen" step="0.01"></div>
+      <div class="field"><label>Einheit</label><select id="eo-einheit"><option value="m2">m2</option><option value="ha">ha</option><option value="ar">ar</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('modal-einsatzort')">Abbrechen</button>
+      <button type="button" class="btn btn-primary" onclick="saveEinsatzort()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-map">
+  <div class="modal">
+    <h3>🗺 Standort auf Karte wählen</h3>
+    <div id="eo-map"></div>
+    <div class="map-coords-bar">
+      📍 Gewählt: <strong id="map-lat-display">—</strong> / <strong id="map-lng-display">—</strong>
+    </div>
+    <p class="map-hint">Auf die Karte klicken um einen Punkt zu setzen · Marker ist verschiebbar</p>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeMapModal()">Abbrechen</button>
+      <button type="button" id="map-confirm-btn" class="btn btn-primary" onclick="confirmMapSelection()" disabled>✅ Koordinaten übernehmen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-kultur">
+  <div class="modal">
+    <h3 id="modal-kultur-title">Kultur</h3>
+    <div class="form-grid">
+      <div class="field"><label>Name <span style="color:var(--danger)">*</span></label><input id="k-name" placeholder="Weinbau"></div>
+      <div class="field"><label>EPPO-Code <span style="color:var(--danger)">*</span></label><input id="k-eppoCode" placeholder="VITVI"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('modal-kultur')">Abbrechen</button>
+      <button type="button" class="btn btn-primary" onclick="saveKultur()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-betrieb-wizard">
+  <div class="modal">
+    <h3>Willkommen 👋</h3>
+    <p style="margin-bottom:1rem;color:var(--text-muted)">
+      Bevor du loslegst, trage bitte einmal die Betriebsdaten ein.
+    </p>
+
+    <div class="form-grid cols-3">
+      <div class="field"><label>Firma</label><input id="wiz-firma" placeholder="Mustermann Gemüsebau"></div>
+      <div class="field"><label>Nachname</label><input id="wiz-name" placeholder="Mustermann"></div>
+      <div class="field"><label>Vorname</label><input id="wiz-vorname" placeholder="Max"></div>
+      <div class="field"><label>Straße + Hausnr.</label><input id="wiz-strHnr" placeholder="Musterstraße 123"></div>
+      <div class="field"><label>PLZ</label><input id="wiz-plz" placeholder="12345"></div>
+      <div class="field"><label>Ort</label><input id="wiz-ort" placeholder="Musterstadt"></div>
+      <div class="field">
+        <label>Bundesland</label>
+        <select id="wiz-bundesland">
+          <option value="BW">Baden-Württemberg</option>
+          <option value="BY">Bayern</option>
+          <option value="BE">Berlin</option>
+          <option value="BB">Brandenburg</option>
+          <option value="HB">Bremen</option>
+          <option value="HH">Hamburg</option>
+          <option value="HE">Hessen</option>
+          <option value="MV">Mecklenburg-Vorpommern</option>
+          <option value="NI">Niedersachsen</option>
+          <option value="NW">Nordrhein-Westfalen</option>
+          <option value="RP">Rheinland-Pfalz</option>
+          <option value="SL">Saarland</option>
+          <option value="SN">Sachsen</option>
+          <option value="ST">Sachsen-Anhalt</option>
+          <option value="SH">Schleswig-Holstein</option>
+          <option value="TH">Thüringen</option>
+        </select>
+      </div>
+      <div class="field"><label>Anwendungsverantwortlicher</label><input id="wiz-anwendungsverantwortlicher" placeholder="Max Mustermann"></div>
+      <div class="field"><label>Anwender</label><input id="wiz-anwender" placeholder="Max Mustermann"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" onclick="saveBetriebWizard()">Speichern und starten</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+<script src="{{ url_for('static', filename='js/betrieb.js') }}"></script>
+<script src="{{ url_for('static', filename='js/psm.js') }}"></script>
+<script src="{{ url_for('static', filename='js/einsatzorte.js') }}"></script>
+<script src="{{ url_for('static', filename='js/kulturen.js') }}"></script>
+<script src="{{ url_for('static', filename='js/export.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+  const ART_SUBKATEGORIEN = {
+    'Behandlung von Freilandflächen': [
+      'Flächenkulturen',
+      'Raumkulturen',
+      'Forst',
+      'Nichtkulturland'
+    ],
+    'Behandlung geschlossener Räume bzw. in geschlossenen Räumen': [
+      'Gewächshaus',
+      'Lagerraum',
+      'Sonstige geschlossene Räume'
+    ],
+    'Behandlung von Saatgut oder Pflanzenvermehrungsmaterial': [
+      'Saatgut',
+      'Pflanzenvermehrungsmaterial'
+    ]
+  };
+
+  function syncBadgeCount(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(value);
+  }
+
+  function updateArtSubkategorie() {
+    const haupt = document.getElementById('exp-art-haupt');
+    const sub = document.getElementById('exp-art-sub');
+    if (!haupt || !sub) return;
+
+    const current = haupt.value;
+    const values = ART_SUBKATEGORIEN[current] || ['Allgemein'];
+    const prev = sub.value;
+
+    sub.innerHTML = values.map(v => `<option value="${v}">${v}</option>`).join('');
+    if (values.includes(prev)) sub.value = prev;
+
+    syncArtVerwendungField();
+  }
+
+  function syncArtVerwendungField() {
+    const haupt = document.getElementById('exp-art-haupt');
+    const sub = document.getElementById('exp-art-sub');
+    const target = document.getElementById('exp-artVerwendung');
+    if (!haupt || !sub || !target) return;
+
+    target.value = sub.value ? `${haupt.value} – ${sub.value}` : haupt.value;
+    syncLegacyExportUI();
+  }
+
+  function syncLegacyExportUI() {
+    const payload = (typeof getExportPayload === 'function') ? getExportPayload() : null;
+    const previewBtn = document.getElementById('btn-preview');
+    const jsonBtn = document.getElementById('btn-json');
+    const pdfBtn = document.getElementById('btn-pdf');
+    const msg = document.getElementById('validation-msg');
+    if (!payload) return;
+
+    const hasPSM = payload.psm_overrides.length > 0;
+    const hasEO = payload.einsatzort_ids.length > 0;
+    const hasKult = payload.kult_overrides.length > 0;
+    const hasDate = !!payload.anwendung.datum;
+    const hasTime = !!payload.anwendung.uhrzeit;
+    const hasArt = !!payload.anwendung.artVerwendung;
+    const valid = hasPSM && hasEO && hasKult && hasDate && hasTime && hasArt;
+
+    [previewBtn, jsonBtn, pdfBtn].forEach(btn => {
+      if (btn) btn.disabled = !valid;
+    });
+
+    if (msg) {
+      if (valid) {
+        msg.style.display = 'none';
+        msg.textContent = '';
+      } else {
+        msg.style.display = 'block';
+        msg.textContent = 'Bitte mindestens ein Pflanzenschutzmittel, einen Einsatzort, eine Kultur sowie Datum, Uhrzeit und Art der Verwendung auswählen.';
+      }
+    }
+  }
+
+  function patchFunction(name, afterFn) {
+    const original = window[name];
+    if (typeof original !== 'function') return;
+    window[name] = async function(...args) {
+      const result = await original.apply(this, args);
+      try { afterFn(); } catch (_) {}
+      return result;
+    };
+  }
+
+  if (typeof previewJSON === 'function') {
+    const originalPreviewJSON = previewJSON;
+    previewJSON = async function(...args) {
+      const result = await originalPreviewJSON.apply(this, args);
+      const wrap = document.getElementById('json-preview-wrap');
+      if (wrap) wrap.style.display = 'block';
+      syncLegacyExportUI();
+      return result;
+    };
+  }
+
+  document.addEventListener('change', (event) => {
+    const watched = [
+      'exp-datum', 'exp-uhrzeit', 'exp-anwender', 'exp-verantwortlich',
+      'exp-art-haupt', 'exp-art-sub', 'set-browser-download', 'set-local-save'
+    ];
+    if (watched.includes(event.target.id) || event.target.matches('.exp-psm-check, .exp-einsatzort-check, .exp-kultur-check, .exp-psm-amount, .exp-kultur-bbch')) {
+      syncLegacyExportUI();
+    }
+  });
+
+  document.addEventListener('input', (event) => {
+    if (event.target.matches('#exp-anwender, #exp-verantwortlich, .exp-psm-amount, .exp-kultur-bbch')) {
+      syncLegacyExportUI();
+    }
+  });
+
+function toggleMobileNav() {
+    const nav = document.querySelector('nav');
+    const overlay = document.getElementById('nav-overlay');
+    const open = nav.classList.toggle('open');
+    overlay.classList.toggle('open', open);
+  }
+  function closeMobileNav() {
+    document.querySelector('nav').classList.remove('open');
+    document.getElementById('nav-overlay').classList.remove('open');
+  }
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 640) closeMobileNav();
+    });
+  });
+
+  /* ── Mobile nav helpers ── */
+  function toggleMobileNav() {
+    const nav = document.querySelector('nav');
+    const overlay = document.getElementById('nav-overlay');
+    const open = nav.classList.toggle('open');
+    overlay.classList.toggle('open', open);
+  }
+  function closeMobileNav() {
+    document.querySelector('nav').classList.remove('open');
+    document.getElementById('nav-overlay').classList.remove('open');
+  }
+  /* Close nav on any nav link click on mobile */
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 640) closeMobileNav();
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateArtSubkategorie();
+    syncLegacyExportUI();
+
+    const hidden = document.getElementById('exp-artVerwendung');
+    if (hidden && hidden.value) {
+      const [haupt, sub] = hidden.value.split(' – ');
+      const hauptSelect = document.getElementById('exp-art-haupt');
+      if (hauptSelect && haupt) hauptSelect.value = haupt;
+      updateArtSubkategorie();
+      const subSelect = document.getElementById('exp-art-sub');
+      if (subSelect && sub) subSelect.value = sub;
+      syncArtVerwendungField();
+    }
+  });
+  document.addEventListener("DOMContentLoaded", () => {
+  const uhrzeit = document.getElementById("exp-uhrzeit");
+
+  if (uhrzeit && !uhrzeit.value) {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    uhrzeit.value = `${hh}:${mm}`;
+  }
+});
+</script>
+{% endblock %}

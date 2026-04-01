@@ -1,0 +1,20 @@
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR    = os.environ.get("DATA_DIR", os.path.join(BASE_DIR, "data"))
+
+DB_DIR      = os.path.join(DATA_DIR, "databases")
+EXPORT_DIR  = os.path.join(DATA_DIR, "exports")
+
+os.makedirs(DB_DIR,     exist_ok=True)
+os.makedirs(EXPORT_DIR, exist_ok=True)
+
+DB = os.path.join(DB_DIR, "pflanzenschutz.db")
+
+class Config:
+    SECRET_KEY = os.environ.get("SECRET_KEY", "change-me-in-production-supersecretkey")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR, "users.db")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    APP_DATA_DB = os.path.join(DB_DIR, "pflanzenschutz.db")
+    EXPORTS_DIR = os.path.join(EXPORT_DIR)
+    PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
