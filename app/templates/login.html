@@ -248,7 +248,7 @@
 
         <button class="btn btn-ghost" onclick="showPanel('register')">✏️ Neues Konto erstellen</button>
       </div>
-
+      {% if registration_allowed %}
       <!-- REGISTER PANEL -->
       <div class="auth-panel" id="panel-register">
         <h2>✏️ Registrieren</h2>
@@ -275,7 +275,7 @@
 
         <button class="btn btn-ghost" onclick="showPanel('login')">← Zurück zum Login</button>
       </div>
-
+      {% endif %}
     </div>
   </main>
 </div>
