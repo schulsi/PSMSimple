@@ -18,8 +18,9 @@
 <div class="app">
   <nav>
     <div class="nav-items">
+      <a class="active" href="/" onclick="event.preventDefault(); showTab('home', this)"><span class="ico">🏠</span> Home</a>
       <div class="section-label">Stammdaten</div>
-      <a class="active" href="/betrieb" onclick="event.preventDefault(); showTab('betrieb', this)"><span class="ico">🏡</span> Betrieb</a>
+      <a href="/betrieb" onclick="event.preventDefault(); showTab('betrieb', this)"><span class="ico">🏡</span> Betrieb</a>
       <a href="/psm" onclick="event.preventDefault(); showTab('psm', this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
       <a href="/fields" onclick="event.preventDefault(); showTab('einsatzorte', this)"><span class="ico">📍</span> Felder</a>
       <a href="/cultures" onclick="event.preventDefault(); showTab('kulturen', this)"><span class="ico">🌾</span> Kulturen</a>
@@ -52,7 +53,19 @@
   </nav>
 
   <main>
-    <div id="tab-betrieb" class="tab active">
+    <div id="tab-home" class="tab active">
+      <div class="home-landing">
+        <h1 class="home-title">Willkommen bei PSMSimple</h1>
+        <div class="home-logo-wrap">
+          <img src="{{ url_for('pages.media', filename='logo.png') }}" alt="PSMSimple Logo" class="home-logo">
+        </div>
+        <a href="/export" class="btn-home-cta" onclick="event.preventDefault(); showTab('export', document.querySelector('nav a[href=\'/export\']')); loadExportSelections(); syncLegacyExportUI()">
+          Jetzt dokumentieren <span class="cta-arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <div id="tab-betrieb" class="tab">
       <h2>🏡 Betrieb <span class="badge">Stammdaten</span></h2>
       <div class="card">
         <div class="form-grid cols-3">
