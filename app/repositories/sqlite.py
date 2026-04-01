@@ -1,6 +1,7 @@
 import sqlite3
 from flask import current_app
 
+
 def get_db():
     conn = sqlite3.connect(current_app.config["APP_DATA_DB"])
     conn.row_factory = sqlite3.Row
@@ -49,6 +50,16 @@ def init_appdata_db():
             kulturen TEXT,
             json_data TEXT NOT NULL
         );
+                    
+        CREATE TABLE IF NOT EXISTS application_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+    conn.commit()
+    c.execute("""
+        INSERT OR IGNORE INTO application_settings (key, value)
+        VALUES ('allow_registration', '1')
     """)
     conn.commit()
     conn.close()

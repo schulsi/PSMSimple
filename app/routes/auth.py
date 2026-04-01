@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from ..extensions import db, limiter
 from ..models.user import User
+from ..models.settings import get_setting
+ 
 
 bp = Blueprint("auth", __name__)
 
@@ -17,6 +19,8 @@ def login_bucket():
 @limiter.limit("10 per minute")
 @limiter.limit("5 per 10 minute", key_func=login_bucket, methods=["POST"])
 def login():
+    setting = get_setting("registration_allowed")
+    print("Current setting for registration_allowed:", setting)  # Debug-Ausgabe
     if current_user.is_authenticated:
         return redirect(url_for("pages.index"))
 
@@ -32,48 +36,46 @@ def login():
 
         flash("Ungültiger Benutzername oder Passwort.", "error")
 
-    return render_template("login.html")
+    return render_template("login.html", registration_allowed=setting )
 
 
 @bp.route("/register", methods=["POST"])
 @limiter.limit("3 per hour", methods=["POST"])
 def register():
-    settings = get_application_settings()
+    allow_registration = get_setting("allow_registration") == "1"
+    if allow_registration != "1":
+        flash("Registrierung ist derzeit nicht erlaubt.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
     
-    if not settings["allow_registration"]:
-        flash("Die Registrierung neuer Benutzer ist derzeit deaktiviert.", "error")
-        return redirect(url_for("auth.login"))
-    
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
-        password2 = request.form.get("password2", "")
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
+    password2 = request.form.get("password2", "")
 
-        if not username or not password:
-            flash("Bitte alle Felder ausfüllen.", "error")
-            return redirect(url_for("auth.login") + "?tab=register")
+    if not username or not password:
+        flash("Bitte alle Felder ausfüllen.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
 
-        if password != password2:
-            flash("Die Passwörter stimmen nicht überein.", "error")
-            return redirect(url_for("auth.login") + "?tab=register")
+    if password != password2:
+        flash("Die Passwörter stimmen nicht überein.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
 
-        if len(password) < 6:
-            flash("Das Passwort muss mindestens 6 Zeichen lang sein.", "error")
-            return redirect(url_for("auth.login") + "?tab=register")
+    if len(password) < 6:
+        flash("Das Passwort muss mindestens 6 Zeichen lang sein.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
 
-        if User.query.filter_by(username=username).first():
-            flash("Dieser Benutzername ist bereits vergeben.", "error")
-            return redirect(url_for("auth.login") + "?tab=register")
+    if User.query.filter_by(username=username).first():
+        flash("Dieser Benutzername ist bereits vergeben.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
 
-        new_user = User(
-            username=username,
-            password=generate_password_hash(password)
-        )
-        db.session.add(new_user)
-        db.session.commit()
+    new_user = User(
+        username=username,
+        password=generate_password_hash(password)
+    )
+    db.session.add(new_user)
+    db.session.commit()
 
-        flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
-        return redirect(url_for("auth.login"))
+    flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
+    return redirect(url_for("auth.login"))
 
 
 @bp.route("/logout")
