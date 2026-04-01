@@ -4,12 +4,17 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from ..extensions import db
 from ..models.user import User
+from ..models.settings import get_setting
+from ..repositories.role_repo import get_role_id
+ 
 
 bp = Blueprint("auth", __name__)
 
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
+    setting = get_setting("registration_allowed")
+    
     if current_user.is_authenticated:
         return redirect(url_for("pages.index"))
 
@@ -25,11 +30,16 @@ def login():
 
         flash("Ungültiger Benutzername oder Passwort.", "error")
 
-    return render_template("login.html")
+    return render_template("login.html", registration_allowed=setting )
 
 
 @bp.route("/register", methods=["POST"])
 def register():
+    registration_allowed = get_setting("registration_allowed") == "1"
+    if not registration_allowed:
+        flash("Registrierung ist derzeit nicht erlaubt.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
+    
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")
     password2 = request.form.get("password2", "")
@@ -50,9 +60,16 @@ def register():
         flash("Dieser Benutzername ist bereits vergeben.", "error")
         return redirect(url_for("auth.login") + "?tab=register")
 
+    is_first_user = User.query.count() == 0
+    if is_first_user:
+        role = int(get_role_id("admin"))
+    else:        
+        role = int(get_role_id("user"))
+    
     new_user = User(
         username=username,
-        password=generate_password_hash(password)
+        password=generate_password_hash(password),
+        role_id=role
     )
     db.session.add(new_user)
     db.session.commit()
