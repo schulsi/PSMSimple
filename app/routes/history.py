@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
+from ..services.permissions import require_write_access
 from ..repositories.history_repo import (
     list_history,
     get_history_entry,
@@ -19,6 +20,7 @@ def api_get_history():
 
 @bp.route("/api/history", methods=["POST"])
 @login_required
+@require_write_access
 def api_create_history():
     data = request.get_json(silent=True) or {}
     result = create_history_entry(data)
@@ -27,6 +29,7 @@ def api_create_history():
 
 @bp.route("/api/history/<int:hid>", methods=["GET"])
 @login_required
+@require_write_access
 def api_get_history_entry(hid):
     item = get_history_entry(hid)
     if not item:
@@ -36,6 +39,7 @@ def api_get_history_entry(hid):
 
 @bp.route("/api/history/<int:hid>", methods=["DELETE"])
 @login_required
+@require_write_access
 def api_delete_history_entry(hid):
     delete_history_entry(hid)
     return jsonify({"ok": True})
