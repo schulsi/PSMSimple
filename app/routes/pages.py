@@ -11,6 +11,7 @@ bp = Blueprint("pages", __name__)
 @bp.route("/export")
 @bp.route("/history")
 @bp.route("/settings")
+@bp.route("/home")
 @bp.route("/")
 @login_required
 def index():

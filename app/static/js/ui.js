@@ -24,7 +24,8 @@ function toast(message, duration = 2600) {
   }, duration);
 }
 const tabToPath = {
-  betrieb: "/farm",
+  home: "/",
+  betrieb: "/betrieb",
   psm: "/psm",
   einsatzorte: "/fields",
   kulturen: "/cultures",
@@ -34,7 +35,9 @@ const tabToPath = {
 };
 
 const pathToTab = {
-  "": "betrieb",
+  "": "home",
+  "home": "home",
+  "betrieb": "betrieb",
   "farm": "betrieb",
   "psm": "psm",
   "fields": "einsatzorte",
@@ -57,7 +60,7 @@ function showTab(tabName, el, push = true) {
 
 function getTabFromPath() {
   const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
-  return pathToTab[path] || "betrieb";
+  return pathToTab[path] || "home";
 }
 
 
