@@ -1,5 +1,9 @@
+let APP_PERMISSIONS = null;
 async function loadSettings() {
   try {
+    const me = await apiGet('/api/me');
+    APP_PERMISSIONS = me.permissions || null;
+
     const settings = await apiGet('/api/user/settings');
 
     const browserDownload = $('set-browser-download');
@@ -25,6 +29,10 @@ async function loadSettings() {
 
     if (defaultVerantwortlich) {
       defaultVerantwortlich.value = settings.default_verantwortlich || '';
+    }
+
+    if (APP_PERMISSIONS?.can_manage_users) {
+      await loadUserRoles();
     }
 
     applyDefaultSettingsToExport(settings);
@@ -103,6 +111,49 @@ async function renameUser() {
     input.placeholder = username;
 
     toast('✅ Benutzername geändert');
+  } catch (err) {
+    console.error(err);
+    toast(`❌ ${err.message}`);
+  }
+}
+
+
+async function loadUserRoles() {
+  const wrap = $('user-role-list');
+  if (!wrap) return;
+
+  try {
+    const users = await apiGet('/api/users');
+
+    wrap.innerHTML = users.map(user => `
+      <div class="item-row" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.75rem">
+        <div>
+          <div style="font-weight:600">${user.username}</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">ID: ${user.id}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <select id="role-user-${user.id}">
+            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+            <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+            <option value="read_only" ${user.role === 'read_only' ? 'selected' : ''}>Read-only</option>
+          </select>
+          <button type="button" class="btn btn-primary" style="width:auto" onclick="saveUserRole(${user.id})">Speichern</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    wrap.innerHTML = '<div style="color:var(--danger)">Benutzer konnten nicht geladen werden.</div>';
+  }
+}
+
+async function saveUserRole(userId) {
+  const select = document.getElementById(`role-user-${userId}`);
+  if (!select) return;
+
+  try {
+    await apiPut(`/api/users/${userId}/role`, { role: select.value });
+    toast('✅ Rolle gespeichert');
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);
