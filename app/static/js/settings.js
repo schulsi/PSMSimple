@@ -1,3 +1,54 @@
+// ── Save-mode helpers ─────────────────────────────────────────────────────────
+// "local save" = toggle checked (true)  →  local_save=true,  browser_download=false
+// "browser download" = toggle unchecked (false) →  local_save=false, browser_download=true
+
+function isLocalSaveMode() {
+  const toggle = $('save-mode-toggle');
+  if (toggle) return toggle.checked;
+  return true;
+}
+
+function updateSaveModeLabels(localSave) {
+  const lblBrowser = $('lbl-browser-download');
+  const lblLocal   = $('lbl-local-save');
+  const desc       = $('save-mode-desc');
+  if (lblBrowser) lblBrowser.style.color = localSave ? 'var(--text-muted)' : 'inherit';
+  if (lblLocal)   lblLocal.style.color   = localSave ? 'inherit' : 'var(--text-muted)';
+  if (desc) {
+    desc.textContent = localSave
+      ? 'Datei wird auf dem Server im Exportordner abgelegt'
+      : 'Datei wird als ZIP (JSON + PDF) direkt im Browser heruntergeladen';
+  }
+}
+
+function onSaveModeToggle(checkbox) {
+  updateSaveModeLabels(checkbox.checked);
+  updateExportButtons(checkbox.checked);
+}
+
+function updateWizSaveModeLabels(localSave) {
+  const lblBrowser = $('wiz-lbl-browser');
+  const lblLocal   = $('wiz-lbl-local');
+  const desc       = $('wiz-save-mode-desc');
+  if (lblBrowser) lblBrowser.style.color = localSave ? 'var(--text-muted)' : 'inherit';
+  if (lblLocal)   lblLocal.style.color   = localSave ? 'inherit' : 'var(--text-muted)';
+  if (desc) {
+    desc.textContent = localSave
+      ? 'Datei wird auf dem Server im Exportordner abgelegt'
+      : 'Datei wird als ZIP (JSON + PDF) direkt im Browser heruntergeladen';
+  }
+}
+
+function onWizSaveModeToggle(checkbox) {
+  updateWizSaveModeLabels(checkbox.checked);
+}
+
+function updateExportButtons(localSave) {
+  const btnSave     = $('btn-save');
+  const btnDownload = $('btn-download');
+  if (btnSave)     btnSave.style.display     = localSave ? '' : 'none';
+  if (btnDownload) btnDownload.style.display = localSave ? 'none' : '';
+}
 let APP_PERMISSIONS = null;
 async function loadSettings() {
   try {
