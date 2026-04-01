@@ -43,8 +43,8 @@ def login():
 @bp.route("/register", methods=["POST"])
 @limiter.limit("3 per hour", methods=["POST"])
 def register():
-    allow_registration = get_setting("allow_registration")
-    if allow_registration != "1":
+    registration_allowed = get_setting("registration_allowed") == "1"
+    if not registration_allowed:
         flash("Registrierung ist derzeit nicht erlaubt.", "error")
         return redirect(url_for("auth.login") + "?tab=register")
     
