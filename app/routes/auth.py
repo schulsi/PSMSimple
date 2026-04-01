@@ -4,7 +4,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from ..extensions import db, limiter
 from ..models.user import User
-from ..repositories.application_settings_repo import get_application_settings
 
 bp = Blueprint("auth", __name__)
 
