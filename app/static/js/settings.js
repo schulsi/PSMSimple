@@ -6,7 +6,11 @@ async function loadSettings() {
     const localSave = $('set-local-save');
     const defaultAnwender = $('set-default-anwender');
     const defaultVerantwortlich = $('set-default-verantwortlich');
+    const registrationAllowed = $('set-registration-allowed');
 
+    if (registrationAllowed) {
+      registrationAllowed.checked = !!settings.registration_allowed;
+    }
     if (browserDownload) {
       browserDownload.checked = !!settings.browser_download;
     }
@@ -39,11 +43,20 @@ function collectSettingsForm() {
   };
 }
 
+function collectAppSettings() {
+  return {
+    registration_allowed: $('set-registration-allowed') ? $('set-registration-allowed').checked : true
+  };
+}
+
 async function saveSettings() {
   try {
     const payload = collectSettingsForm();
     const result = await apiPost('/api/user/settings', payload);
 
+    const payloadApp = collectAppSettings();
+    await apiPost('/api/app/settings', payloadApp);
+    
     applyDefaultSettingsToExport(result.settings || payload);
     toast('✅ Einstellungen gespeichert');
   } catch (err) {

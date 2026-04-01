@@ -4,12 +4,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from ..extensions import db
 from ..models.user import User
+from ..models.settings import get_setting
+ 
 
 bp = Blueprint("auth", __name__)
 
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
+    setting = get_setting("registration_allowed")
+    print("Current setting for registration_allowed:", setting)  # Debug-Ausgabe
     if current_user.is_authenticated:
         return redirect(url_for("pages.index"))
 
@@ -25,11 +29,16 @@ def login():
 
         flash("Ungültiger Benutzername oder Passwort.", "error")
 
-    return render_template("login.html")
+    return render_template("login.html", registration_allowed=setting )
 
 
 @bp.route("/register", methods=["POST"])
 def register():
+    allow_registration = get_setting("allow_registration") == "1"
+    if allow_registration != "1":
+        flash("Registrierung ist derzeit nicht erlaubt.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
+    
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "")
     password2 = request.form.get("password2", "")
