@@ -133,8 +133,9 @@
     position: sticky; top: 64px; height: calc(100vh - 64px);
     display: flex; flex-direction: column;
     overflow: hidden;
+    min-height: 0;
   }
-  .nav-items { padding: 1.5rem 0; flex: 1; overflow-y: auto; }
+  .nav-items { padding: 1.5rem 0; flex: 1; overflow-y: auto; min-height: 0;}
   nav a {
     display: flex; align-items: center; gap: .75rem;
     padding: .65rem 1.5rem; color: var(--green-pale);
@@ -500,16 +501,29 @@
 
   /* Nav becomes an off-canvas drawer */
   nav {
-    position: fixed;
-    top: 56px;
-    left: -240px;
-    width: 240px;
-    height: calc(100vh - 56px);
-    z-index: 100;
-    transition: left .25s ease;
-    overflow-y: auto;
-    box-shadow: 4px 0 20px rgba(0,0,0,.25);
-  }
+  position: fixed;
+  top: 56px;
+  left: -240px;
+  width: 240px;
+  height: calc(100dvh - 56px);
+  min-height: 0;
+  z-index: 100;
+  transition: left .25s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 4px 0 20px rgba(0,0,0,.25);
+}
+
+.nav-items {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.nav-user {
+  flex-shrink: 0;
+}
   nav a {
     white-space: normal;
     line-height: 1.3;
