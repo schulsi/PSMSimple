@@ -73,6 +73,10 @@ def register():
         flash("Ungültige Zeichen im Benutzernamen. Erlaubt sind Buchstaben, Zahlen, Unterstrich, Bindestrich und Punkt.", "error")
         return redirect(url_for("auth.login") + "?tab=register")
     
+    if not re.search(r"[A-Z]", password) or not re.search(r"[a-z]", password) or not re.search(r"[0-9]", password):
+        flash("Das Passwort muss mindestens einen Großbuchstaben, einen Kleinbuchstaben und eine Zahl enthalten.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
+
     is_first_user = User.query.count() == 0
     if is_first_user:
         role = int(get_role_id("admin"))

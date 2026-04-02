@@ -24,6 +24,12 @@ def api_get_psm():
 @require_write_access
 def api_add_psm():
     data = request.get_json(silent=True) or {}
+    required_fields = ["name", "zulassungsnr", "wirkstoffe", "aufwandEinheit", "bienen"]
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({"ok": False, "error": f"Feld '{field}' ist erforderlich."}), 400
+    if len(data["name"]) > 200:
+        return jsonify({"ok": False, "error": "Der Name darf maximal 200 Zeichen lang sein."}), 400
     result = create_psm(data)
 
     if not result.get("ok"):
