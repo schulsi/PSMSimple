@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from ..services.permissions import require_write_access
+from ..extensions import logger
 from ..repositories.history_repo import (
     list_history,
     get_history_entry,
@@ -24,6 +25,7 @@ def api_get_history():
 def api_create_history():
     data = request.get_json(silent=True) or {}
     result = create_history_entry(data)
+    logger.info(f"History entry created by user: {current_user.username} from IP: {request.remote_addr} with data: {data}")
     return jsonify(result)
 
 
@@ -42,4 +44,5 @@ def api_get_history_entry(hid):
 @require_write_access
 def api_delete_history_entry(hid):
     delete_history_entry(hid)
+    logger.info(f"History entry with ID '{hid}' deleted by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True})

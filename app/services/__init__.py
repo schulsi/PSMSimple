@@ -7,6 +7,7 @@ from .export_service import (
 )
 
 from .pdf_service import generate_pdf
+from .permissions import build_permissions, require_admin, require_write_access, seed_roles
 
 from .psm_api_services import (
     api_to_string,
@@ -36,4 +37,7 @@ __all__ = [
     "get_user_settings_dict",
     "normalize_settings_payload",
     "save_user_settings",
+    "build_permissions",
+    "require_admin",
+    "require_write_access", 
 ]

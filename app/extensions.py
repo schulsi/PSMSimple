@@ -3,6 +3,16 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask.logging import default_handler
+import logging
+import os
+
+from .config import Config
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=os.path.join(Config.LOG_DIR, "psm.log"), filemode="a")
+logger = logging.getLogger(__name__)
+logger.addHandler(default_handler)
+logging.info("Starting application...")
 
 db = SQLAlchemy()
 login_manager = LoginManager()

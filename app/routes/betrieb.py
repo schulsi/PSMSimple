@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from ..repositories.betrieb_repo import get_betrieb, save_betrieb
 from ..services.permissions import require_write_access
+from ..extensions import logger
 
 bp = Blueprint("betrieb", __name__)
 
@@ -19,4 +20,5 @@ def api_get_betrieb():
 def api_save_betrieb():
     data = request.get_json(silent=True) or {}
     save_betrieb(data)
+    logger.info(f"Betrieb data updated by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True})

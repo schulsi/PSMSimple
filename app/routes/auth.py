@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 
-from ..extensions import db, limiter
+from ..extensions import db, limiter, logger
 from ..models.user import User
 from ..models.settings import get_setting
 from ..repositories.role_repo import get_role_id
@@ -34,9 +34,11 @@ def login():
 
         if user and check_password_hash(user.password, password):
             login_user(user)
+            logger.info(f"User '{username}' logged in successfully from IP: {request.remote_addr}")
             return redirect(url_for("pages.index"))
 
         flash("Ungültiger Benutzername oder Passwort.", "error")
+        logger.warning(f"Failed login attempt for username: {username} from IP: {request.remote_addr}")
 
     return render_template("login.html", registration_allowed=setting )
 
@@ -73,6 +75,10 @@ def register():
         flash("Ungültige Zeichen im Benutzernamen. Erlaubt sind Buchstaben, Zahlen, Unterstrich, Bindestrich und Punkt.", "error")
         return redirect(url_for("auth.login") + "?tab=register")
     
+    if not re.search(r"[A-Z]", password) or not re.search(r"[a-z]", password) or not re.search(r"[0-9]", password):
+        flash("Das Passwort muss mindestens einen Großbuchstaben, einen Kleinbuchstaben und eine Zahl enthalten.", "error")
+        return redirect(url_for("auth.login") + "?tab=register")
+
     is_first_user = User.query.count() == 0
     if is_first_user:
         role = int(get_role_id("admin"))
@@ -86,7 +92,7 @@ def register():
     )
     db.session.add(new_user)
     db.session.commit()
-
+    logger.info(f"New user '{username}' registered with role '{'admin' if is_first_user else 'user'}' from IP: {request.remote_addr}")
     flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
     return redirect(url_for("auth.login"))
 
@@ -96,4 +102,5 @@ def register():
 def logout():
     logout_user()
     flash("Sie wurden abgemeldet.", "success")
+    logger.info(f"User '{current_user.username}' logged out from IP: {request.remote_addr}")
     return redirect(url_for("auth.login"))
