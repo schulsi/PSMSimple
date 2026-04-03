@@ -3,10 +3,9 @@ from datetime import datetime
 from .sqlite import get_db
 
 
-def list_history():
+def list_history(date_from=None, date_to=None):
     conn = get_db()
-    rows = conn.execute(
-        """
+    query = """
         SELECT
             id,
             created_at,
@@ -19,9 +18,19 @@ def list_history():
             psm_namen,
             kulturen
         FROM applikationen
-        ORDER BY datetime(created_at) DESC, id DESC
+        WHERE 1=1
         """
-    ).fetchall()
+    params = []
+    if date_from:
+        query += " AND datum >= ?"
+        params.append(date_from)
+
+    if date_to:
+        query += " AND datum <= ?"
+        params.append(date_to)
+
+    query += " ORDER BY datum DESC, uhrzeit DESC, id DESC"  
+    rows = conn.execute(query, params).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 

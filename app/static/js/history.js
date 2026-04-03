@@ -72,9 +72,31 @@ function renderEinsatzorteHistory(items) {
   `;
 }
 
+function buildHistoryUrl() {
+  const dateFrom = $('history-date-from')?.value || '';
+  const dateTo = $('history-date-to')?.value || '';
+  const params = new URLSearchParams();
+
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  return `/api/history${suffix}`;
+}
+
+function resetHistoryFilter() {
+  const from = $('history-date-from');
+  const to = $('history-date-to');
+
+  if (from) from.value = '';
+  if (to) to.value = '';
+
+  loadHistory();
+}
+
 async function loadHistory() {
   try {
-    const items = await apiGet('/api/history');
+    const items = await apiGet(buildHistoryUrl());
     const list = $('history-list');
     const count = $('history-count');
 

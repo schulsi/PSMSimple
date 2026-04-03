@@ -175,6 +175,17 @@
     <div id="tab-history" class="tab">
       <h2>🕘 History <span class="badge" id="history-count">0</span></h2>
 
+      <div class="card" style="margin-bottom: .8rem;">
+        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
+          <div class="field"><label>Von</label><input type="date" id="history-date-from" onchange="loadHistory()"></div>
+          <div class="field"><label>Bis</label><input type="date" id="history-date-to" onchange="loadHistory()"></div>
+          <div style="display:flex;gap:.5rem;align-items:center;">
+            <button type="button" class="btn btn-sm btn-ghost" onclick="resetHistoryFilter()">Zurücksetzen</button>
+            <span style="color:var(--text-muted);font-size:.82rem">Filter anwenden: Datum ändern</span>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
           Hier siehst du alle gespeicherten Applikationen.
