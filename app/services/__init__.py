@@ -8,7 +8,6 @@ from .export_service import (
 
 from .pdf_service import generate_pdf
 from .permissions import build_permissions, require_admin, require_write_access, seed_roles
-seed_roles()
 
 from .psm_api_services import (
     api_to_string,
