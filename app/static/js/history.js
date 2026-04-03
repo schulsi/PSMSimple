@@ -65,7 +65,7 @@ function renderEinsatzorteHistory(items) {
         <div class="history-subitem">
           <div class="history-subitem-title">${escapeHtml(ort.name || 'Unbenannter Einsatzort')}</div>
           <div class="history-subitem-meta">Bereich: ${escapeHtml(ort.anwendungsbereich || '—')}</div>
-          <div class="history-subitem-meta">Fläche/Volumen: ${escapeHtml(ort.flaecheVolumen || '—')} ${escapeHtml(ort.einheit || '')}</div>
+          <div class="history-subitem-meta">Fläche: ${escapeHtml(ort.flaecheVolumen || '—')} ${escapeHtml(ort.einheit || '')}</div>
         </div>
       `).join('')}
     </div>
