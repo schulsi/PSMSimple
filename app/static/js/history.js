@@ -405,7 +405,12 @@ async function loadPSMUsage() {
           tooltip: {
             callbacks: {
               label: function(context) {
-                return `${context.label}: ${context.parsed} Verwendungen`;
+                const item = items[context.dataIndex];
+                let label = `${context.label}: ${context.parsed} Verwendungen`;
+                if (item.total_quantity) {
+                  label += ` (${item.total_quantity} ${item.unit || ''})`.trim();
+                }
+                return label;
               }
             }
           }
@@ -419,6 +424,7 @@ async function loadPSMUsage() {
           <tr>
             <th>Pflanzenschutzmittel</th>
             <th>Verwendungen</th>
+            <th>Gesamtmenge</th>
             <th>Zuletzt verwendet</th>
           </tr>
         </thead>
@@ -427,6 +433,7 @@ async function loadPSMUsage() {
             <tr>
               <td>${escapeHtml(item.psm_name)}</td>
               <td>${item.usage_count}</td>
+              <td>${item.total_quantity ? `${item.total_quantity} ${item.unit || ''}`.trim() : '—'}</td>
               <td>${item.last_used || '—'}</td>
             </tr>
           `).join('')}
@@ -448,14 +455,270 @@ function showHistorySubTab(tabName) {
   document.getElementById(`history-sub-${tabName}`).classList.add('active');
   event.target.classList.add('active');
 
-  // Load data if PSM usage
+  // Load data if needed
   if (tabName === 'psm-usage') {
     loadPSMUsage();
+  } else if (tabName === 'fields-usage') {
+    loadFieldsUsage();
+  }
+}
+
+function setDefaultFieldsHistoryDates() {
+  const from = $('fields-history-date-from');
+  const to = $('fields-history-date-to');
+  if (!from || !to) return;
+
+  const today = new Date();
+  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+
+  if (!from.value) from.value = formatDateInputValue(today);
+  if (!to.value) to.value = formatDateInputValue(inOneYear);
+}
+
+function setFieldsHistoryDateRange(fromDate, toDate) {
+  const from = $('fields-history-date-from');
+  const to = $('fields-history-date-to');
+  if (!from || !to) return;
+  from.value = formatDateInputValue(fromDate);
+  to.value = formatDateInputValue(toDate);
+}
+
+function buildFieldsHistoryUrl() {
+  setDefaultFieldsHistoryDates();
+  const dateFrom = $('fields-history-date-from')?.value || '';
+  const dateTo = $('fields-history-date-to')?.value || '';
+  const params = new URLSearchParams();
+
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  return `/api/history/fields-usage${suffix}`;
+}
+
+function resetFieldsHistoryFilter() {
+  const today = new Date();
+  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+
+  setFieldsHistoryDateRange(today, inOneYear);
+  loadFieldsUsage();
+}
+
+function quickSelectFieldsHistory(range) {
+  const today = new Date();
+  let start;
+  let end;
+
+  switch (range) {
+    case 'thisMonth':
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+      end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      break;
+    case 'lastMonth':
+      start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      end = new Date(today.getFullYear(), today.getMonth(), 0);
+      break;
+    case 'thisYear':
+      start = new Date(today.getFullYear(), 0, 1);
+      end = new Date(today.getFullYear(), 11, 31);
+      break;
+    case 'lastYear':
+      start = new Date(today.getFullYear() - 1, 0, 1);
+      end = new Date(today.getFullYear() - 1, 11, 31);
+      break;
+    default:
+      return;
+  }
+
+  setFieldsHistoryDateRange(start, end);
+  loadFieldsUsage();
+}
+
+async function loadFieldsUsage() {
+  try {
+    const items = await apiGet(buildFieldsHistoryUrl());
+    const list = $('fields-usage-list');
+    const chartCanvas = $('fields-usage-chart');
+
+    if (!list || !chartCanvas) return;
+
+    if (!items.length) {
+      list.innerHTML = `<div class="empty">Keine Feld-Verwendungen im ausgewählten Zeitraum.</div>`;
+      // Clear chart
+      const ctx = chartCanvas.getContext('2d');
+      if (window.fieldsChart) {
+        window.fieldsChart.destroy();
+      }
+      return;
+    }
+
+    // Render chart
+    const ctx = chartCanvas.getContext('2d');
+    if (window.fieldsChart) {
+      window.fieldsChart.destroy();
+    }
+
+    const labels = items.map(item => item.field_name);
+    const data = items.map(item => item.usage_count);
+
+    window.fieldsChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: [
+            '#FF6384',
+            '#36A2EB',
+            '#FFCE56',
+            '#4BC0C0',
+            '#9966FF',
+            '#FF9F40',
+            '#FF6384',
+            '#C9CBCF',
+            '#4BC0C0',
+            '#FF6384'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const item = items[context.dataIndex];
+                let label = `${context.label}: ${context.parsed} Verwendungen`;
+                if (item.total_area) {
+                  label += ` (${item.total_area} ${item.unit || ''})`.trim();
+                }
+                return label;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    list.innerHTML = `
+      <table class="psm-usage-table">
+        <thead>
+          <tr>
+            <th>Einsatzort (Feld)</th>
+            <th>Verwendungen</th>
+            <th>Zuletzt verwendet</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(item => `
+            <tr>
+              <td>${escapeHtml(item.field_name)}</td>
+              <td>${item.usage_count}</td>
+              <td>${item.last_used || '—'}</td>
+              <td><button class="btn btn-sm btn-ghost" onclick="toggleFieldDetails('${escapeHtml(item.field_name)}', this)">🔽</button></td>
+            </tr>
+            <tr id="details-${escapeHtml(item.field_name).replace(/[^a-zA-Z0-9]/g, '_')}" class="field-details-row" style="display:none">
+              <td colspan="4" class="field-details-cell">
+                <div class="field-details-loading">Lade Details...</div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    console.error(err);
+    toast(`❌ ${err.message}`);
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   setDefaultHistoryDates();
   setDefaultPSMHistoryDates();
+  setDefaultFieldsHistoryDates();
   loadHistory();
 });
+
+function toggleFieldDetails(fieldName, button) {
+  const detailsRow = document.getElementById(`details-${fieldName.replace(/[^a-zA-Z0-9]/g, '_')}`);
+  const isVisible = detailsRow.style.display !== 'none';
+
+  if (isVisible) {
+    detailsRow.style.display = 'none';
+    button.innerHTML = '🔽';
+  } else {
+    const loadingDiv = detailsRow.querySelector('.field-details-loading');
+    loadingDiv.style.display = 'block';
+
+    const startDate = document.getElementById('fields-history-date-from').value;
+    const endDate = document.getElementById('fields-history-date-to').value;
+
+    apiGet(`/api/history/field-applications?field_name=${encodeURIComponent(fieldName)}&start_date=${startDate}&end_date=${endDate}`)
+      .then(data => {
+        loadingDiv.style.display = 'none';
+        const detailsCell = detailsRow.querySelector('.field-details-cell');
+        if (data.length === 0) {
+          detailsCell.innerHTML = '<div class="field-details-empty">Keine Anwendungen gefunden</div>';
+        } else {
+          const applications = data.flatMap(app => 
+            app.psm_applications.map(psm => ({
+              id: app.id,
+              date: app.date,
+              time: app.time,
+              psm_name: psm.name,
+              quantity: psm.quantity,
+              unit: psm.unit,
+              area: psm.area,
+              area_unit: psm.area_unit
+            }))
+          );
+
+          detailsCell.innerHTML = `
+            <table class="field-applications-table">
+              <thead>
+                <tr>
+                  <th>Datum</th>
+                  <th>Uhrzeit</th>
+                  <th>PSM</th>
+                  <th>Menge</th>
+                  <th>Fläche</th>
+                  <th>Link</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${applications.map(app => `
+                  <tr>
+                    <td>${app.date}</td>
+                    <td>${app.time || '—'}</td>
+                    <td>${escapeHtml(app.psm_name)}</td>
+                    <td>${app.quantity ? `${app.quantity} ${app.unit || ''}`.trim() : '—'}</td>
+                    <td>${app.area ? `${app.area} ${app.area_unit || ''}`.trim() : '—'}</td>
+                    <td><a href="#" onclick="showApplicationDetails(${app.id})">Anzeigen</a></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+        detailsRow.style.display = '';
+        button.innerHTML = '🔼';
+      })
+      .catch(error => {
+        console.error('Error loading field details:', error);
+        loadingDiv.style.display = 'none';
+        detailsRow.querySelector('.field-details-cell').innerHTML = '<div class="field-details-error">Fehler beim Laden der Details</div>';
+        detailsRow.style.display = '';
+        button.innerHTML = '🔼';
+      });
+  }
+}
+
+function showApplicationDetails(id) {
+  showHistoryDetail(id);
+}

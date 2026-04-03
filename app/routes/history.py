@@ -9,6 +9,8 @@ from ..repositories.history_repo import (
     create_history_entry,
     delete_history_entry,
     get_psm_usage_history,
+    get_fields_usage_history,
+    get_field_applications,
 )
 
 bp = Blueprint("history", __name__)
@@ -28,6 +30,25 @@ def api_get_psm_usage():
     date_from = request.args.get("date_from")
     date_to = request.args.get("date_to")
     return jsonify(get_psm_usage_history(date_from=date_from, date_to=date_to))
+
+
+@bp.route("/api/history/fields-usage", methods=["GET"])
+@login_required
+def api_get_fields_usage():
+    date_from = request.args.get("date_from")
+    date_to = request.args.get("date_to")
+    return jsonify(get_fields_usage_history(date_from=date_from, date_to=date_to))
+
+
+@bp.route("/api/history/field-applications", methods=["GET"])
+@login_required
+def api_get_field_applications():
+    field_name = request.args.get("field_name")
+    date_from = request.args.get("date_from")
+    date_to = request.args.get("date_to")
+    if not field_name:
+        return jsonify({"error": "field_name required"}), 400
+    return jsonify(get_field_applications(field_name, date_from=date_from, date_to=date_to))
 
 
 @bp.route("/api/history", methods=["POST"])

@@ -179,6 +179,7 @@
       <div class="sub-tabs">
         <button class="sub-tab-btn active" onclick="showHistorySubTab('applications')">📄 Applikationen</button>
         <button class="sub-tab-btn" onclick="showHistorySubTab('psm-usage')">🧪 PSM-Verwendung</button>
+        <button class="sub-tab-btn" onclick="showHistorySubTab('fields-usage')">📍 Felder-Verwendung</button>
       </div>
 
       <div id="history-sub-applications" class="history-sub-tab active">
@@ -236,6 +237,32 @@
           </p>
           <canvas id="psm-usage-chart" style="max-height:300px;margin-bottom:1rem"></canvas>
           <div id="psm-usage-list"></div>
+        </div>
+      </div>
+
+      <div id="history-sub-fields-usage" class="history-sub-tab">
+        <div class="card" style="margin-bottom: .8rem;">
+          <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
+            <div class="field"><label>Von</label><input type="date" id="fields-history-date-from" onchange="loadFieldsUsage()"></div>
+            <div class="field"><label>Bis</label><input type="date" id="fields-history-date-to" onchange="loadFieldsUsage()"></div>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+              <button type="button" class="btn btn-sm btn-ghost" onclick="resetFieldsHistoryFilter()">Zurücksetzen</button>
+            </div>
+          </div>
+          <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('thisMonth')">Dieser Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('lastMonth')">Letzter Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('thisYear')">Dieses Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('lastYear')">Letztes Jahr</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
+            Übersicht über die Verwendung von Einsatzorten (Feldern).
+          </p>
+          <canvas id="fields-usage-chart" style="max-height:300px;margin-bottom:1rem"></canvas>
+          <div id="fields-usage-list"></div>
         </div>
       </div>
     </div>
