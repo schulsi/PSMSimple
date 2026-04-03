@@ -72,7 +72,62 @@ function renderEinsatzorteHistory(items) {
   `;
 }
 
+function formatDateInputValue(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function setDefaultHistoryDates() {
+  const from = $('history-date-from');
+  const to = $('history-date-to');
+  if (!from || !to) return;
+
+  const today = new Date();
+  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+
+  if (!from.value) from.value = formatDateInputValue(today);
+  if (!to.value) to.value = formatDateInputValue(inOneYear);
+}
+
+function setHistoryDateRange(fromDate, toDate) {
+  const from = $('history-date-from');
+  const to = $('history-date-to');
+  if (!from || !to) return;
+  from.value = formatDateInputValue(fromDate);
+  to.value = formatDateInputValue(toDate);
+}
+
+function quickSelectHistory(range) {
+  const today = new Date();
+  let start;
+  let end;
+
+  switch (range) {
+    case 'thisMonth':
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+      end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      break;
+    case 'lastMonth':
+      start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      end = new Date(today.getFullYear(), today.getMonth(), 0);
+      break;
+    case 'thisYear':
+      start = new Date(today.getFullYear(), 0, 1);
+      end = new Date(today.getFullYear(), 11, 31);
+      break;
+    case 'lastYear':
+      start = new Date(today.getFullYear() - 1, 0, 1);
+      end = new Date(today.getFullYear() - 1, 11, 31);
+      break;
+    default:
+      return;
+  }
+
+  setHistoryDateRange(start, end);
+  loadHistory();
+}
+
 function buildHistoryUrl() {
+  setDefaultHistoryDates();
   const dateFrom = $('history-date-from')?.value || '';
   const dateTo = $('history-date-to')?.value || '';
   const params = new URLSearchParams();
@@ -85,17 +140,21 @@ function buildHistoryUrl() {
 }
 
 function resetHistoryFilter() {
-  const from = $('history-date-from');
-  const to = $('history-date-to');
+  const today = new Date();
+  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
 
-  if (from) from.value = '';
-  if (to) to.value = '';
-
+  setHistoryDateRange(today, inOneYear);
   loadHistory();
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  setDefaultHistoryDates();
+  loadHistory();
+});
+
 async function loadHistory() {
   try {
+
     const items = await apiGet(buildHistoryUrl());
     const list = $('history-list');
     const count = $('history-count');

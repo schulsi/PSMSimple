@@ -176,13 +176,18 @@
       <h2>🕘 History <span class="badge" id="history-count">0</span></h2>
 
       <div class="card" style="margin-bottom: .8rem;">
-        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
+        <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
           <div class="field"><label>Von</label><input type="date" id="history-date-from" onchange="loadHistory()"></div>
           <div class="field"><label>Bis</label><input type="date" id="history-date-to" onchange="loadHistory()"></div>
           <div style="display:flex;gap:.5rem;align-items:center;">
             <button type="button" class="btn btn-sm btn-ghost" onclick="resetHistoryFilter()">Zurücksetzen</button>
-            <span style="color:var(--text-muted);font-size:.82rem">Filter anwenden: Datum ändern</span>
           </div>
+        </div>
+        <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
+          <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisMonth')">Dieser Monat</button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastMonth')">Letzter Monat</button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisYear')">Dieses Jahr</button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastYear')">Letztes Jahr</button>
         </div>
       </div>
 
