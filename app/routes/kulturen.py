@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from ..services.permissions import require_write_access
+from ..extensions import logger
 from ..repositories.kulturen_repo import (
     list_kulturen,
     get_kultur_by_id,
@@ -25,6 +26,7 @@ def api_get_kulturen():
 def api_add_kultur():
     data = request.get_json(silent=True) or {}
     result = create_kultur(data)
+    logger.info(f"Kultur '{data.get('name', 'unknown')}' created by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify(result)
 
 
@@ -43,6 +45,7 @@ def api_get_kultur_by_id(kid):
 def api_update_kultur(kid):
     data = request.get_json(silent=True) or {}
     update_kultur(kid, data)
+    logger.info(f"Kultur with ID '{kid}' updated by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True})
 
 
@@ -51,4 +54,5 @@ def api_update_kultur(kid):
 @require_write_access
 def api_delete_kultur(kid):
     delete_kultur(kid)
+    logger.info(f"Kultur with ID '{kid}' deleted by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True})

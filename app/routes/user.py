@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 import re
 
-from ..extensions import db
+from ..extensions import db, logger
 from ..models.user import User
 from ..services.permissions import build_permissions, require_admin, require_write_access
 from ..repositories.role_repo import get_role_id, get_role_name
@@ -46,6 +46,7 @@ def update_user_role(user_id):
 
     user.role_id = get_role_id(new_role)
     db.session.commit()
+    logger.info(f"User '{user.username}' role updated to '{new_role}' by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True, "user": user.to_public_dict()})
 
 
@@ -70,6 +71,7 @@ def rename_user():
 
     current_user.username = new_name
     db.session.commit()
+    logger.info(f"User renamed to '{new_name}' by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True})
 
 
@@ -85,6 +87,7 @@ def save_settings():
     data = request.get_json(silent=True) or {}
 
     settings = save_user_settings(current_user.id, data)
+    logger.info(f"User settings updated by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True, "settings": settings})
 
 @bp.route("/api/users/<int:user_id>", methods=["DELETE"])
@@ -97,5 +100,7 @@ def delete_user(user_id):
 
     db.session.delete(user)
     db.session.commit()
+
+    logger.info(f"User '{user.username}' deleted by user: {current_user.username} from IP: {request.remote_addr}")
 
     return jsonify({"ok": True, "deleted_user_id": user_id})

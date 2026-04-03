@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 
-from ..extensions import db, limiter, logging
+from ..extensions import db, limiter, logger
 from ..models.user import User
 from ..models.settings import get_setting
 from ..repositories.role_repo import get_role_id
@@ -34,10 +34,11 @@ def login():
 
         if user and check_password_hash(user.password, password):
             login_user(user)
+            logger.info(f"User '{username}' logged in successfully from IP: {request.remote_addr}")
             return redirect(url_for("pages.index"))
 
         flash("Ungültiger Benutzername oder Passwort.", "error")
-        logging.warning(f"Failed login attempt for username: {username} from IP: {request.remote_addr}")
+        logger.warning(f"Failed login attempt for username: {username} from IP: {request.remote_addr}")
 
     return render_template("login.html", registration_allowed=setting )
 
@@ -91,7 +92,7 @@ def register():
     )
     db.session.add(new_user)
     db.session.commit()
-
+    logger.info(f"New user '{username}' registered with role '{'admin' if is_first_user else 'user'}' from IP: {request.remote_addr}")
     flash(f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
     return redirect(url_for("auth.login"))
 
@@ -101,4 +102,5 @@ def register():
 def logout():
     logout_user()
     flash("Sie wurden abgemeldet.", "success")
+    logger.info(f"User '{current_user.username}' logged out from IP: {request.remote_addr}")
     return redirect(url_for("auth.login"))
