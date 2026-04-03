@@ -1,6 +1,5 @@
 from ..extensions import db
 from flask_login import UserMixin
-from sqlalchemy import CheckConstraint
 
 class User(UserMixin, db.Model):
     __tablename__ = "users"
@@ -30,10 +29,6 @@ class UserRole(db.Model):
     __tablename__ = "user_roles"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
-
-    __table__args__ = (
-        CheckConstraint("name IN ('admin', 'user', 'read-only')", name="valid_role_name"),
-    )
 
 class UserSettings(db.Model):
     __tablename__ = "user_settings"
