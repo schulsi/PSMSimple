@@ -6,9 +6,11 @@ DATA_DIR    = os.environ.get("DATA_DIR", os.path.join(BASE_DIR, "data"))
 
 DB_DIR      = os.path.join(DATA_DIR, "databases")
 EXPORT_DIR  = os.path.join(DATA_DIR, "exports")
+LOG_DIR     = os.path.join(DATA_DIR, "logs")
 
 os.makedirs(DB_DIR,     exist_ok=True)
 os.makedirs(EXPORT_DIR, exist_ok=True)
+os.makedirs(LOG_DIR,    exist_ok=True)
 
 DB = os.path.join(DB_DIR, "pflanzenschutz.db")
 
@@ -31,6 +33,7 @@ class Config:
     EXPORTS_DIR = os.path.join(EXPORT_DIR)
     PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
     BASE_DIR = BASE_DIR
+    LOG_DIR = LOG_DIR
 
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY environment variable is not set.")

@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
 
-from ..extensions import db, limiter
+from ..extensions import db, limiter, logging
 from ..models.user import User
 from ..models.settings import get_setting
 from ..repositories.role_repo import get_role_id
@@ -37,6 +37,7 @@ def login():
             return redirect(url_for("pages.index"))
 
         flash("Ungültiger Benutzername oder Passwort.", "error")
+        logging.warning(f"Failed login attempt for username: {username} from IP: {request.remote_addr}")
 
     return render_template("login.html", registration_allowed=setting )
 
