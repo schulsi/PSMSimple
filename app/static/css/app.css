@@ -516,7 +516,417 @@
 .history-sub-tab.active {
   display: block;
 }
+/* ══════════════════════════════════════════════
+   HISTORY THEME POLISH
+   ══════════════════════════════════════════════ */
 
+:root {
+  --history-accent: var(--green-mid);
+  --history-accent-soft: rgba(82, 183, 136, 0.12);
+  --history-border: var(--cream-dark);
+  --history-surface: #fff;
+  --history-surface-soft: #fcfbf7;
+}
+
+#tab-history h2 {
+  margin-bottom: 1rem;
+}
+
+#tab-history .card {
+  background: var(--history-surface);
+  border: 1px solid var(--history-border);
+}
+
+/* Subtabs */
+.sub-tabs {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  border-bottom: none;
+  margin-bottom: 1rem;
+}
+
+.sub-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .7rem 1rem;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 999px;
+  background: #fff;
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: all .15s ease;
+}
+
+.sub-tab-btn:hover {
+  border-color: var(--green-light);
+  color: var(--green-deep);
+  background: var(--history-accent-soft);
+}
+
+.sub-tab-btn.active {
+  color: #fff;
+  background: var(--green-mid);
+  border-color: var(--green-mid);
+  box-shadow: 0 4px 14px rgba(45, 106, 79, 0.18);
+}
+
+/* Quick filters */
+.history-quick-select {
+  margin-top: .75rem;
+}
+
+.btn-outline {
+  background: #fff;
+  color: var(--green-deep);
+  border: 1.5px solid var(--cream-dark);
+}
+
+.btn-outline:hover {
+  background: var(--history-accent-soft);
+  border-color: var(--green-light);
+}
+
+/* History list cards */
+#history-list .item {
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1rem;
+  background: var(--cream);
+}
+
+#history-list .item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+#history-list .item-info .name {
+  font-size: 1rem;
+  color: var(--green-deep);
+  margin-bottom: .35rem;
+}
+
+#history-list .item-info .meta {
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+#history-list .item-actions {
+  align-self: center;
+}
+
+/* Detail sections */
+.history-detail {
+  gap: 1rem;
+}
+
+.history-section {
+  background: var(--history-surface);
+  border: 1px solid var(--history-border);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 1px 8px rgba(26,58,42,.04);
+}
+
+.history-section h4 {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--green-deep);
+  margin-bottom: .9rem;
+  padding-bottom: .55rem;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .85rem 1rem;
+}
+
+.history-field {
+  background: #fff;
+  border: 1px solid var(--cream-dark);
+  border-radius: 10px;
+  padding: .75rem .85rem;
+  min-width: 0;
+}
+
+.history-field .label {
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: .3rem;
+}
+
+.history-field .value {
+  font-size: .92rem;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* Sub-items */
+.history-list-block {
+  display: grid;
+  gap: .65rem;
+}
+
+.history-subitem {
+  background: #fff;
+  border: 1px solid var(--cream-dark);
+  border-left: 4px solid var(--green-light);
+  border-radius: 10px;
+  padding: .85rem .95rem;
+}
+
+.history-subitem-title {
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--green-deep);
+  margin-bottom: .3rem;
+}
+
+.history-subitem-meta {
+  font-size: .82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+/* Usage blocks */
+#psm-usage-list,
+#fields-usage-list {
+  margin-top: 1rem;
+}
+
+/* Shared table styling for desktop */
+.psm-usage-table,
+.field-applications-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid var(--cream-dark);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.psm-usage-table th,
+.psm-usage-table td,
+.field-applications-table th,
+.field-applications-table td {
+  padding: .85rem .9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--cream-dark);
+  vertical-align: middle;
+}
+
+.psm-usage-table th,
+.field-applications-table th {
+  background: var(--green-light);
+  color: var(--green-deep);
+  font-size: .76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.psm-usage-table td,
+.field-applications-table td {
+  font-size: .88rem;
+  color: var(--text);
+}
+
+.psm-usage-table tr:nth-child(even),
+.field-applications-table tr:nth-child(even) {
+  background: #fcfbf8;
+}
+
+.psm-usage-table tr:last-child td,
+.field-applications-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Field details row */
+.field-details-row {
+  background: transparent;
+}
+
+.field-details-cell {
+  padding: 1rem;
+  background: var(--history-surface-soft);
+}
+
+/* Chart wrappers */
+.history-chart-wrap {
+  position: relative;
+  min-height: 280px;
+  padding: .25rem 0 .75rem;
+}
+
+/* Better mobile layout */
+@media (max-width: 900px) {
+  #history-list .item {
+    flex-direction: column;
+  }
+
+  #history-list .item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px) {
+  .sub-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .5rem;
+  }
+
+  .sub-tab-btn {
+    width: 100%;
+    border-radius: 12px;
+  }
+
+  .history-filter-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .history-quick-select {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: .5rem !important;
+  }
+
+  .history-quick-select .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #history-list .item {
+    padding: .9rem;
+  }
+
+  #history-list .item-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #history-list .item-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .history-section {
+    padding: .85rem;
+  }
+
+  .history-section h4 {
+    font-size: .9rem;
+    margin-bottom: .75rem;
+  }
+
+  .history-grid {
+    grid-template-columns: 1fr;
+    gap: .65rem;
+  }
+
+  .history-field {
+    padding: .7rem .75rem;
+  }
+
+  .history-field .value {
+    font-size: .9rem;
+  }
+
+  .history-subitem {
+    padding: .8rem .85rem;
+  }
+
+  .history-chart-wrap {
+    min-height: 240px;
+  }
+
+  /* Turn tables into stacked cards on mobile */
+  .psm-usage-table,
+  .psm-usage-table thead,
+  .psm-usage-table tbody,
+  .psm-usage-table th,
+  .psm-usage-table td,
+  .psm-usage-table tr,
+  .field-applications-table,
+  .field-applications-table thead,
+  .field-applications-table tbody,
+  .field-applications-table th,
+  .field-applications-table td,
+  .field-applications-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .psm-usage-table thead,
+  .field-applications-table thead {
+    display: none;
+  }
+
+  .psm-usage-table tr,
+  .field-applications-table tr {
+    background: #fff;
+    border: 1px solid var(--cream-dark);
+    border-radius: 10px;
+    margin-bottom: .75rem;
+    overflow: hidden;
+  }
+
+  .psm-usage-table td,
+  .field-applications-table td {
+    border: none;
+    border-bottom: 1px solid var(--cream-dark);
+    padding: .7rem .85rem;
+    display: flex;
+    justify-content: space-between;
+    gap: .8rem;
+    text-align: left;
+  }
+
+  .psm-usage-table td:last-child,
+  .field-applications-table td:last-child {
+    border-bottom: none;
+  }
+
+  .psm-usage-table td::before,
+  .field-applications-table td::before {
+    font-weight: 700;
+    color: var(--green-deep);
+    flex-shrink: 0;
+  }
+
+  .psm-usage-table td:nth-child(1)::before { content: "Mittel"; }
+  .psm-usage-table td:nth-child(2)::before { content: "Verwendungen"; }
+  .psm-usage-table td:nth-child(3)::before { content: "Gesamtmenge"; }
+  .psm-usage-table td:nth-child(4)::before { content: "Zuletzt"; }
+
+  .field-applications-table td:nth-child(1)::before { content: "Datum"; }
+  .field-applications-table td:nth-child(2)::before { content: "Uhrzeit"; }
+  .field-applications-table td:nth-child(3)::before { content: "PSM"; }
+  .field-applications-table td:nth-child(4)::before { content: "Menge"; }
+  .field-applications-table td:nth-child(5)::before { content: "Fläche"; }
+  .field-applications-table td:nth-child(6)::before { content: "Link"; }
+}
+
+@media (max-width: 380px) {
+  .history-quick-select {
+    grid-template-columns: 1fr;
+  }
+}
 /* ══════════════════════════════════════════════
    MOBILE  (≤ 640px)
    ══════════════════════════════════════════════ */
@@ -861,7 +1271,7 @@
 }
 
 .field-applications-table th {
-  background: linear-gradient(135deg, var(--green-pale), var(--green-light));
+  background: var(--green-light);
   font-weight: 600;
   color: var(--green-deep);
   font-size: 0.85rem;

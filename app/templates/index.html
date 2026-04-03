@@ -174,12 +174,12 @@
     </div>
 
     <div id="tab-history" class="tab">
-      <h2>🕘 History <span class="badge" id="history-count">0</span></h2>
+      <h2>🕘 Verlauf <span class="badge" id="history-count">0</span></h2>
 
       <div class="sub-tabs">
-        <button class="sub-tab-btn active" onclick="showHistorySubTab('applications')">📄 Applikationen</button>
-        <button class="sub-tab-btn" onclick="showHistorySubTab('psm-usage')">🧪 PSM-Verwendung</button>
-        <button class="sub-tab-btn" onclick="showHistorySubTab('fields-usage')">📍 Felder-Verwendung</button>
+        <button class="sub-tab-btn active" onclick="showHistorySubTab('applications', this)">📄 Applikationen</button>
+        <button class="sub-tab-btn" onclick="showHistorySubTab('psm-usage', this)">🧪 PSM-Verwendung</button>
+        <button class="sub-tab-btn" onclick="showHistorySubTab('fields-usage', this)">📍 Felder-Verwendung</button>
       </div>
 
       <div id="history-sub-applications" class="history-sub-tab active">
@@ -235,7 +235,9 @@
           <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
             Übersicht über die Verwendung von Pflanzenschutzmitteln.
           </p>
+          <div class="history-chart-wrap">
           <canvas id="psm-usage-chart" style="max-height:300px;margin-bottom:1rem"></canvas>
+          </div>
           <div id="psm-usage-list"></div>
         </div>
       </div>
@@ -261,7 +263,9 @@
           <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
             Übersicht über die Verwendung von Einsatzorten (Feldern).
           </p>
+          <div class="history-chart-wrap">
           <canvas id="fields-usage-chart" style="max-height:300px;margin-bottom:1rem"></canvas>
+          </div>
           <div id="fields-usage-list"></div>
         </div>
       </div>
@@ -624,13 +628,6 @@
       syncLegacyExportUI();
     }
   });
-
-function toggleMobileNav() {
-    const nav = document.querySelector('nav');
-    const overlay = document.getElementById('nav-overlay');
-    const open = nav.classList.toggle('open');
-    overlay.classList.toggle('open', open);
-  }
   function closeMobileNav() {
     document.querySelector('nav').classList.remove('open');
     document.getElementById('nav-overlay').classList.remove('open');

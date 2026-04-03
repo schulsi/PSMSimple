@@ -1,3 +1,18 @@
+function historyChartPalette(count) {
+  const palette = [
+    '#2d6a4f',
+    '#40916c',
+    '#52b788',
+    '#74c69d',
+    '#95d5b2',
+    '#1b4332',
+    '#3a5a40',
+    '#588157'
+  ];
+
+  return Array.from({ length: count }, (_, i) => palette[i % palette.length]);
+}
+
 function formatDateTime(value) {
   if (!value) return '—';
   const d = new Date(value);
@@ -169,20 +184,20 @@ async function loadHistory() {
     }
 
     list.innerHTML = items.map(item => `
-      <div class="item">
-        <div class="item-info">
-          <div class="name">${escapeHtml(item.datum || 'Ohne Datum')} ${item.uhrzeit ? '· ' + escapeHtml(item.uhrzeit) : ''}</div>
-          <div class="meta">${escapeHtml(item.artVerwendung || '—')}</div>
-          <div class="meta">📍 ${escapeHtml(item.einsatzorte || '—')}</div>
-          <div class="meta">🧪 ${escapeHtml(item.psm_namen || '—')}</div>
-          <div class="meta">🌾 ${escapeHtml(item.kulturen || '—')}</div>
-        </div>
-        <div class="item-actions">
-          <button class="btn btn-sm btn-ghost" onclick="showHistoryDetail(${item.id})">Ansehen</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteHistoryEntry(${item.id})">Löschen</button>
-        </div>
-      </div>
-    `).join('');
+  <div class="item">
+    <div class="item-info">
+      <div class="name">${escapeHtml(item.datum || 'Ohne Datum')} ${item.uhrzeit ? '· ' + escapeHtml(item.uhrzeit) : ''}</div>
+      <div class="meta">${escapeHtml(item.artVerwendung || '—')}</div>
+      <div class="meta"><strong>Einsatzorte:</strong> ${escapeHtml(item.einsatzorte || '—')}</div>
+      <div class="meta"><strong>PSM:</strong> ${escapeHtml(item.psm_namen || '—')}</div>
+      <div class="meta"><strong>Kulturen:</strong> ${escapeHtml(item.kulturen || '—')}</div>
+    </div>
+    <div class="item-actions">
+      <button class="btn btn-sm btn-ghost" onclick="showHistoryDetail(${item.id})">Details</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteHistoryEntry(${item.id})">Löschen</button>
+    </div>
+  </div>
+`).join('');
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);
@@ -206,7 +221,7 @@ async function showHistoryDetail(id) {
 
     container.innerHTML = `
       <div class="history-section">
-        <h4>Allgemein</h4>
+        <h4>Anwendung</h4>
         <div class="history-grid">
           ${historyField('Datum', anwendung.datum)}
           ${historyField('Uhrzeit', anwendung.uhrzeit)}
@@ -380,19 +395,10 @@ async function loadPSMUsage() {
         labels: labels,
         datasets: [{
           data: data,
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40',
-            '#FF6384',
-            '#C9CBCF',
-            '#4BC0C0',
-            '#FF6384'
-          ],
-          borderWidth: 1
+          backgroundColor: historyChartPalette(items.length),
+          borderColor: '#f8f5ee',
+          borderWidth: 2,
+          hoverOffset: 6
         }]
       },
       options: {
@@ -401,6 +407,12 @@ async function loadPSMUsage() {
         plugins: {
           legend: {
             position: 'bottom',
+            labels: {
+              color: '#1c2b22',
+              usePointStyle: true,
+              boxWidth: 10,
+              padding: 14
+}
           },
           tooltip: {
             callbacks: {
@@ -446,7 +458,7 @@ async function loadPSMUsage() {
   }
 }
 
-function showHistorySubTab(tabName) {
+function showHistorySubTab(tabName, buttonEl) {
   // Hide all sub-tabs
   document.querySelectorAll('.history-sub-tab').forEach(tab => tab.classList.remove('active'));
   document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -567,19 +579,10 @@ async function loadFieldsUsage() {
         labels: labels,
         datasets: [{
           data: data,
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40',
-            '#FF6384',
-            '#C9CBCF',
-            '#4BC0C0',
-            '#FF6384'
-          ],
-          borderWidth: 1
+          backgroundColor: historyChartPalette(items.length),
+          borderColor: '#f8f5ee',
+          borderWidth: 2,
+          hoverOffset: 6
         }]
       },
       options: {
@@ -588,6 +591,12 @@ async function loadFieldsUsage() {
         plugins: {
           legend: {
             position: 'bottom',
+            labels: {
+              color: '#1c2b22',
+              usePointStyle: true,
+              boxWidth: 10,
+              padding: 14
+  }
           },
           tooltip: {
             callbacks: {
