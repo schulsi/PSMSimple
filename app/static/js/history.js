@@ -270,3 +270,192 @@ async function deleteHistoryEntry(id) {
     toast(`❌ ${err.message}`);
   }
 }
+
+// PSM Usage History functions
+function formatDateInputValue(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function setDefaultPSMHistoryDates() {
+  const from = $('psm-history-date-from');
+  const to = $('psm-history-date-to');
+  if (!from || !to) return;
+
+  const today = new Date();
+  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+
+  if (!from.value) from.value = formatDateInputValue(today);
+  if (!to.value) to.value = formatDateInputValue(inOneYear);
+}
+
+function setPSMHistoryDateRange(fromDate, toDate) {
+  const from = $('psm-history-date-from');
+  const to = $('psm-history-date-to');
+  if (!from || !to) return;
+  from.value = formatDateInputValue(fromDate);
+  to.value = formatDateInputValue(toDate);
+}
+
+function buildPSMHistoryUrl() {
+  setDefaultPSMHistoryDates();
+  const dateFrom = $('psm-history-date-from')?.value || '';
+  const dateTo = $('psm-history-date-to')?.value || '';
+  const params = new URLSearchParams();
+
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  return `/api/history/psm-usage${suffix}`;
+}
+
+function resetPSMHistoryFilter() {
+  const today = new Date();
+  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+
+  setPSMHistoryDateRange(today, inOneYear);
+  loadPSMUsage();
+}
+
+function quickSelectPSMHistory(range) {
+  const today = new Date();
+  let start;
+  let end;
+
+  switch (range) {
+    case 'thisMonth':
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+      end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      break;
+    case 'lastMonth':
+      start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      end = new Date(today.getFullYear(), today.getMonth(), 0);
+      break;
+    case 'thisYear':
+      start = new Date(today.getFullYear(), 0, 1);
+      end = new Date(today.getFullYear(), 11, 31);
+      break;
+    case 'lastYear':
+      start = new Date(today.getFullYear() - 1, 0, 1);
+      end = new Date(today.getFullYear() - 1, 11, 31);
+      break;
+    default:
+      return;
+  }
+
+  setPSMHistoryDateRange(start, end);
+  loadPSMUsage();
+}
+
+async function loadPSMUsage() {
+  try {
+    const items = await apiGet(buildPSMHistoryUrl());
+    const list = $('psm-usage-list');
+    const chartCanvas = $('psm-usage-chart');
+
+    if (!list || !chartCanvas) return;
+
+    if (!items.length) {
+      list.innerHTML = `<div class="empty">Keine PSM-Verwendungen im ausgewählten Zeitraum.</div>`;
+      // Clear chart
+      const ctx = chartCanvas.getContext('2d');
+      if (window.psmChart) {
+        window.psmChart.destroy();
+      }
+      return;
+    }
+
+    // Render chart
+    const ctx = chartCanvas.getContext('2d');
+    if (window.psmChart) {
+      window.psmChart.destroy();
+    }
+
+    const labels = items.map(item => item.psm_name);
+    const data = items.map(item => item.usage_count);
+
+    window.psmChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: [
+            '#FF6384',
+            '#36A2EB',
+            '#FFCE56',
+            '#4BC0C0',
+            '#9966FF',
+            '#FF9F40',
+            '#FF6384',
+            '#C9CBCF',
+            '#4BC0C0',
+            '#FF6384'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.label}: ${context.parsed} Verwendungen`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    list.innerHTML = `
+      <table class="psm-usage-table">
+        <thead>
+          <tr>
+            <th>Pflanzenschutzmittel</th>
+            <th>Verwendungen</th>
+            <th>Zuletzt verwendet</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(item => `
+            <tr>
+              <td>${escapeHtml(item.psm_name)}</td>
+              <td>${item.usage_count}</td>
+              <td>${item.last_used || '—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (err) {
+    console.error(err);
+    toast(`❌ ${err.message}`);
+  }
+}
+
+function showHistorySubTab(tabName) {
+  // Hide all sub-tabs
+  document.querySelectorAll('.history-sub-tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
+
+  // Show selected sub-tab
+  document.getElementById(`history-sub-${tabName}`).classList.add('active');
+  event.target.classList.add('active');
+
+  // Load data if PSM usage
+  if (tabName === 'psm-usage') {
+    loadPSMUsage();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setDefaultHistoryDates();
+  setDefaultPSMHistoryDates();
+  loadHistory();
+});

@@ -35,6 +35,52 @@ def list_history(date_from=None, date_to=None):
     return [dict(r) for r in rows]
 
 
+def get_psm_usage_history(date_from=None, date_to=None):
+    conn = get_db()
+    query = """
+        SELECT
+            datum,
+            psm_namen
+        FROM applikationen
+        WHERE psm_namen IS NOT NULL AND psm_namen != ''
+        """
+    params = []
+    if date_from:
+        query += " AND datum >= ?"
+        params.append(date_from)
+
+    if date_to:
+        query += " AND datum <= ?"
+        params.append(date_to)
+
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+
+    usage = {}
+    for row in rows:
+        datum = row['datum']
+        psm_list = [name.strip() for name in row['psm_namen'].split(',') if name.strip()]
+        for psm in psm_list:
+            if psm not in usage:
+                usage[psm] = {'count': 0, 'last_used': None}
+            usage[psm]['count'] += 1
+            if not usage[psm]['last_used'] or datum > usage[psm]['last_used']:
+                usage[psm]['last_used'] = datum
+
+    # Convert to list of dicts
+    result = []
+    for psm, data in usage.items():
+        result.append({
+            'psm_name': psm,
+            'usage_count': data['count'],
+            'last_used': data['last_used']
+        })
+
+    # Sort by usage count descending, then by last used descending
+    result.sort(key=lambda x: (-x['usage_count'], x['last_used'] or ''), reverse=True)
+    return result
+
+
 def get_history_entry(history_id: int):
     conn = get_db()
     row = conn.execute(

@@ -8,6 +8,7 @@ from ..repositories.history_repo import (
     get_history_entry,
     create_history_entry,
     delete_history_entry,
+    get_psm_usage_history,
 )
 
 bp = Blueprint("history", __name__)
@@ -19,6 +20,14 @@ def api_get_history():
     date_from = (request.args.get("date_from")or "").strip( )
     date_to = request.args.get("date_to")
     return jsonify(list_history(date_from=date_from, date_to=date_to))
+
+
+@bp.route("/api/history/psm-usage", methods=["GET"])
+@login_required
+def api_get_psm_usage():
+    date_from = request.args.get("date_from")
+    date_to = request.args.get("date_to")
+    return jsonify(get_psm_usage_history(date_from=date_from, date_to=date_to))
 
 
 @bp.route("/api/history", methods=["POST"])

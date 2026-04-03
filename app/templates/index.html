@@ -4,6 +4,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 {% endblock %}
 
@@ -175,34 +176,67 @@
     <div id="tab-history" class="tab">
       <h2>🕘 History <span class="badge" id="history-count">0</span></h2>
 
-      <div class="card" style="margin-bottom: .8rem;">
-        <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
-          <div class="field"><label>Von</label><input type="date" id="history-date-from" onchange="loadHistory()"></div>
-          <div class="field"><label>Bis</label><input type="date" id="history-date-to" onchange="loadHistory()"></div>
-          <div style="display:flex;gap:.5rem;align-items:center;">
-            <button type="button" class="btn btn-sm btn-ghost" onclick="resetHistoryFilter()">Zurücksetzen</button>
+      <div class="sub-tabs">
+        <button class="sub-tab-btn active" onclick="showHistorySubTab('applications')">📄 Applikationen</button>
+        <button class="sub-tab-btn" onclick="showHistorySubTab('psm-usage')">🧪 PSM-Verwendung</button>
+      </div>
+
+      <div id="history-sub-applications" class="history-sub-tab active">
+        <div class="card" style="margin-bottom: .8rem;">
+          <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
+            <div class="field"><label>Von</label><input type="date" id="history-date-from" onchange="loadHistory()"></div>
+            <div class="field"><label>Bis</label><input type="date" id="history-date-to" onchange="loadHistory()"></div>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+              <button type="button" class="btn btn-sm btn-ghost" onclick="resetHistoryFilter()">Zurücksetzen</button>
+            </div>
+          </div>
+          <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisMonth')">Dieser Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastMonth')">Letzter Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisYear')">Dieses Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastYear')">Letztes Jahr</button>
           </div>
         </div>
-        <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
-          <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisMonth')">Dieser Monat</button>
-          <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastMonth')">Letzter Monat</button>
-          <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisYear')">Dieses Jahr</button>
-          <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastYear')">Letztes Jahr</button>
+
+        <div class="card">
+          <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
+            Hier siehst du alle gespeicherten Applikationen.
+          </p>
+          <div class="item-list" id="history-list"></div>
+        </div>
+
+        <div class="card" id="history-detail-wrap" style="display:none">
+          <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">
+            🔍 Applikationsdetails
+          </h3>
+          <div id="history-detail" class="history-detail"></div>
         </div>
       </div>
 
-      <div class="card">
-        <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
-          Hier siehst du alle gespeicherten Applikationen.
-        </p>
-        <div class="item-list" id="history-list"></div>
-      </div>
+      <div id="history-sub-psm-usage" class="history-sub-tab">
+        <div class="card" style="margin-bottom: .8rem;">
+          <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
+            <div class="field"><label>Von</label><input type="date" id="psm-history-date-from" onchange="loadPSMUsage()"></div>
+            <div class="field"><label>Bis</label><input type="date" id="psm-history-date-to" onchange="loadPSMUsage()"></div>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+              <button type="button" class="btn btn-sm btn-ghost" onclick="resetPSMHistoryFilter()">Zurücksetzen</button>
+            </div>
+          </div>
+          <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('thisMonth')">Dieser Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('lastMonth')">Letzter Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('thisYear')">Dieses Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('lastYear')">Letztes Jahr</button>
+          </div>
+        </div>
 
-      <div class="card" id="history-detail-wrap" style="display:none">
-        <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">
-          🔍 Applikationsdetails
-        </h3>
-        <div id="history-detail" class="history-detail"></div>
+        <div class="card">
+          <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
+            Übersicht über die Verwendung von Pflanzenschutzmitteln.
+          </p>
+          <canvas id="psm-usage-chart" style="max-height:300px;margin-bottom:1rem"></canvas>
+          <div id="psm-usage-list"></div>
+        </div>
       </div>
     </div>
 

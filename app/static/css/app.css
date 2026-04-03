@@ -480,6 +480,44 @@
 }
 
 /* ══════════════════════════════════════════════
+   SUB TABS
+   ══════════════════════════════════════════════ */
+.sub-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--cream-dark);
+  margin-bottom: 1.5rem;
+}
+
+.sub-tab-btn {
+  background: none;
+  border: none;
+  padding: .75rem 1rem;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+}
+
+.sub-tab-btn:hover {
+  color: var(--green-mid);
+}
+
+.sub-tab-btn.active {
+  color: var(--green-deep);
+  border-bottom-color: var(--green-light);
+}
+
+.history-sub-tab {
+  display: none;
+}
+
+.history-sub-tab.active {
+  display: block;
+}
+
+/* ══════════════════════════════════════════════
    MOBILE  (≤ 640px)
    ══════════════════════════════════════════════ */
 @media (max-width: 640px) {
