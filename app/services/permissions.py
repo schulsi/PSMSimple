@@ -3,9 +3,11 @@ from functools import wraps
 from flask import jsonify
 from flask_login import current_user, login_required
 
-from ..models.user import User
+from ..extensions import db
+from ..models.user import User, UserRole
 from ..repositories.role_repo import get_role_id, get_role_name
 
+ROLES = { "admin", "user", "read-only" }
 
 def build_permissions(user) -> dict:
     is_admin = user.role_id == get_role_id("admin")
@@ -22,7 +24,13 @@ def build_permissions(user) -> dict:
         "read_only": user.role_id == get_role_id("read-only"),
     }
 
-
+def seed_roles():
+    for role_name in ROLES:
+        exists = db.session.query(UserRole).filter_by(name=role_name).first()
+        if not exists:
+            db.session.add(UserRole(name=role_name))
+    db.session.commit()
+    
 def require_admin(fn):
     @wraps(fn)
     @login_required

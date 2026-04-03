@@ -8,6 +8,7 @@ from .extensions import db, login_manager, csrf, limiter
 from .models import User
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
+from .services.permissions import seed_roles
 
 
 
@@ -22,6 +23,7 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     db.init_app(app)
+    seed_roles()
     login_manager.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
