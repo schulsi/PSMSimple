@@ -689,7 +689,6 @@ function toggleFieldDetails(fieldName, button) {
   const detailsRow = document.getElementById(rowId);
   
   if (!detailsRow) {
-    console.error(`Details row not found: ${rowId}`);
     toast(`❌ Details-Zeile nicht gefunden: ${rowId}`);
     return;
   }
@@ -702,7 +701,6 @@ function toggleFieldDetails(fieldName, button) {
   } else {
     const detailsCell = detailsRow.querySelector('.field-details-cell');
     if (!detailsCell) {
-      console.error('Details cell not found in details row');
       toast('❌ Fehler: Details-Zelle nicht gefunden');
       return;
     }
@@ -713,12 +711,8 @@ function toggleFieldDetails(fieldName, button) {
 
     const startDate = document.getElementById('fields-history-date-from').value;
     const endDate = document.getElementById('fields-history-date-to').value;
-
-    console.log(`Loading field applications for: ${fieldName}, from: ${startDate}, to: ${endDate}`);
-    
     apiGet(`/api/history/field-applications?field_name=${encodeURIComponent(fieldName)}&date_from=${startDate}&date_to=${endDate}`)
       .then(data => {
-        console.log('Field applications data:', data);
         if (data.length === 0) {
           detailsCell.innerHTML = '<div class="field-details-empty">Keine Anwendungen gefunden</div>';
         } else {
@@ -776,7 +770,6 @@ function toggleFieldDetails(fieldName, button) {
         }
       })
       .catch(error => {
-        console.error('Error loading field details:', error);
         toast(`❌ Fehler beim Laden der Details: ${error.message}`);
         detailsCell.innerHTML = `<div class="field-details-error">Fehler beim Laden der Details: ${escapeHtml(error.message)}</div>`;
       });
