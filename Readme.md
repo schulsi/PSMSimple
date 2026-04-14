@@ -1,41 +1,188 @@
-# 🌿 Pflanzenschutz Dokumentation
+# 🌿 PSMSimple – Plant Protection Documentation
 
-Eine Web-App zur Erstellung von Pflanzenschutz-JSON-Dokumenten.
+A web app for creating and managing plant protection application records in JSON format.
 
-## Installation & Start
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Deployment with Docker Compose (recommended)](#deployment-with-docker-compose-recommended)
+- [Deployment with Docker](#deployment-with-docker)
+- [Local Development](#local-development)
+- [Configuration](#configuration)
+- [Data Storage](#data-storage)
+- [API Documentation](#api-documentation)
+- [Security Notes](#security-notes)
+
+---
+
+## Features
+
+| Module | Description |
+|---|---|
+| **Farm** | Master data for your farm – automatically embedded in every JSON export |
+| **Plant Protection Products** | Reusable library of PPP master data |
+| **Application Sites** | Manage GPS coordinates and field areas |
+| **Crops** | Maintain and assign BBCH codes |
+| **JSON Export** | Document applications and download them as JSON |
+| **History** | View all previously logged applications |
+
+---
+
+## Requirements
+
+- [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) ≥ v2
+
+---
+
+## Deployment with Docker Compose (recommended)
+
+This is the recommended approach for production. Docker Compose starts the app alongside a Redis container for rate limiting.
+
+**1. Download `docker-compose.yaml`**
 
 ```bash
-# 1. Abhängigkeiten installieren
+mkdir psmsimple && cd psmsimple
+curl -O https://raw.githubusercontent.com/schulsi/psmsimple/main/docker-compose.yaml
+```
+
+**2. Set the secret key**
+
+Create a `.env` file in the same directory:
+
+```bash
+echo "SECRET_KEY=$(openssl rand -hex 32)" > .env
+```
+
+> ⚠️ Keep the `SECRET_KEY` safe and never share it publicly. It protects sessions and CSRF tokens.
+
+**3. Start**
+
+```bash
+docker compose up -d
+```
+
+The app will be available at **`http://localhost:8080`**.
+
+**4. Check logs**
+
+```bash
+docker compose logs -f app
+```
+
+**5. Stop**
+
+```bash
+docker compose down
+```
+
+---
+
+## Deployment with Docker
+
+For running without Docker Compose (e.g. without Redis):
+
+```bash
+docker run -d \
+  --name psmsimple \
+  -p 8080:80 \
+  -v $(pwd)/data:/data \
+  -e SECRET_KEY="your-secret-key" \
+  ghcr.io/schulsi/psmsimple:latest
+```
+
+> ℹ️ Without Redis, rate limiting runs in in-memory mode. This is sufficient for single instances but resets on restart.
+
+The app will be available at **`http://localhost:8080`**.
+
+---
+
+## Local Development
+
+**1. Clone the repository**
+
+```bash
+git clone https://github.com/schulsi/psmsimple.git
+cd psmsimple
+```
+
+**2. Set up a virtual environment**
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+```
+
+**3. Install dependencies**
+
+```bash
 pip install -r requirements.txt
-
-# 2. App starten
-python run.py
-
-# 3. Browser öffnen
-http://localhost:5001
 ```
 
-## Docker
+**4. Set environment variables**
+
 ```bash
-# 1. Image bauen
-docker build -t psmsimple .
-
-# 2. Container starten
-docker run --name PSMSimple -p 80:80 0 -v PATH_TO_VOLUME:/data -e SECRET_KEY ="KEY" psmsimple
-
-# 3. Browser öffnen
-http://DOCKER_IP:80
+export SECRET_KEY="dev-only-secret"
 ```
 
-## Funktionen
+**5. Start the app**
 
-- **Betrieb**: Einmalige Stammdaten (werden in jede JSON eingebettet)
-- **Pflanzenschutzmittel**: Stammdaten-Bibliothek, mehrfach verwendbar
-- **Einsatzorte**: GPS-Koordinaten, Flächen – wiederverwendbar
-- **Kulturen**: BBCH-Codes verwalten
-- **JSON-Export**: Applikation von PSM dokumentieren → JSON herunterladen
-- **Historie**: Bisher geloggte Applikationen anschauen
+```bash
+python run.py
+```
 
-## Datenbank
+The app runs at **`http://localhost:5001`**.
 
-SQLite-Datei `pflanzenschutz.db` wird automatisch beim ersten Start erstellt. Zusätzlich gibt es noch die SQLite-Datei `users.db`.
+---
+
+## Configuration
+
+The app is configured entirely via environment variables:
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `SECRET_KEY` | ✅ | – | Cryptographic key for sessions and CSRF protection |
+| `DATA_DIR` | ❌ | `./data` | Directory for databases, exports, and logs |
+| `RATELIMIT_STORAGE_URI` | ❌ | `memory://` | Redis URL for rate limiting, e.g. `redis://redis:6379/0` |
+
+---
+
+## Data Storage
+
+All persistent data is stored in the `DATA_DIR` directory (default: `./data`):
+
+```
+data/
+├── databases/
+│   ├── users.db            # User accounts & roles
+│   └── pflanzenschutz.db   # Application data
+├── exports/                # Generated JSON exports
+└── logs/
+    └── psm.log             # Application log
+```
+
+Both databases are created automatically on first start.
+
+> 💡 To back up all data, it is sufficient to copy the entire `data/` directory.
+
+---
+
+## API Documentation
+
+The interactive Swagger UI is available at:
+
+```
+http://localhost:8080/apidocs
+```
+
+> ℹ️ All API endpoints require an active session (cookie-based authentication). Log in via the web interface first, then use the Swagger UI to test requests.
+
+---
+
+## Security Notes
+
+- `SESSION_COOKIE_SECURE` and `REMEMBER_COOKIE_SECURE` are currently commented out in `config.py`. For production deployments behind HTTPS (recommended), these should be enabled.
+- The `SECRET_KEY` should be at least 32 random bytes long — use `openssl rand -hex 32` to generate one.
+- For production, the app should be run behind a reverse proxy (e.g. nginx or Traefik) with TLS termination.

@@ -158,12 +158,41 @@ def rename_user():
 @bp.route("/api/user/settings", methods=["GET"])
 @login_required
 def get_settings():
+    """
+    Benutzereinstellungen abrufen
+    ---
+    tags:
+      - Benutzerverwaltung
+    responses:
+      200:
+        description: Benutzereinstellungen
+        schema:
+          type: object
+      401:
+        description: Nicht authentifiziert
+    """
     return jsonify(get_user_settings_dict(current_user.id))
 
 
 @bp.route("/api/user/settings", methods=["POST"])
 @login_required
 def save_settings():
+    """
+    Benutzereinstellungen speichern
+    ---
+    tags:
+      - Benutzerverwaltung
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+    responses:
+      200:
+        description: Einstellungen erfolgreich gespeichert
+      401:
+        description: Nicht authentifiziert
+    """
     data = request.get_json(silent=True) or {}
 
     settings = save_user_settings(current_user.id, data)
@@ -175,6 +204,29 @@ def save_settings():
 @bp.route("/api/users/<int:user_id>", methods=["DELETE"])
 @require_admin
 def delete_user(user_id):
+    """
+    Benutzer löschen
+    ---
+    tags:
+      - Benutzerverwaltung
+    parameters:
+      - in: path
+        name: user_id
+        type: integer
+        required: true
+        description: ID des Benutzers
+    responses:
+      200:
+        description: Benutzer erfolgreich gelöscht
+      400:
+        description: Aktueller Benutzer kann nicht gelöscht werden
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Admin-Berechtigung erforderlich
+      404:
+        description: Benutzer nicht gefunden
+    """
     user = User.query.get_or_404(user_id)
 
     if user.id == current_user.id:
