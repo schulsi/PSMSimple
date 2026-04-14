@@ -224,8 +224,8 @@ def get_field_applications(field_name, date_from=None, date_to=None):
         field_details = None
         einsatzorte = json_data.get('einsatzorte', [])
         field_list = []
-        for row in einsatzorte:
-            name = row.get('name', '').strip()
+        for ort in einsatzorte:
+            name = ort.get('name', '').strip()
             if name:
                 field_list.append(name)
 

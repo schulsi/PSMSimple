@@ -367,6 +367,9 @@ async function loadPSMUsage() {
     const items = await apiGet(buildPSMHistoryUrl());
     const list = $('psm-usage-list');
     const chartCanvas = $('psm-usage-chart');
+    const count = $('history-count');
+
+    if (count) count.textContent = items.length;
 
     if (!list || !chartCanvas) return;
 
@@ -557,6 +560,9 @@ async function loadFieldsUsage() {
     const items = await apiGet(buildFieldsHistoryUrl());
     const list = $('fields-usage-list');
     const chartCanvas = $('fields-usage-chart');
+    const count = $('history-count');
+
+    if (count) count.textContent = items.length;
 
     if (!list || !chartCanvas) return;
 
@@ -636,7 +642,7 @@ async function loadFieldsUsage() {
               <td>${escapeHtml(item.field_name)}</td>
               <td>${item.usage_count}</td>
               <td>${item.last_used || '—'}</td>
-              <td><button class="btn btn-sm btn-ghost" onclick="toggleFieldDetails('${escapeHtml(item.field_name)}', this)">🔽</button></td>
+              <td><button class="btn btn-sm btn-ghost" onclick="toggleFieldDetails('${item.field_name.replace(/'/g, "\\'")}', this)">🔽</button></td>
             </tr>
             <tr id="details-${escapeHtml(item.field_name).replace(/[^a-zA-Z0-9]/g, '_')}" class="field-details-row" style="display:none">
               <td colspan="4" class="field-details-cell">
@@ -658,26 +664,61 @@ document.addEventListener('DOMContentLoaded', () => {
   setDefaultPSMHistoryDates();
   setDefaultFieldsHistoryDates();
   loadHistory();
+
+  // Listener für History Date Filter
+  const historyFromInput = $('history-date-from');
+  const historyToInput = $('history-date-to');
+  if (historyFromInput) historyFromInput.addEventListener('change', loadHistory);
+  if (historyToInput) historyToInput.addEventListener('change', loadHistory);
+
+  // Listener für PSM History Date Filter
+  const psmFromInput = $('psm-history-date-from');
+  const psmToInput = $('psm-history-date-to');
+  if (psmFromInput) psmFromInput.addEventListener('change', loadPSMUsage);
+  if (psmToInput) psmToInput.addEventListener('change', loadPSMUsage);
+
+  // Listener für Fields History Date Filter
+  const fieldsFromInput = $('fields-history-date-from');
+  const fieldsToInput = $('fields-history-date-to');
+  if (fieldsFromInput) fieldsFromInput.addEventListener('change', loadFieldsUsage);
+  if (fieldsToInput) fieldsToInput.addEventListener('change', loadFieldsUsage);
 });
 
 function toggleFieldDetails(fieldName, button) {
-  const detailsRow = document.getElementById(`details-${fieldName.replace(/[^a-zA-Z0-9]/g, '_')}`);
+  const rowId = `details-${escapeHtml(fieldName).replace(/[^a-zA-Z0-9]/g, '_')}`;
+  const detailsRow = document.getElementById(rowId);
+  
+  if (!detailsRow) {
+    console.error(`Details row not found: ${rowId}`);
+    toast(`❌ Details-Zeile nicht gefunden: ${rowId}`);
+    return;
+  }
+  
   const isVisible = detailsRow.style.display !== 'none';
 
   if (isVisible) {
     detailsRow.style.display = 'none';
     button.innerHTML = '🔽';
   } else {
-    const loadingDiv = detailsRow.querySelector('.field-details-loading');
-    loadingDiv.style.display = 'block';
+    const detailsCell = detailsRow.querySelector('.field-details-cell');
+    if (!detailsCell) {
+      console.error('Details cell not found in details row');
+      toast('❌ Fehler: Details-Zelle nicht gefunden');
+      return;
+    }
+    
+    detailsCell.innerHTML = '<div class="field-details-loading">Lade Details...</div>';
+    detailsRow.style.display = '';
+    button.innerHTML = '🔼';
 
     const startDate = document.getElementById('fields-history-date-from').value;
     const endDate = document.getElementById('fields-history-date-to').value;
 
-    apiGet(`/api/history/field-applications?field_name=${encodeURIComponent(fieldName)}&start_date=${startDate}&end_date=${endDate}`)
+    console.log(`Loading field applications for: ${fieldName}, from: ${startDate}, to: ${endDate}`);
+    
+    apiGet(`/api/history/field-applications?field_name=${encodeURIComponent(fieldName)}&date_from=${startDate}&date_to=${endDate}`)
       .then(data => {
-        loadingDiv.style.display = 'none';
-        const detailsCell = detailsRow.querySelector('.field-details-cell');
+        console.log('Field applications data:', data);
         if (data.length === 0) {
           detailsCell.innerHTML = '<div class="field-details-empty">Keine Anwendungen gefunden</div>';
         } else {
@@ -694,42 +735,50 @@ function toggleFieldDetails(fieldName, button) {
             }))
           );
 
-          detailsCell.innerHTML = `
-            <table class="field-applications-table">
-              <thead>
-                <tr>
-                  <th>Datum</th>
-                  <th>Uhrzeit</th>
-                  <th>PSM</th>
-                  <th>Menge</th>
-                  <th>Fläche</th>
-                  <th>Link</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${applications.map(app => `
+          if (applications.length === 0) {
+            // Wenn keine PSM gefunden, zeige die Anwendungen selbst
+            detailsCell.innerHTML = `
+              <div>
+                <p>Anwendungen auf diesem Feld:</p>
+                <ul>
+                  ${data.map(app => `<li>${app.date} ${app.time || ''}</li>`).join('')}
+                </ul>
+              </div>
+            `;
+          } else {
+            detailsCell.innerHTML = `
+              <table class="field-applications-table">
+                <thead>
                   <tr>
-                    <td>${app.date}</td>
-                    <td>${app.time || '—'}</td>
-                    <td>${escapeHtml(app.psm_name)}</td>
-                    <td>${app.quantity ? `${app.quantity} ${app.unit || ''}`.trim() : '—'}</td>
-                    <td>${app.area ? `${app.area} ${app.area_unit || ''}`.trim() : '—'}</td>
-                    <td><a href="#" onclick="showApplicationDetails(${app.id})">Anzeigen</a></td>
+                    <th>Datum</th>
+                    <th>Uhrzeit</th>
+                    <th>PSM</th>
+                    <th>Menge</th>
+                    <th>Fläche</th>
+                    <th>Link</th>
                   </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          `;
+                </thead>
+                <tbody>
+                  ${applications.map(app => `
+                    <tr>
+                      <td>${app.date}</td>
+                      <td>${app.time || '—'}</td>
+                      <td>${escapeHtml(app.psm_name)}</td>
+                      <td>${app.quantity ? `${app.quantity} ${app.unit || ''}`.trim() : '—'}</td>
+                      <td>${app.area ? `${app.area} ${app.area_unit || ''}`.trim() : '—'}</td>
+                      <td><a href="javascript:void(0)" onclick="showApplicationDetails(${app.id}); return false;">Anzeigen</a></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `;
+          }
         }
-        detailsRow.style.display = '';
-        button.innerHTML = '🔼';
       })
       .catch(error => {
         console.error('Error loading field details:', error);
-        loadingDiv.style.display = 'none';
-        detailsRow.querySelector('.field-details-cell').innerHTML = '<div class="field-details-error">Fehler beim Laden der Details</div>';
-        detailsRow.style.display = '';
-        button.innerHTML = '🔼';
+        toast(`❌ Fehler beim Laden der Details: ${error.message}`);
+        detailsCell.innerHTML = `<div class="field-details-error">Fehler beim Laden der Details: ${escapeHtml(error.message)}</div>`;
       });
   }
 }
