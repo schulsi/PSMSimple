@@ -4,10 +4,6 @@ function getPayloadSignature(payload) {
   return JSON.stringify(payload);
 }
 
-function getCsrfToken() {
-  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-}
-
 function renderExportSelectionList(containerId, items, type) {
   const container = $(containerId);
   if (!container) return;
