@@ -1,0 +1,53 @@
+services:
+  app:
+    image: ghcr.io/schulsi/psmsimple:latest
+    container_name: psmsimple-app
+    ports:
+      - "8080:80"
+    environment:
+      - DATA_DIR=/data
+      - SECRET_KEY=${SECRET_KEY}
+      - RATELIMIT_STORAGE_URI=redis://redis:6379/0
+    volumes:
+      - ./data:/data
+      - ./data/logs:/data/logs
+      - ./data/databases:/data/databases
+      - ./data/exports:/data/exports
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - psmsimple-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:7-alpine
+    container_name: psmsimple-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - psmsimple-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  psmsimple-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
+    

@@ -6,6 +6,8 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN apt-get update && apt-get install curl -y
+
 COPY app/ app/
 
 COPY run.py .
