@@ -4,7 +4,7 @@ from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import Config
-from .extensions import db, login_manager, csrf, limiter
+from .extensions import db, login_manager, csrf, limiter, swagger
 from .models import User
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
@@ -21,6 +21,8 @@ def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config.from_object(Config)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+    swagger.init_app(app)
 
     db.init_app(app)
     login_manager.init_app(app)

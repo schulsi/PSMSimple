@@ -14,27 +14,81 @@ from ..services.settings_service import (
 USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{2,50}$")
 bp = Blueprint("user", __name__)
 
+
 @bp.route("/api/me", methods=["GET"])
 @login_required
 def api_me():
+    """
+    Aktuelle Benutzerinformationen
+    ---
+    tags:
+      - Benutzerverwaltung
+    responses:
+      200:
+        description: Benutzerdaten und Berechtigungen
+      401:
+        description: Nicht authentifiziert
+    """
     return jsonify({
         "ok": True,
         "user": current_user.to_public_dict(),
         "permissions": build_permissions(current_user),
     })
 
+
 @bp.route("/api/users", methods=["GET"])
 @require_admin
 def list_users():
+    """
+    Alle Benutzer auflisten
+    ---
+    tags:
+      - Benutzerverwaltung
+    responses:
+      200:
+        description: Liste aller Benutzer
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Admin-Berechtigung erforderlich
+    """
     users = User.query.order_by(User.username.asc()).all()
     return jsonify([u.to_public_dict() for u in users])
+
 
 @bp.route("/api/users/<int:user_id>/role", methods=["PUT"])
 @require_admin
 def update_user_role(user_id):
+    """
+    Benutzerrolle ändern
+    ---
+    tags:
+      - Benutzerverwaltung
+    parameters:
+      - in: path
+        name: user_id
+        type: integer
+        required: true
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+            role:
+              type: string
+              enum: [admin, user, read-only]
+              description: Neue Rolle des Benutzers
+    responses:
+      200:
+        description: Rolle erfolgreich geändert
+      400:
+        description: Ungültige Rolle
+      403:
+        description: Admin-Berechtigung erforderlich
+    """
     data = request.get_json(silent=True) or {}
     new_role = (data.get("role") or "").strip()
-    
+
     allowed_roles = {"admin", "user", "read-only"}
     if new_role not in allowed_roles:
         return jsonify({"ok": False, "error": "Ungültige Rolle."}), 400
@@ -46,13 +100,38 @@ def update_user_role(user_id):
 
     user.role_id = get_role_id(new_role)
     db.session.commit()
-    logger.info(f"User '{user.username}' role updated to '{new_role}' by user: {current_user.username} from IP: {request.remote_addr}")
+    logger.info(
+        f"User '{user.username}' role updated to '{new_role}' by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True, "user": user.to_public_dict()})
 
 
 @bp.route("/api/user/rename", methods=["POST"])
 @login_required
 def rename_user():
+    """
+    Benutzernamen ändern
+    ---
+    tags:
+      - Benutzerverwaltung
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              description: Neuer Benutzername
+    responses:
+      200:
+        description: Benutzername erfolgreich geändert
+      400:
+        description: Validierungsfehler
+      401:
+        description: Nicht authentifiziert
+      409:
+        description: Benutzername existiert bereits
+    """
     data = request.get_json(silent=True) or {}
     new_name = (data.get("username") or "").strip()
 
@@ -71,7 +150,8 @@ def rename_user():
 
     current_user.username = new_name
     db.session.commit()
-    logger.info(f"User renamed to '{new_name}' by user: {current_user.username} from IP: {request.remote_addr}")
+    logger.info(
+        f"User renamed to '{new_name}' by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True})
 
 
@@ -87,8 +167,10 @@ def save_settings():
     data = request.get_json(silent=True) or {}
 
     settings = save_user_settings(current_user.id, data)
-    logger.info(f"User settings updated by user: {current_user.username} from IP: {request.remote_addr}")
+    logger.info(
+        f"User settings updated by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True, "settings": settings})
+
 
 @bp.route("/api/users/<int:user_id>", methods=["DELETE"])
 @require_admin
@@ -101,6 +183,7 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
 
-    logger.info(f"User '{user.username}' deleted by user: {current_user.username} from IP: {request.remote_addr}")
+    logger.info(
+        f"User '{user.username}' deleted by user: {current_user.username} from IP: {request.remote_addr}")
 
     return jsonify({"ok": True, "deleted_user_id": user_id})

@@ -34,6 +34,8 @@ class Config:
     PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
     BASE_DIR = BASE_DIR
     LOG_DIR = LOG_DIR
+    SWAGGER = {"title": "PSM API", "uiversion": 3, "securityDefinitions": { "cookieAuth": {"type": "apiKey", "in": "cookie", "name": "session"} }
+}
 
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY environment variable is not set.")
