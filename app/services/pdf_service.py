@@ -94,7 +94,7 @@ def generate_pdf(data: dict) -> io.BytesIO:
     story.append(HRFlowable(width="100%", thickness=1, color=green, spaceAfter=6))
 
     title_str = f"{datum_fmt} | {eo_name}" if eo_name else datum_fmt
-    story.append(Paragraph(escape(f"<b>{title_str}</b>", s_title)))
+    story.append(Paragraph(escape(f"<b>{title_str}</b>"), s_title))
 
     erstellt = f"erstellt am: {now_fmt}"
     if uhrzeit:

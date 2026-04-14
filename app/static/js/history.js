@@ -419,7 +419,7 @@ async function loadPSMUsage() {
               label: function(context) {
                 const item = items[context.dataIndex];
                 let label = `${context.label}: ${context.parsed} Verwendungen`;
-                if (item.total_quantity) {
+                if (item.total_quantity != null) {
                   label += ` (${item.total_quantity} ${item.unit || ''})`.trim();
                 }
                 return label;
@@ -445,7 +445,7 @@ async function loadPSMUsage() {
             <tr>
               <td>${escapeHtml(item.psm_name)}</td>
               <td>${item.usage_count}</td>
-              <td>${item.total_quantity ? `${item.total_quantity} ${item.unit || ''}`.trim() : '—'}</td>
+              <td>${item.total_quantity != null ? `${item.total_quantity} ${item.unit || ''}`.trim() : '—'}</td>
               <td>${item.last_used || '—'}</td>
             </tr>
           `).join('')}

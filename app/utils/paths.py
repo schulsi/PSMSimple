@@ -1,6 +1,9 @@
 from datetime import datetime
 from pathlib import Path
 import re
+import os
+from pathlib import Path
+
 from ..config import Config
 
 EXPORT_DIR =Path(Config.EXPORTS_DIR)  
@@ -21,7 +24,7 @@ def slugify(value: str, fallback: str = "export") -> str:
 
 def create_save_path(datum: str | None = None) -> Path:
     now = datetime.strptime(datum, "%Y-%m-%d") if datum else datetime.now()
-    path = EXPORT_DIR / str(now.year) / f"{now.month:02d}_{now.strftime('%B')}"
+    path = Path(EXPORT_DIR) / str(now.year) / f"{now.month:02d}_{now.strftime('%B')}"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
