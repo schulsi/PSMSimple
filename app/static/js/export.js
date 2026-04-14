@@ -183,7 +183,7 @@ async function exportSave() {
     const pdfResp = await fetch('/api/pdf', {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
       body: JSON.stringify(payload)
     });
     if (!pdfResp.ok) {
@@ -223,7 +223,7 @@ async function exportDownloadZip() {
     if (jsonCt.includes('application/json')) {
       // Server saved locally and returned metadata — re-fetch as blob or stringify
       const jsonData = await jsonResp.json();
-      jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+      jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json', 'X-CSRFToken': getCsrfToken() });
     } else {
       jsonBlob = await jsonResp.blob();
     }

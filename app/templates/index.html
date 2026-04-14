@@ -4,6 +4,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 {% endblock %}
 
@@ -173,15 +174,96 @@
     </div>
 
     <div id="tab-history" class="tab">
-      <h2>🕘 History <span class="badge" id="history-count">0</span></h2>
+      <h2>🕘 Verlauf <span class="badge" id="history-count">0</span></h2>
 
-      <div class="card">
-        <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
-          Hier siehst du alle gespeicherten Applikationen.
-        </p>
-        <div class="item-list" id="history-list"></div>
+      <div class="sub-tabs">
+        <button class="sub-tab-btn active" onclick="showHistorySubTab('applications', this)">📄 Applikationen</button>
+        <button class="sub-tab-btn" onclick="showHistorySubTab('psm-usage', this)">🧪 PSM-Verwendung</button>
+        <button class="sub-tab-btn" onclick="showHistorySubTab('fields-usage', this)">📍 Felder-Verwendung</button>
       </div>
 
+      <div id="history-sub-applications" class="history-sub-tab active">
+        <div class="card" style="margin-bottom: .8rem;">
+          <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
+            <div class="field"><label>Von</label><input type="date" id="history-date-from" onchange="loadHistory()"></div>
+            <div class="field"><label>Bis</label><input type="date" id="history-date-to" onchange="loadHistory()"></div>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+              <button type="button" class="btn btn-sm btn-ghost" onclick="resetHistoryFilter()">Zurücksetzen</button>
+            </div>
+          </div>
+          <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisMonth')">Dieser Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastMonth')">Letzter Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisYear')">Dieses Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastYear')">Letztes Jahr</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
+            Hier siehst du alle gespeicherten Applikationen.
+          </p>
+          <div class="item-list" id="history-list"></div>
+        </div>
+      </div>
+
+      <div id="history-sub-psm-usage" class="history-sub-tab">
+        <div class="card" style="margin-bottom: .8rem;">
+          <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
+            <div class="field"><label>Von</label><input type="date" id="psm-history-date-from" onchange="loadPSMUsage()"></div>
+            <div class="field"><label>Bis</label><input type="date" id="psm-history-date-to" onchange="loadPSMUsage()"></div>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+              <button type="button" class="btn btn-sm btn-ghost" onclick="resetPSMHistoryFilter()">Zurücksetzen</button>
+            </div>
+          </div>
+          <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('thisMonth')">Dieser Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('lastMonth')">Letzter Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('thisYear')">Dieses Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('lastYear')">Letztes Jahr</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
+            Übersicht über die Verwendung von Pflanzenschutzmitteln.
+          </p>
+          <div class="history-chart-wrap">
+          <canvas id="psm-usage-chart" style="max-height:300px;margin-bottom:1rem"></canvas>
+          </div>
+          <div id="psm-usage-list"></div>
+        </div>
+      </div>
+
+      <div id="history-sub-fields-usage" class="history-sub-tab">
+        <div class="card" style="margin-bottom: .8rem;">
+          <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
+            <div class="field"><label>Von</label><input type="date" id="fields-history-date-from" onchange="loadFieldsUsage()"></div>
+            <div class="field"><label>Bis</label><input type="date" id="fields-history-date-to" onchange="loadFieldsUsage()"></div>
+            <div style="display:flex;gap:.5rem;align-items:center;">
+              <button type="button" class="btn btn-sm btn-ghost" onclick="resetFieldsHistoryFilter()">Zurücksetzen</button>
+            </div>
+          </div>
+          <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('thisMonth')">Dieser Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('lastMonth')">Letzter Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('thisYear')">Dieses Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('lastYear')">Letztes Jahr</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:1rem">
+            Übersicht über die Verwendung von Einsatzorten (Feldern).
+          </p>
+          <div class="history-chart-wrap">
+          <canvas id="fields-usage-chart" style="max-height:300px;margin-bottom:1rem"></canvas>
+          </div>
+          <div id="fields-usage-list"></div>
+        </div>
+      </div>
+
+      <!-- Gemeinsamer Detail-Container für alle History-Tabs -->
       <div class="card" id="history-detail-wrap" style="display:none">
         <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">
           🔍 Applikationsdetails
@@ -547,13 +629,6 @@
       syncLegacyExportUI();
     }
   });
-
-function toggleMobileNav() {
-    const nav = document.querySelector('nav');
-    const overlay = document.getElementById('nav-overlay');
-    const open = nav.classList.toggle('open');
-    overlay.classList.toggle('open', open);
-  }
   function closeMobileNav() {
     document.querySelector('nav').classList.remove('open');
     document.getElementById('nav-overlay').classList.remove('open');
