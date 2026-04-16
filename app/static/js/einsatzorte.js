@@ -31,21 +31,20 @@ function openMapModal() {
             throw new Error('Keine PLZ gefunden');
           }
 
-          return fetch(`https://nominatim.openstreetmap.org/search?postalcode=${plz}&country=de&format=json`);
+          return apiGet(`/api/einsatzorte/cord2plz/${encodeURIComponent(plz)}`);
         })
-        .then(res => res.json())
         .then(data => {
           let center = EO_MAP_DEFAULT;
           let zoom = EO_MAP_DEFAULT_ZOOM;
 
-          if (data.length) {
-            const lat = parseFloat(data[0].lat);
-            const lng = parseFloat(data[0].lon);
+          const lat = parseFloat(data.lat);
+          const lng = parseFloat(data.lon);
 
-            if (!isNaN(lat) && !isNaN(lng)) {
-              center = [lat, lng];
-              zoom = EO_MAP_POINT_ZOOM;
-            }
+          console.log(lat + ', ' + lng);
+
+          if (!isNaN(lat) && !isNaN(lng)) {
+            center = [lat, lng];
+            zoom = EO_MAP_POINT_ZOOM;
           } else {
             toast('❌ PLZ nicht gefunden');
           }
@@ -58,16 +57,10 @@ function openMapModal() {
           }).addTo(_eoMap);
 
           _eoMap.on('click', (e) => _eoMapSetPoint(e.latlng.lat, e.latlng.lng));
-
           _eoMap.invalidateSize();
 
-          if (data.length) {
-            const lat = parseFloat(data[0].lat);
-            const lng = parseFloat(data[0].lon);
-
-            if (!isNaN(lat) && !isNaN(lng)) {
-              _eoMapSetPoint(lat, lng);
-            }
+          if (!isNaN(lat) && !isNaN(lng)) {
+            _eoMapSetPoint(lat, lng);
           }
         })
         .catch(err => {

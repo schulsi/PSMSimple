@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
+import requests
 
 from ..services.permissions import require_write_access
 from ..extensions import logger
@@ -169,3 +170,38 @@ def api_delete_einsatzort(eid):
     logger.info(
         f"Einsatzort with ID '{eid}' deleted by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True})
+
+
+@bp.route("/api/einsatzorte/cord2plz/<int:plz>", methods=["GET"])
+@login_required
+def cord2plz(plz):
+    if not plz:
+        return jsonify({"ok": False, "error": "PLZ missing"}), 400
+    try:
+        resp = requests.get(
+            "https://nominatim.openstreetmap.org/search",
+            params={
+                "postalcode": plz,
+                "country": "de",
+                "format": "jsonv2",
+                "limit": 1,
+            },
+            headers={
+                "User-Agent": "PSMSimple/1.0",
+                "Accept": "application/json",
+            },
+            timeout=8,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        if not data or not isinstance(data, list):
+          return None, None
+        lat = float(data[0]["lat"])
+        lon = float(data[0]["lon"])
+
+        return jsonify({
+            "lat": lat,
+            "lon": lon,
+        })
+    except requests.RequestException as e:
+        return jsonify({"ok": False, "error": f"Nominatim-Fehler: {str(e)}"}), 502

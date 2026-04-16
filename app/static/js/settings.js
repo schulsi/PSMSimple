@@ -54,11 +54,8 @@ async function loadSettings() {
   try {
     const me = await apiGet('/api/me');
     APP_PERMISSIONS = me.permissions || null;
-    console.log('[loadSettings] Berechtigungen gesetzt:', APP_PERMISSIONS);
 
     const settings = await apiGet('/api/user/settings');
-    console.log('[loadSettings] User-Settings geladen:', settings);
-
     const toggle                = $('save-mode-toggle');
     const defaultAnwender       = $('set-default-anwender');
     const defaultVerantwortlich = $('set-default-verantwortlich');
@@ -68,7 +65,6 @@ async function loadSettings() {
     if (registrationAllowed && APP_PERMISSIONS?.can_manage_users) {
       try {
         const appSettings = await apiGet('/api/app/settings');
-        console.log('[loadSettings] App-Settings geladen:', appSettings);
         registrationAllowed.checked = !!appSettings.registration_allowed;
       } catch (err) {
         console.warn('[loadSettings] Fehler beim Laden von App-Settings:', err);
@@ -88,10 +84,8 @@ async function loadSettings() {
     if (defaultVerantwortlich) defaultVerantwortlich.value = settings.default_verantwortlich || '';
 
     if (APP_PERMISSIONS?.can_manage_users) {
-      console.log('[loadSettings] Benutzer können verwaltet werden, lade Benutzerliste...');
       await loadUserRoles();
     } else {
-      console.log('[loadSettings] Keine Berechtigung für Benutzerverwaltung');
     }
 
     applyDefaultSettingsToExport(settings);
@@ -186,8 +180,6 @@ async function loadUserRoles() {
 
   try {
     const users = await apiGet('/api/users');
-    console.log('[loadUserRoles] Benutzer geladen:', users);
-
     if (!Array.isArray(users) || users.length === 0) {
       wrap.innerHTML = '<div style="color:#999">Keine Benutzer vorhanden.</div>';
       return;
