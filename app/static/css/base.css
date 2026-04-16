@@ -1,0 +1,93 @@
+:root {
+  --green-deep: #1a3a2a;
+  --green-mid: #2d6a4f;
+  --green-light: #52b788;
+  --green-pale: #b7e4c7;
+  --cream: #f8f5ee;
+  --cream-dark: #ede9df;
+  --text: #1c2b22;
+  --text-muted: #5a7060;
+  --danger: #c0392b;
+  --shadow: 0 2px 16px rgba(26, 58, 42, 0.10);
+  --radius: 10px;
+
+  --history-accent: var(--green-mid);
+  --history-accent-soft: rgba(82, 183, 136, 0.12);
+  --history-border: var(--cream-dark);
+  --history-surface: #fff;
+  --history-surface-soft: #fcfbf7;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    'DM Sans',
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Noto Color Emoji',
+    sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.7rem;
+  color: var(--green-deep);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+h2 .badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .7rem;
+  font-weight: 600;
+  background: var(--green-pale);
+  color: var(--green-deep);
+  padding: .2rem .6rem;
+  border-radius: 20px;
+}
+
+pre {
+  background: var(--green-deep);
+  color: #b7e4c7;
+  border-radius: 10px;
+  padding: 1.25rem;
+  font-size: .78rem;
+  line-height: 1.6;
+  overflow: auto;
+  max-height: 420px;
+  font-family: 'Fira Mono', 'Courier New', monospace;
+}
+
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+.label-muted {
+  color: var(--text-muted);
+}
+
+.label-inherit {
+  color: inherit;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.danger-text {
+  color: var(--danger);
+}
