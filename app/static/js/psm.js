@@ -186,7 +186,7 @@ function renderPSMSearchResults(items) {
 
   resultsBox.innerHTML = items.map(item => `
     <div class="autocomplete-item" data-action="selectPSMSearchResult" data-name="${escapeHtml(item.name)}" data-kennr="${escapeHtml(item.kennr)}">
-      ${escapeHtml(item.name)} <span style="color:#5a7060">(${escapeHtml(item.kennr || '')})</span>
+      ${escapeHtml(item.name)} <span class="text-muted">(${escapeHtml(item.kennr || '')})</span>
     </div>
   `).join('');
 

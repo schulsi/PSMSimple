@@ -31,7 +31,7 @@ function historyField(label, value) {
 
 function renderKulturenHistory(items) {
   if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">Keine Kulturen hinterlegt.</div>`;
+    return `<div class="empty-text empty">Keine Kulturen hinterlegt.</div>`;
   }
 
   return `
@@ -48,7 +48,7 @@ function renderKulturenHistory(items) {
 
 function renderPSMHistory(items) {
   if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">Keine Pflanzenschutzmittel vorhanden.</div>`;
+    return `<div class="empty-text empty">Keine Pflanzenschutzmittel vorhanden.</div>`;
   }
 
   return `
@@ -71,7 +71,7 @@ function renderPSMHistory(items) {
 
 function renderEinsatzorteHistory(items) {
   if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">Keine Einsatzorte vorhanden.</div>`;
+    return `<div class="empty-text empty">Keine Einsatzorte vorhanden.</div>`;
   }
 
   return `
@@ -261,7 +261,8 @@ async function showHistoryDetail(id) {
       </div>
     `;
 
-    wrap.style.display = 'block';
+    wrap.classList.remove('hidden');
+    wrap.classList.add('visible');
     wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) {
     console.error(err);
@@ -277,7 +278,10 @@ async function deleteHistoryEntry(id) {
     toast('✅ History-Eintrag gelöscht');
 
     const detailWrap = $('history-detail-wrap');
-    if (detailWrap) detailWrap.style.display = 'none';
+    if (detailWrap) {
+      detailWrap.classList.remove('visible');
+      detailWrap.classList.add('hidden');
+    }
 
     await loadHistory();
   } catch (err) {
@@ -657,7 +661,7 @@ async function loadFieldsUsage() {
               <td>${item.last_used || '—'}</td>
               <td><button class="btn btn-sm btn-ghost" data-action="toggleFieldDetails" data-name='${item.field_name.replace(/'/g, "\\'")}', this)">🔽</button></td>
             </tr>
-            <tr id="details-${escapeHtml(item.field_name).replace(/[^a-zA-Z0-9]/g, '_')}" class="field-details-row" style="display:none">
+            <tr id="details-${escapeHtml(item.field_name).replace(/[^a-zA-Z0-9]/g, '_')}" class="field-details-row hidden">
               <td colspan="4" class="field-details-cell">
                 <div class="field-details-loading">Lade Details...</div>
               </td>
