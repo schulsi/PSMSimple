@@ -586,15 +586,15 @@ async function loadFieldsUsage() {
     const data = items.map(item => item.usage_count);
 
     window.fieldsChart = new Chart(ctx, {
-      type: 'pie',
+      type: 'bar',
       data: {
         labels: labels,
         datasets: [{
+          label: 'Verwendungen',
           data: data,
           backgroundColor: historyChartPalette(items.length),
           borderColor: '#f8f5ee',
-          borderWidth: 2,
-          hoverOffset: 6
+          borderWidth: 2
         }]
       },
       options: {
@@ -602,24 +602,37 @@ async function loadFieldsUsage() {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'bottom',
-            labels: {
-              color: '#1c2b22',
-              usePointStyle: true,
-              boxWidth: 10,
-              padding: 14
-  }
+            display: false
           },
           tooltip: {
             callbacks: {
               label: function(context) {
                 const item = items[context.dataIndex];
-                let label = `${context.label}: ${context.parsed} Verwendungen`;
+                let label = `${context.label}: ${context.parsed.y} Verwendungen`;
                 if (item.total_area) {
                   label += ` (${item.total_area} ${item.unit || ''})`.trim();
                 }
                 return label;
               }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              color: '#1c2b22'
+            },
+            title: {
+              display: true,
+              text: 'Verwendungen',
+              color: '#1c2b22'
+            }
+          },
+          x: {
+            ticks: {
+              color: '#1c2b22'
             }
           }
         }
