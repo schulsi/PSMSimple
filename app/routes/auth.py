@@ -35,7 +35,6 @@ def login():
         description: Ungültige Kredenziale
     """
     setting = get_setting("registration_allowed")
-    print(setting)
 
     if current_user.is_authenticated:
         return redirect(url_for("pages.index"))

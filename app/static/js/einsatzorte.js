@@ -40,8 +40,6 @@ function openMapModal() {
           const lat = parseFloat(data.lat);
           const lng = parseFloat(data.lon);
 
-          console.log(lat + ', ' + lng);
-
           if (!isNaN(lat) && !isNaN(lng)) {
             center = [lat, lng];
             zoom = EO_MAP_POINT_ZOOM;
