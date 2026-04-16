@@ -476,6 +476,13 @@ function showHistorySubTab(tabName, buttonEl) {
   document.querySelectorAll('.history-sub-tab').forEach(tab => tab.classList.remove('active'));
   document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
 
+  // Hide application details when switching tabs
+  const detailWrap = $('history-detail-wrap');
+  if (detailWrap) {
+    detailWrap.classList.remove('visible');
+    detailWrap.classList.add('hidden');
+  }
+
   // Show selected sub-tab
   document.getElementById(`history-sub-${tabName}`).classList.add('active');
   event.target.classList.add('active');
@@ -710,10 +717,10 @@ function toggleFieldDetails(fieldName, button) {
     return;
   }
   
-  const isVisible = detailsRow.style.display !== 'none';
+  const isVisible = !detailsRow.classList.contains('hidden');
 
   if (isVisible) {
-    detailsRow.style.display = 'none';
+    detailsRow.classList.add('hidden');
     button.innerHTML = '🔽';
   } else {
     const detailsCell = detailsRow.querySelector('.field-details-cell');
@@ -723,7 +730,7 @@ function toggleFieldDetails(fieldName, button) {
     }
     
     detailsCell.innerHTML = '<div class="field-details-loading">Lade Details...</div>';
-    detailsRow.style.display = '';
+    detailsRow.classList.remove('hidden');
     button.innerHTML = '🔼';
 
     const startDate = document.getElementById('fields-history-date-from').value;
@@ -777,7 +784,7 @@ function toggleFieldDetails(fieldName, button) {
                       <td>${escapeHtml(app.psm_name)}</td>
                       <td>${app.quantity ? `${app.quantity} ${app.unit || ''}`.trim() : '—'}</td>
                       <td>${app.area ? `${app.area} ${app.area_unit || ''}`.trim() : '—'}</td>
-                      <td><a href="javascript:void(0)" data-action="showApplicationDetails" data-id="${app.id}">Anzeigen</a></td>
+                      <td><a href="javascript:void(0)" data-action="showHistoryDetail" data-id="${app.id}">Anzeigen</a></td>
                     </tr>
                   `).join('')}
                 </tbody>

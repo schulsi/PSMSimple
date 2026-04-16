@@ -821,6 +821,15 @@
   color: var(--text-muted);
 }
 
+/* Table row visibility */
+.field-details-row.hidden {
+  display: none !important;
+}
+
+.field-details-row {
+  display: table-row !important;
+}
+
 .psm-usage-table tr:last-child td,
 .field-applications-table tr:last-child td {
   border-bottom: none;
