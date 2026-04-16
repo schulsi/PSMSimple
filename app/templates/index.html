@@ -42,7 +42,7 @@
         </div>
 
         <a href="/settings" data-action="showTab" data-tab="settings"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
-        <a class="popup-logout" href="{{ url_for('auth.logout') }}">🚪 Abmelden</a>
+        <button type="button" class="popup-logout" data-action="logout" style="background: none; border: none; padding: .5rem 1rem; cursor: pointer; width: 100%; text-align: left; color: inherit; font-size: inherit;">🚪 Abmelden</button>
       </div>
 
       <button type="button" class="nav-user-btn" id="user-btn" data-action="toggleUserPopup">
@@ -317,7 +317,8 @@
       <div class="card">
         <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--green-deep)">👥 Benutzerverwaltung</h3>
         <div style="display:flex;flex-direction:column;gap:.85rem" id="user-role-list">
-      </div>
+          <!-- User roles loaded by JavaScript -->
+        </div>
       </div>
       {% endif %}
       <div class="card">

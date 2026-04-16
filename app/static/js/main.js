@@ -1,23 +1,47 @@
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    if ($('exp-datum') && !$('exp-datum').value) {
-      $('exp-datum').value = new Date().toISOString().split('T')[0];
+    // Nur App-Seite laden, wenn alle Funktionen vorhanden sind
+    if (typeof loadBetrieb === 'function') {
+      if ($('exp-datum') && !$('exp-datum').value) {
+        $('exp-datum').value = new Date().toISOString().split('T')[0];
+      }
+
+      await Promise.all([
+        loadBetrieb(),
+        loadPSM(),
+        loadEinsatzorte(),
+        loadKulturen(),
+        loadSettings()
+      ]);
+
+      initPSMSearch();
     }
-
-    await Promise.all([
-      loadBetrieb(),
-      loadPSM(),
-      loadEinsatzorte(),
-      loadKulturen(),
-      loadSettings()
-    ]);
-
-    initPSMSearch();
   } catch (err) {
     console.error(err);
     toast('❌ Fehler beim Laden der App');
   }
 });
+
+/* ── LOGOUT FUNKTION ── */
+function logout() {
+  // Create a hidden form and submit it via POST
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/logout';
+  
+  // Add CSRF token from meta tag
+  const csrfToken = document.querySelector('meta[name="csrf-token"]');
+  if (csrfToken) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'csrf_token';
+    input.value = csrfToken.content;
+    form.appendChild(input);
+  }
+  
+  document.body.appendChild(form);
+  form.submit();
+}
 
 /* ── Zentraler data-action Dispatcher ── */
 (function initActionDispatcher() {
@@ -31,10 +55,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     'previewJSON', 'exportSave', 'exportDownloadZip',
     'resetHistoryFilter', 'resetPSMHistoryFilter', 'resetFieldsHistoryFilter',
     'saveSettings', 'renameUser', 'saveBetriebWizard',
-    'closeModal',
+    'closeModal', 'logout',
   ]);
 
-  // Aktionen mit einem Argument aus data-tab, data-period oder data-subtab
+  // Aktionen mit einem Argument aus data-tab, data-period, data-subtab oder data-panel
   const CLICK_ACTIONS_WITH_ARG = new Map([
     ['showTab',              el => [el.dataset.tab,    el]],
     ['showHistorySubTab',    el => [el.dataset.subtab, el]],
@@ -54,6 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     ['saveUserRole',         el => [el.dataset.id]],
     ['selectPSMSearchResult', el => [el.dataset.name, el.dataset.kennr]],
     ['openDeleteUserConfirm', el => [el.dataset.id, el.dataset.username]],
+    ['showPanelAuth',        el => [el.dataset.panel]],
   ]);
 
   // Aktionen, die nach showTab zusätzlich aufgerufen werden (data-also)

@@ -157,8 +157,9 @@ def logout():
       401:
         description: Nicht authentifiziert
     """
-    logout_user()
-    flash("Sie wurden abgemeldet.", "success")
     logger.info(
         f"User '{current_user.username}' logged out from IP: {request.remote_addr}")
+
+    logout_user()
+    flash("Sie wurden abgemeldet.", "success")
     return redirect(url_for("auth.login"))

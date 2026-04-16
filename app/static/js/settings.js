@@ -54,6 +54,7 @@ async function loadSettings() {
   try {
     const me = await apiGet('/api/me');
     APP_PERMISSIONS = me.permissions || null;
+    console.log('[loadSettings] Berechtigungen gesetzt:', APP_PERMISSIONS);
 
     const settings = await apiGet('/api/user/settings');
 
@@ -78,13 +79,15 @@ async function loadSettings() {
     if (defaultVerantwortlich) defaultVerantwortlich.value = settings.default_verantwortlich || '';
 
     if (APP_PERMISSIONS?.can_manage_users) {
+      console.log('[loadSettings] Benutzer können verwaltet werden, lade Benutzerliste...');
       await loadUserRoles();
-
+    } else {
+      console.log('[loadSettings] Keine Berechtigung für Benutzerverwaltung');
     }
 
     applyDefaultSettingsToExport(settings);
   } catch (err) {
-    console.error(err);
+    console.error('[loadSettings] Fehler:', err);
     toast('❌ Einstellungen konnten nicht geladen werden');
   }
 }
@@ -167,10 +170,19 @@ async function renameUser() {
 
 async function loadUserRoles() {
   const wrap = document.getElementById('user-role-list');
-  if (!wrap) return;
+  if (!wrap) {
+    console.warn('[loadUserRoles] Element mit ID "user-role-list" nicht gefunden');
+    return;
+  }
 
   try {
     const users = await apiGet('/api/users');
+    console.log('[loadUserRoles] Benutzer geladen:', users);
+
+    if (!Array.isArray(users) || users.length === 0) {
+      wrap.innerHTML = '<div style="color:#999">Keine Benutzer vorhanden.</div>';
+      return;
+    }
 
     wrap.innerHTML = users.map(user => `
       <div class="item-row" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.75rem;padding:.75rem;border:1px solid #ddd;border-radius:.5rem">
@@ -204,8 +216,8 @@ async function loadUserRoles() {
       </div>
     `).join('');
   } catch (err) {
-    console.error(err);
-    wrap.innerHTML = '<div style="color:#b00020">Benutzer konnten nicht geladen werden.</div>';
+    console.error('[loadUserRoles] Fehler beim Laden:', err);
+    wrap.innerHTML = '<div style="color:#b00020">❌ Benutzer konnten nicht geladen werden: ' + (err.message || 'Unbekannter Fehler') + '</div>';
   }
 }
 async function saveUserRole(userId) {
@@ -239,4 +251,13 @@ async function deleteUser(userId) {
     console.error(err);
     toast(`❌ ${err.message}`);
   }
+}
+
+function escapeJs(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
