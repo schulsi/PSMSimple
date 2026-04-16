@@ -1,6 +1,15 @@
 /* ══════════════════════════════════════════════
    MAP PICKER  (Leaflet + OpenStreetMap)
    ══════════════════════════════════════════════ */
+/* Leaflet Marker Fix (LOCAL PATHS) */
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: '/media/marker-icon-2x.png',
+  iconUrl: '/media/marker-icon.png',
+  shadowUrl: '/mediat/marker-shadow.png'
+});
+
 let _eoMap = null;
 let _eoMarker = null;
 let _eoMapSelection = null; // { lat, lng } confirmed in map modal
@@ -14,22 +23,80 @@ function openMapModal() {
 
   setTimeout(() => {
     if (!_eoMap) {
-      _eoMap = L.map('eo-map', { zoomControl: true })
-               .setView(EO_MAP_DEFAULT, EO_MAP_DEFAULT_ZOOM);
+      apiGet('/api/betrieb')
+        .then(betrieb => {
+          const plz = betrieb.plz;
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-      }).addTo(_eoMap);
+          if (!plz) {
+            throw new Error('Keine PLZ gefunden');
+          }
 
-      _eoMap.on('click', (e) => _eoMapSetPoint(e.latlng.lat, e.latlng.lng));
+          return fetch(`https://nominatim.openstreetmap.org/search?postalcode=${plz}&country=de&format=json`);
+        })
+        .then(res => res.json())
+        .then(data => {
+          let center = EO_MAP_DEFAULT;
+          let zoom = EO_MAP_DEFAULT_ZOOM;
+
+          if (data.length) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+              center = [lat, lng];
+              zoom = EO_MAP_POINT_ZOOM;
+            }
+          } else {
+            toast('❌ PLZ nicht gefunden');
+          }
+
+          _eoMap = L.map('eo-map', { zoomControl: true }).setView(center, zoom);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19,
+          }).addTo(_eoMap);
+
+          _eoMap.on('click', (e) => _eoMapSetPoint(e.latlng.lat, e.latlng.lng));
+
+          _eoMap.invalidateSize();
+
+          if (data.length) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+              _eoMapSetPoint(lat, lng);
+            }
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          toast(`❌ ${err.message}`);
+
+          _eoMap = L.map('eo-map', { zoomControl: true })
+            .setView(EO_MAP_DEFAULT, EO_MAP_DEFAULT_ZOOM);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19,
+          }).addTo(_eoMap);
+
+          _eoMap.on('click', (e) => _eoMapSetPoint(e.latlng.lat, e.latlng.lng));
+          _eoMap.invalidateSize();
+        });
+
+      return;
     }
+
     _eoMap.invalidateSize();
 
-    // If inputs already have valid coords, show them on the map
     const lat = parseFloat(document.getElementById('eo-gpsRechtswert')?.value);
     const lng = parseFloat(document.getElementById('eo-gpsHochwert')?.value);
-    if (!isNaN(lat) && !isNaN(lng)) _eoMapSetPoint(lat, lng);
+
+    if (!isNaN(lat) && !isNaN(lng)) {
+      _eoMapSetPoint(lat, lng);
+    }
   }, 80);
 }
 
