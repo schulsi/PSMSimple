@@ -7,7 +7,7 @@ delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: '/media/marker-icon-2x.png',
   iconUrl: '/media/marker-icon.png',
-  shadowUrl: '/mediat/marker-shadow.png'
+  shadowUrl: '/media/marker-shadow.png'
 });
 
 let _eoMap = null;
@@ -178,8 +178,8 @@ function renderEinsatzorteList(items = einsatzorteItems) {
         <div class="meta">${escapeHtml(item.flaecheVolumen || '—')} ${escapeHtml(item.einheit || '')}</div>
       </div>
       <div class="item-actions">
-        <button class="btn btn-sm btn-ghost" onclick="editEinsatzort(${item.id})">Bearbeiten</button>
-        <button class="btn btn-sm btn-danger" onclick="removeEinsatzort(${item.id})">Löschen</button>
+        <button class="btn btn-sm btn-ghost" data-action="editEinsatzort" data-item="${item.id}">Bearbeiten</button>
+        <button class="btn btn-sm btn-danger" data-action="removeEinsatzort" data-item="${item.id}">Löschen</button>
       </div>
     </div>
   `).join('');

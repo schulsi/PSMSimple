@@ -187,7 +187,7 @@ async function loadUserRoles() {
             <option value="read-only" ${user.role === 'read-only' ? 'selected' : ''}>Read-only</option>
           </select>
 
-          <button type="button" class="btn btn-primary" style="width:auto" onclick="saveUserRole(${user.id})">
+          <button type="button" class="btn btn-primary" style="width:auto" data-action="saveUserRole" data-id="${user.id}">
             Speichern
           </button>
 
@@ -195,7 +195,7 @@ async function loadUserRoles() {
             type="button"
             class="btn btn-danger"
             style="width:auto"
-            onclick="openDeleteUserConfirm(${user.id}, '${escapeJs(user.username)}')"
+            data-action="openDeleteUserConfirm" data-id="${user.id}" data-username="${escapeJs(user.username)}"
             ${user.is_current_user ? 'disabled' : ''}
           >
             Löschen

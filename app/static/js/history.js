@@ -193,8 +193,8 @@ async function loadHistory() {
       <div class="meta"><strong>Kulturen:</strong> ${escapeHtml(item.kulturen || '—')}</div>
     </div>
     <div class="item-actions">
-      <button class="btn btn-sm btn-ghost" onclick="showHistoryDetail(${item.id})">Details</button>
-      <button class="btn btn-sm btn-danger" onclick="deleteHistoryEntry(${item.id})">Löschen</button>
+      <button class="btn btn-sm btn-ghost" data-action="showHistoryDetail" data-id="${item.id}">Details</button>
+      <button class="btn btn-sm btn-danger" data-action="deleteHistoryEntry" data-id="${item.id}">Löschen</button>
     </div>
   </div>
 `).join('');
@@ -655,7 +655,7 @@ async function loadFieldsUsage() {
               <td>${escapeHtml(item.field_name)}</td>
               <td>${item.usage_count}</td>
               <td>${item.last_used || '—'}</td>
-              <td><button class="btn btn-sm btn-ghost" onclick="toggleFieldDetails('${item.field_name.replace(/'/g, "\\'")}', this)">🔽</button></td>
+              <td><button class="btn btn-sm btn-ghost" data-action="toggleFieldDetails" data-name='${item.field_name.replace(/'/g, "\\'")}', this)">🔽</button></td>
             </tr>
             <tr id="details-${escapeHtml(item.field_name).replace(/[^a-zA-Z0-9]/g, '_')}" class="field-details-row" style="display:none">
               <td colspan="4" class="field-details-cell">
@@ -773,7 +773,7 @@ function toggleFieldDetails(fieldName, button) {
                       <td>${escapeHtml(app.psm_name)}</td>
                       <td>${app.quantity ? `${app.quantity} ${app.unit || ''}`.trim() : '—'}</td>
                       <td>${app.area ? `${app.area} ${app.area_unit || ''}`.trim() : '—'}</td>
-                      <td><a href="javascript:void(0)" onclick="showApplicationDetails(${app.id}); return false;">Anzeigen</a></td>
+                      <td><a href="javascript:void(0)" data-action="showApplicationDetails" data-id="${app.id}">Anzeigen</a></td>
                     </tr>
                   `).join('')}
                 </tbody>

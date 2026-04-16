@@ -10,27 +10,27 @@
 
 {% block body %}
 <header>
-  <button class="nav-toggle" id="nav-toggle" onclick="toggleMobileNav()" aria-label="Menü öffnen">☰</button>
+  <button class="nav-toggle" id="nav-toggle" data-action="toggleMobileNav" aria-label="Menü öffnen">☰</button>
   <div class="logo">🌿 Pflanzen<span>schutz</span></div>
   <div class="sub">Dokumentation & JSON-Export</div>
 </header>
-<div class="nav-overlay" id="nav-overlay" onclick="closeMobileNav()"></div>
+<div class="nav-overlay" id="nav-overlay" data-action="closeMobileNav"></div>
 
 <div class="app">
   <nav>
     <div class="nav-items">
-      <a class="active" href="/" onclick="event.preventDefault(); showTab('home', this)"><span class="ico">🏠</span> Home</a>
+      <a class="active" href="/" data-action="showTab" data-tab="home"><span class="ico">🏠</span> Home</a>
       <div class="section-label">Stammdaten</div>
-      <a href="/betrieb" onclick="event.preventDefault(); showTab('betrieb', this)"><span class="ico">🏡</span> Betrieb</a>
-      <a href="/psm" onclick="event.preventDefault(); showTab('psm', this)"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
-      <a href="/fields" onclick="event.preventDefault(); showTab('einsatzorte', this)"><span class="ico">📍</span> Felder</a>
-      <a href="/cultures" onclick="event.preventDefault(); showTab('kulturen', this)"><span class="ico">🌾</span> Kulturen</a>
+      <a href="/betrieb" data-action="showTab" data-tab="betrieb"><span class="ico">🏡</span> Betrieb</a>
+      <a href="/psm" data-action="showTab" data-tab="psm"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
+      <a href="/fields" data-action="showTab" data-tab="einsatzorte"><span class="ico">📍</span> Felder</a>
+      <a href="/cultures" data-action="showTab" data-tab="kulturen"><span class="ico">🌾</span> Kulturen</a>
       {% if permissions.can_export %}
       <div class="section-label">Export</div>
-      <a href="/export" onclick="event.preventDefault(); showTab('export', this); loadExportSelections(); syncLegacyExportUI()"><span class="ico">📄</span> Applikation dokumentieren</a>
+      <a href="/export" data-action="showTab" data-tab="export" data-also="loadExportSelections,syncLegacyExportUI"><span class="ico">📄</span> Applikation dokumentieren</a>
       {% endif %}
       <div class="section-label">Verlauf</div>
-      <a href="/history" onclick="event.preventDefault(); showTab('history', this); loadHistory()"><span class="ico">🕘</span> Gespeicherte Applikationen</a>
+      <a href="/history" data-action="showTab" data-tab="history" data-also="loadHistory"><span class="ico">🕘</span> Gespeicherte Applikationen</a>
     </div>
 
     <div class="nav-user">
@@ -41,11 +41,11 @@
           <div class="popup-label">Rolle: {{ permissions.role }}</div>
         </div>
 
-        <a href="/settings" onclick="event.preventDefault(); showTab('settings', this)"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
+        <a href="/settings" data-action="showTab" data-tab="settings"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
         <a class="popup-logout" href="{{ url_for('auth.logout') }}">🚪 Abmelden</a>
       </div>
 
-      <button type="button" class="nav-user-btn" id="user-btn" onclick="toggleUserPopup()">
+      <button type="button" class="nav-user-btn" id="user-btn" data-action="toggleUserPopup">
         <div class="nav-user-avatar" id="user-avatar">{{ current_user.username[0] | upper }}</div>
         <span class="nav-user-name" id="user-name-label">{{ current_user.username }}</span>
         <span class="nav-user-caret">▲</span>
@@ -60,7 +60,7 @@
         <div class="home-logo-wrap">
           <img src="{{ url_for('pages.media', filename='logo.png') }}" alt="PSMSimple Logo" class="home-logo">
         </div>
-        <a href="/export" class="btn-home-cta" onclick="event.preventDefault(); showTab('export', document.querySelector('nav a[href=\'/export\']')); loadExportSelections(); syncLegacyExportUI()">
+        <a href="/export" class="btn-home-cta" data-action="showTab" data-tab="export" data-also="loadExportSelections,syncLegacyExportUI">
           Jetzt dokumentieren <span class="cta-arrow">→</span>
         </a>
       </div>
@@ -91,7 +91,7 @@
           </div>
         </div>
         <div style="margin-top:1rem;display:flex;justify-content:flex-end">
-          <button type="button" class="btn btn-primary" onclick="saveBetrieb()">💾 Speichern</button>
+          <button type="button" class="btn btn-primary" data-action="saveBetrieb">💾 Speichern</button>
         </div>
       </div>
     </div>
@@ -99,20 +99,20 @@
     <div id="tab-psm" class="tab">
       <h2>🧪 Pflanzenschutzmittel <span class="badge" id="psm-count">0</span></h2>
       {% if permissions.can_write %}
-        <button type="button" class="btn btn-primary" onclick="openPSMModal()" style="margin-bottom:1rem">+ Neues Mittel</button>
+        <button type="button" class="btn btn-primary" data-action="openPSMModal" style="margin-bottom:1rem">+ Neues Mittel</button>
       {% endif %}
       <div class="item-list" id="psm-list"></div>
     </div>
 
     <div id="tab-einsatzorte" class="tab">
       <h2>📍 Einsatzorte <span class="badge" id="eo-count">0</span></h2>
-      <button type="button" class="btn btn-primary" onclick="openEinsatzortModal()" style="margin-bottom:1rem">+ Neuer Einsatzort</button>
+      <button type="button" class="btn btn-primary" data-action="openEinsatzortModal" style="margin-bottom:1rem">+ Neuer Einsatzort</button>
       <div class="item-list" id="einsatzorte-list"></div>
     </div>
 
     <div id="tab-kulturen" class="tab">
       <h2>🌾 Kulturen <span class="badge" id="kult-count">0</span></h2>
-      <button type="button" class="btn btn-primary" onclick="openKulturModal()" style="margin-bottom:1rem">+ Neue Kultur</button>
+      <button type="button" class="btn btn-primary" data-action="openKulturModal" style="margin-bottom:1rem">+ Neue Kultur</button>
       <div class="item-list" id="kulturen-list"></div>
     </div>
 
@@ -143,7 +143,7 @@
           <div class="field"><label>Uhrzeit</label><input type="time" id="exp-uhrzeit"></div>
           <div class="field">
             <label>Art der Verwendung</label>
-            <select id="exp-art-haupt" onchange="updateArtSubkategorie()">
+            <select id="exp-art-haupt" data-action="updateArtSubkategorie">
               <option value="Behandlung von Freilandflächen">Behandlung von Freilandflächen</option>
               <option value="Behandlung geschlossener Räume bzw. in geschlossenen Räumen">Behandlung geschlossener Räume bzw. in geschlossenen Räumen</option>
               <option value="Behandlung von Saatgut oder Pflanzenvermehrungsmaterial">Behandlung von Saatgut oder Pflanzenvermehrungsmaterial</option>
@@ -151,7 +151,7 @@
           </div>
           <div class="field">
             <label>Subkategorie</label>
-            <select id="exp-art-sub" onchange="syncArtVerwendungField()"></select>
+            <select id="exp-art-sub" data-action="syncArtVerwendungField"></select>
           </div>
           <div class="field"><label>Verantwortlich</label><input id="exp-verantwortlich"></div>
           <div class="field"><label>Anwender</label><input id="exp-anwender"></div>
@@ -160,9 +160,9 @@
       </div>
 
       <div class="export-footer">
-        <button type="button" id="btn-preview" class="btn btn-ghost" onclick="previewJSON()" disabled>👁 Vorschau</button>
-        <button type="button" id="btn-save" class="btn btn-export" onclick="exportSave()" disabled>💾 Speichern</button>
-        <button type="button" id="btn-download" class="btn btn-export" onclick="exportDownloadZip()" disabled>⬇ Download</button>
+        <button type="button" id="btn-preview" class="btn btn-ghost" data-action="previewJSON" disabled>👁 Vorschau</button>
+        <button type="button" id="btn-save" class="btn btn-export" data-action="exportSave" disabled>💾 Speichern</button>
+        <button type="button" id="btn-download" class="btn btn-export" data-action="exportDownloadZip" disabled>⬇ Download</button>
       </div>
       <div id="validation-msg" style="margin-top:.6rem;font-size:.82rem;color:var(--danger);display:none"></div>
 
@@ -177,25 +177,25 @@
       <h2>🕘 Verlauf <span class="badge" id="history-count">0</span></h2>
 
       <div class="sub-tabs">
-        <button class="sub-tab-btn active" onclick="showHistorySubTab('applications', this)">📄 Applikationen</button>
-        <button class="sub-tab-btn" onclick="showHistorySubTab('psm-usage', this)">🧪 PSM-Verwendung</button>
-        <button class="sub-tab-btn" onclick="showHistorySubTab('fields-usage', this)">📍 Felder-Verwendung</button>
+        <button class="sub-tab-btn active" data-action="showHistorySubTab" data-subtab="applications">📄 Applikationen</button>
+        <button class="sub-tab-btn" data-action="showHistorySubTab" data-subtab="psm-usage">🧪 PSM-Verwendung</button>
+        <button class="sub-tab-btn" data-action="showHistorySubTab" data-subtab="fields-usage">📍 Felder-Verwendung</button>
       </div>
 
       <div id="history-sub-applications" class="history-sub-tab active">
         <div class="card" style="margin-bottom: .8rem;">
           <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
-            <div class="field"><label>Von</label><input type="date" id="history-date-from" onchange="loadHistory()"></div>
-            <div class="field"><label>Bis</label><input type="date" id="history-date-to" onchange="loadHistory()"></div>
+            <div class="field"><label>Von</label><input type="date" id="history-date-from" data-action="loadHistory"></div>
+            <div class="field"><label>Bis</label><input type="date" id="history-date-to" data-action="loadHistory"></div>
             <div style="display:flex;gap:.5rem;align-items:center;">
-              <button type="button" class="btn btn-sm btn-ghost" onclick="resetHistoryFilter()">Zurücksetzen</button>
+              <button type="button" class="btn btn-sm btn-ghost" data-action="resetHistoryFilter">Zurücksetzen</button>
             </div>
           </div>
           <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisMonth')">Dieser Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastMonth')">Letzter Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('thisYear')">Dieses Jahr</button>
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectHistory('lastYear')">Letztes Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectHistory" data-period="thisMonth">Dieser Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectHistory" data-period="lastMonth">Letzter Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectHistory" data-period="thisYear">Dieses Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectHistory" data-period="lastYear">Letztes Jahr</button>
           </div>
         </div>
 
@@ -210,17 +210,17 @@
       <div id="history-sub-psm-usage" class="history-sub-tab">
         <div class="card" style="margin-bottom: .8rem;">
           <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
-            <div class="field"><label>Von</label><input type="date" id="psm-history-date-from" onchange="loadPSMUsage()"></div>
-            <div class="field"><label>Bis</label><input type="date" id="psm-history-date-to" onchange="loadPSMUsage()"></div>
+            <div class="field"><label>Von</label><input type="date" id="psm-history-date-from" data-action="loadPSMUsage"></div>
+            <div class="field"><label>Bis</label><input type="date" id="psm-history-date-to" data-action="loadPSMUsage"></div>
             <div style="display:flex;gap:.5rem;align-items:center;">
-              <button type="button" class="btn btn-sm btn-ghost" onclick="resetPSMHistoryFilter()">Zurücksetzen</button>
+              <button type="button" class="btn btn-sm btn-ghost" data-action="resetPSMHistoryFilter">Zurücksetzen</button>
             </div>
           </div>
           <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('thisMonth')">Dieser Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('lastMonth')">Letzter Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('thisYear')">Dieses Jahr</button>
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectPSMHistory('lastYear')">Letztes Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectPSMHistory" data-period="thisMonth">Dieser Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectPSMHistory" data-period="lastMonth">Letzter Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectPSMHistory" data-period="thisYear">Dieses Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectPSMHistory" data-period="lastYear">Letztes Jahr</button>
           </div>
         </div>
 
@@ -238,17 +238,17 @@
       <div id="history-sub-fields-usage" class="history-sub-tab">
         <div class="card" style="margin-bottom: .8rem;">
           <div class="form-grid history-filter-row" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .7rem; align-items:end;">
-            <div class="field"><label>Von</label><input type="date" id="fields-history-date-from" onchange="loadFieldsUsage()"></div>
-            <div class="field"><label>Bis</label><input type="date" id="fields-history-date-to" onchange="loadFieldsUsage()"></div>
+            <div class="field"><label>Von</label><input type="date" id="fields-history-date-from" data-action="loadFieldsUsage"></div>
+            <div class="field"><label>Bis</label><input type="date" id="fields-history-date-to" data-action="loadFieldsUsage"></div>
             <div style="display:flex;gap:.5rem;align-items:center;">
-              <button type="button" class="btn btn-sm btn-ghost" onclick="resetFieldsHistoryFilter()">Zurücksetzen</button>
+              <button type="button" class="btn btn-sm btn-ghost" data-action="resetFieldsHistoryFilter">Zurücksetzen</button>
             </div>
           </div>
           <div class="history-quick-select" style="margin-top:.65rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('thisMonth')">Dieser Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('lastMonth')">Letzter Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('thisYear')">Dieses Jahr</button>
-            <button type="button" class="btn btn-sm btn-outline" onclick="quickSelectFieldsHistory('lastYear')">Letztes Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectFieldsHistory" data-period="thisMonth">Dieser Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectFieldsHistory" data-period="lastMonth">Letzter Monat</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectFieldsHistory" data-period="thisYear">Dieses Jahr</button>
+            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectFieldsHistory" data-period="lastYear">Letztes Jahr</button>
           </div>
         </div>
 
@@ -280,7 +280,7 @@
         <div style="display:flex;align-items:center;gap:1rem">
           <span style="font-size:.9rem;font-weight:600;color:var(--text-muted)" id="lbl-browser-download">Browser-Download</span>
           <label class="save-toggle" title="Umschalten zwischen Browser-Download und lokalem Speichern">
-            <input type="checkbox" id="save-mode-toggle" onchange="onSaveModeToggle(this)">
+            <input type="checkbox" id="save-mode-toggle" data-action="onSaveModeToggle">
             <span class="save-toggle-track"></span>
           </label>
           <span style="font-size:.9rem;font-weight:600" id="lbl-local-save">Lokal speichern</span>
@@ -326,13 +326,13 @@
             <label>Benutzername ändern</label>
             <div class="popup-rename-row">
               <input type="text" id="rename-input" placeholder="{{ current_user.username }}">
-              <button type="button" onclick="renameUser()">Speichern</button>
+              <button type="button" data-action="renameUser">Speichern</button>
             </div>
           </div>
         </div>
 
       <div style="display:flex;gap:.75rem;margin-top:.5rem">
-        <button type="button" class="btn btn-primary" onclick="saveSettings()">💾 Einstellungen speichern</button>
+        <button type="button" class="btn btn-primary" data-action="saveSettings">💾 Einstellungen speichern</button>
       </div>
     </div>
   </main>
@@ -372,8 +372,8 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" onclick="closeModal('modal-psm')">Abbrechen</button>
-      <button type="button" class="btn btn-primary" onclick="savePSM()" id="psm-save-btn">Speichern</button>
+      <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-psm">Abbrechen</button>
+      <button type="button" class="btn btn-primary" data-action="savePSM" id="psm-save-btn">Speichern</button>
     </div>
   </div>
 </div>
@@ -388,7 +388,7 @@
         <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
           <input type="number" id="eo-gpsRechtswert" step="any" placeholder="Lat, z.B. 48.123456" required style="flex:1;min-width:130px">
           <input type="number" id="eo-gpsHochwert" step="any" placeholder="Lng, z.B. 7.654321" required style="flex:1;min-width:130px">
-          <button type="button" class="btn btn-ghost btn-sm" onclick="openMapModal()" style="white-space:nowrap;flex-shrink:0">🗺 Karte anzeigen</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-action="openMapModal" style="white-space:nowrap;flex-shrink:0">🗺 Karte anzeigen</button>
         </div>
       </div>
       <div class="field"><label>Anwendungsbereich</label><select id="eo-anwendungsbereich"><option value="Freiland" selected>Freiland</option><option value="Gewächshaus">Gewächshaus</option><option value="Lager">Lager</option></select></div>
@@ -397,8 +397,8 @@
       <div class="field"><label>Einheit</label><select id="eo-einheit"><option value="m2">m2</option><option value="ha">ha</option><option value="ar">ar</option></select></div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" onclick="closeModal('modal-einsatzort')">Abbrechen</button>
-      <button type="button" class="btn btn-primary" onclick="saveEinsatzort()">Speichern</button>
+      <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-einsatzort">Abbrechen</button>
+      <button type="button" class="btn btn-primary" data-action="saveEinsatzort">Speichern</button>
     </div>
   </div>
 </div>
@@ -412,8 +412,8 @@
     </div>
     <p class="map-hint">Auf die Karte klicken um einen Punkt zu setzen · Marker ist verschiebbar</p>
     <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" onclick="closeMapModal()">Abbrechen</button>
-      <button type="button" id="map-confirm-btn" class="btn btn-primary" onclick="confirmMapSelection()" disabled>✅ Koordinaten übernehmen</button>
+      <button type="button" class="btn btn-ghost" data-action="closeMapModal">Abbrechen</button>
+      <button type="button" id="map-confirm-btn" class="btn btn-primary" data-action="confirmMapSelection" disabled>✅ Koordinaten übernehmen</button>
     </div>
   </div>
 </div>
@@ -426,8 +426,8 @@
       <div class="field"><label>EPPO-Code <span style="color:var(--danger)">*</span></label><input id="k-eppoCode" placeholder="VITVI"></div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" onclick="closeModal('modal-kultur')">Abbrechen</button>
-      <button type="button" class="btn btn-primary" onclick="saveKultur()">Speichern</button>
+      <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-kultur">Abbrechen</button>
+      <button type="button" class="btn btn-primary" data-action="saveKultur">Speichern</button>
     </div>
   </div>
 </div>
@@ -476,7 +476,7 @@
       <div style="display:flex;align-items:center;gap:1rem">
         <span style="font-size:.88rem;font-weight:600;color:var(--text-muted)" id="wiz-lbl-browser">Browser-Download</span>
         <label class="save-toggle" title="Umschalten zwischen Browser-Download und lokalem Speichern">
-          <input type="checkbox" id="wiz-save-mode-toggle" checked onchange="onWizSaveModeToggle(this)">
+          <input type="checkbox" id="wiz-save-mode-toggle" checked data-action="onWizSaveModeToggle">
           <span class="save-toggle-track"></span>
         </label>
         <span style="font-size:.88rem;font-weight:600" id="wiz-lbl-local">Lokal speichern</span>
@@ -485,7 +485,7 @@
     </div>
 
     <div class="modal-footer">
-      <button type="button" class="btn btn-primary" onclick="saveBetriebWizard()">Speichern und starten</button>
+      <button type="button" class="btn btn-primary" data-action="saveBetriebWizard">Speichern und starten</button>
     </div>
   </div>
 </div>

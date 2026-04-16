@@ -140,7 +140,7 @@ window.addEventListener('popstate', (event) => {
     ? event.state.tab
     : getTabFromPath();
  
-  const navLink = document.querySelector(`nav a[onclick*="'${tabName}'"]`);
+  const navLink = document.querySelector(`nav a[data-action="showTab"][data-tab="${tabName}"]`);
   showTab(tabName, navLink, false);  // false = don't push again
  
   // Re-run loaders that need fresh data
@@ -154,7 +154,7 @@ window.addEventListener('popstate', (event) => {
 // ── On initial page load: activate correct tab from URL & set initial state ──
 document.addEventListener('DOMContentLoaded', () => {
   const tabName = getTabFromPath();
-  const navLink = document.querySelector(`nav a[onclick*="'${tabName}'"]`);
+  const navLink = document.querySelector(`nav a[data-action="showTab"][data-tab="${tabName}"]`);
   showTab(tabName, navLink, false);
   // Replace so the initial entry also carries state for popstate
   history.replaceState({ tab: tabName }, '', window.location.pathname);

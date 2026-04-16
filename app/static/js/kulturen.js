@@ -17,8 +17,8 @@ function renderKulturenList(items = kulturenItems) {
         <div class="meta">EPPO-Code: ${escapeHtml(item.eppoCode || '—')}</div>
       </div>
       <div class="item-actions">
-        <button class="btn btn-sm btn-ghost" onclick="editKultur(${item.id})">Bearbeiten</button>
-        <button class="btn btn-sm btn-danger" onclick="removeKultur(${item.id})">Löschen</button>
+        <button class="btn btn-sm btn-ghost" data-action="editKultur" data-id="${item.id}">Bearbeiten</button>
+        <button class="btn btn-sm btn-danger" data-action="removeKultur" data-id="${item.id}">Löschen</button>
       </div>
     </div>
   `).join('');
