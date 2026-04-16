@@ -57,14 +57,23 @@ async function loadSettings() {
     console.log('[loadSettings] Berechtigungen gesetzt:', APP_PERMISSIONS);
 
     const settings = await apiGet('/api/user/settings');
+    console.log('[loadSettings] User-Settings geladen:', settings);
 
     const toggle                = $('save-mode-toggle');
     const defaultAnwender       = $('set-default-anwender');
     const defaultVerantwortlich = $('set-default-verantwortlich');
     const registrationAllowed   = $('set-registration-allowed');
 
-    if (registrationAllowed) {
-      registrationAllowed.checked = !!settings.registration_allowed;
+    // Lade registration_allowed von /api/app/settings (global)
+    if (registrationAllowed && APP_PERMISSIONS?.can_manage_users) {
+      try {
+        const appSettings = await apiGet('/api/app/settings');
+        console.log('[loadSettings] App-Settings geladen:', appSettings);
+        registrationAllowed.checked = !!appSettings.registration_allowed;
+      } catch (err) {
+        console.warn('[loadSettings] Fehler beim Laden von App-Settings:', err);
+        registrationAllowed.checked = false;
+      }
     }
 
     const localSave = settings.local_save !== undefined ? !!settings.local_save : true;
@@ -111,7 +120,7 @@ function collectWizardSaveMode() {
 
 function collectAppSettings() {
   return {
-    registration_allowed: $('set-registration-allowed') ? $('set-registration-allowed').checked : true
+    registration_allowed: $('set-registration-allowed') ? ($('set-registration-allowed').checked ? "1" : "0") : "0"
   };
 }
 
