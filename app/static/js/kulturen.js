@@ -4,6 +4,7 @@ let currentKulturEditId = null;
 let bbchDraftItems = [];
 let bbchRemovedIds = [];
 let bbchTempRowId = 0;
+let bbchOverviewItems = [];
 
 function renderKulturenList(items = kulturenItems) {
   const list = $('kulturen-list');
@@ -55,6 +56,7 @@ function resetKulturForm() {
   if ($('k-eppoCode')) $('k-eppoCode').value = '';
 
   bbchDraftItems = [];
+  bbchOverviewItems = [];
   bbchRemovedIds = [];
   bbchTempRowId = 0;
 
@@ -64,7 +66,7 @@ function resetKulturForm() {
   }
 
   renderBBCHList();
-  renderBBCHOverview();
+  renderBBCHOverview([]);
   updateBBCHSectionState();
 }
 
@@ -96,90 +98,107 @@ function updateBBCHSectionState() {
   if (!editorSection) return;
 
   const isExisting = Boolean(currentKulturEditId);
-
   editorSection.dataset.mode = isExisting ? 'edit' : 'create';
 
   if (addBtn) {
-    addBtn.disabled = false;
+    addBtn.disabled = !isExisting;
   }
 }
 
 function renderBBCHList() {
   const list = $('bbch-list');
   const emptyState = $('bbch-empty-state');
+  const editorTableWrap = $('bbch-editor-table-wrap');
 
-  if (!list) return;
+  if (!list || !editorTableWrap) return;
 
   if (!bbchDraftItems.length) {
     list.innerHTML = '';
-    if (emptyState) emptyState.classList.remove('hidden');
+    editorTableWrap.classList.add('hidden');
+
+    if (!Array.isArray(bbchOverviewItems) || !bbchOverviewItems.length) {
+      if (emptyState) emptyState.classList.remove('hidden');
+    }
+
     return;
   }
 
+  editorTableWrap.classList.remove('hidden');
   if (emptyState) emptyState.classList.add('hidden');
 
-  list.innerHTML = bbchDraftItems.map((item, index) => {
+  list.innerHTML = bbchDraftItems.map(item => {
     const rowKey = item.id != null ? `id-${item.id}` : item.tempId;
 
     return `
-      <div class="card mb-075 bbch-row" data-bbch-key="${escapeHtml(rowKey)}">
-        <div class="form-grid">
-          <div class="field">
-            <label>Code <span class="danger-text">*</span></label>
+      <tr data-bbch-key="${escapeHtml(rowKey)}">
+        <td>
+          <div class="bbch-input-wrap">
             <input
               type="text"
+              class="bbch-input"
               value="${escapeHtml(item.code)}"
               data-bbch-field="code"
               data-bbch-key="${escapeHtml(rowKey)}"
               placeholder="z. B. 65"
             >
           </div>
-
-          <div class="field">
-            <label>Sortierung</label>
-            <input
-              type="number"
-              value="${escapeHtml(item.sortierung)}"
-              data-bbch-field="sortierung"
-              data-bbch-key="${escapeHtml(rowKey)}"
-              placeholder="z. B. 65"
-            >
-          </div>
-
-          <div class="field span-2">
-            <label>Bezeichnung <span class="danger-text">*</span></label>
+        </td>
+        <td>
+          <div class="bbch-input-wrap">
             <input
               type="text"
+              class="bbch-input"
               value="${escapeHtml(item.bezeichnung)}"
               data-bbch-field="bezeichnung"
               data-bbch-key="${escapeHtml(rowKey)}"
               placeholder="z. B. Vollblüte"
             >
           </div>
-
-          <div class="field span-2">
-            <label>Beschreibung</label>
-            <input
-              type="text"
-              value="${escapeHtml(item.beschreibung)}"
+        </td>
+        <td>
+          <div class="bbch-input-wrap">
+            <textarea
+              class="bbch-input bbch-input--desc"
               data-bbch-field="beschreibung"
               data-bbch-key="${escapeHtml(rowKey)}"
               placeholder="Optionale Beschreibung"
+            >${escapeHtml(item.beschreibung)}</textarea>
+          </div>
+        </td>
+        <td>
+          <div class="bbch-input-wrap">
+            <input
+              type="number"
+              class="bbch-input"
+              value="${escapeHtml(item.sortierung)}"
+              data-bbch-field="sortierung"
+              data-bbch-key="${escapeHtml(rowKey)}"
+              placeholder="z. B. 65"
             >
           </div>
-        </div>
+        </td>
+        <td class="actions-cell">
+          <div class="bbch-row-actions">
+            <button
+              type="button"
+              class="btn btn-sm btn-primary"
+              data-action="saveBBCHRow"
+              data-bbch-key="${escapeHtml(rowKey)}"
+            >
+              Speichern
+            </button>
 
-        <div class="mt-05 flex-end">
-          <button
-            type="button"
-            class="btn btn-sm btn-danger"
-            data-action="removeBBCHRow"
-            data-bbch-key="${escapeHtml(rowKey)}"
-          >
-            Löschen
-          </button>
-        </div>
-      </div>
+            <button
+              type="button"
+              class="btn btn-sm btn-danger"
+              data-action="removeBBCHRow"
+              data-bbch-key="${escapeHtml(rowKey)}"
+            >
+              Löschen
+            </button>
+          </div>
+        </td>
+      </tr>
     `;
   }).join('');
 }
@@ -195,7 +214,7 @@ function findBBCHDraftIndexByKey(key) {
 function addBBCHRow(initialData = {}) {
   bbchDraftItems.push(normalizeBBCHItem(initialData));
   renderBBCHList();
-  renderBBCHOverview()
+  updateBBCHSectionState();
 }
 
 function removeBBCHRow(key) {
@@ -210,7 +229,12 @@ function removeBBCHRow(key) {
 
   bbchDraftItems.splice(index, 1);
   renderBBCHList();
-  renderBBCHOverview()
+  updateBBCHSectionState();
+
+  if (!bbchDraftItems.length && (!bbchOverviewItems || !bbchOverviewItems.length)) {
+    const emptyState = $('bbch-empty-state');
+    if (emptyState) emptyState.classList.remove('hidden');
+  }
 }
 
 function updateBBCHDraftField(key, field, value) {
@@ -223,32 +247,22 @@ function updateBBCHDraftField(key, field, value) {
 async function loadBBCHForKultur(kulturId) {
   try {
     const items = await apiGet(`/api/bbch/kultur/${kulturId}`);
-    bbchDraftItems = Array.isArray(items) ? items.map(normalizeBBCHItem) : [];
-    bbchRemovedIds = [];
-    renderBBCHList();
-    renderBBCHOverview()
-  } catch (err) {
-    console.error(err);
+    bbchOverviewItems = Array.isArray(items) ? items.map(normalizeBBCHItem) : [];
     bbchDraftItems = [];
     bbchRemovedIds = [];
+
+    renderBBCHOverview(bbchOverviewItems);
     renderBBCHList();
-    renderBBCHOverview()
+  } catch (err) {
+    console.error(err);
+    bbchOverviewItems = [];
+    bbchDraftItems = [];
+    bbchRemovedIds = [];
+
+    renderBBCHOverview([]);
+    renderBBCHList();
     toast('❌ BBCH-Codes konnten nicht geladen werden');
   }
-}
-
-function validateBBCHDrafts() {
-  for (const item of bbchDraftItems) {
-    if (!String(item.code || '').trim()) {
-      return 'Bitte bei allen BBCH-Einträgen einen Code angeben';
-    }
-
-    if (!String(item.bezeichnung || '').trim()) {
-      return 'Bitte bei allen BBCH-Einträgen eine Bezeichnung angeben';
-    }
-  }
-
-  return '';
 }
 
 async function persistBBCHDrafts(kulturId) {
@@ -348,9 +362,9 @@ async function saveKultur() {
     }
 
     let kulturId = currentKulturEditId;
-    const wasEdit = Boolean(currentKulturEditId);
+    const isEdit = Boolean(currentKulturEditId);
 
-    if (currentKulturEditId) {
+    if (isEdit) {
       await apiPut(`/api/kulturen/${currentKulturEditId}`, payload);
       kulturId = currentKulturEditId;
     } else {
@@ -360,18 +374,22 @@ async function saveKultur() {
       kulturId = guessCreatedKulturId(createResult, payload);
 
       if (!kulturId) {
-        throw new Error('Kultur wurde angelegt, aber die neue ID konnte nicht ermittelt werden. Bitte Kultur erneut öffnen und BBCH speichern.');
+        throw new Error('Kultur wurde angelegt, aber die neue ID konnte nicht ermittelt werden.');
       }
+
+      currentKulturEditId = kulturId;
+
+      const modalTitle = $('modal-kultur-title');
+      if (modalTitle) {
+        modalTitle.textContent = 'Kultur bearbeiten';
+      }
+
+      await loadBBCHForKultur(kulturId);
+      updateBBCHSectionState();
     }
 
-    await persistBBCHDrafts(kulturId);
-     await loadBBCHOverviewFromApi(kulturId); 
-
-    closeModal('modal-kultur');
-    resetKulturForm();
     await loadKulturen();
-
-    toast(currentKulturEditId ? '✅ Kultur gespeichert' : '✅ Kultur hinzugefügt');
+    toast(isEdit ? '✅ Kultur gespeichert' : '✅ Kultur hinzugefügt');
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message || 'Speichern fehlgeschlagen'}`);
@@ -393,6 +411,7 @@ async function removeKultur(id) {
 
 function initKulturBBCHEditor() {
   const addBtn = $('btn-add-bbch-row');
+  const saveBtn = $('btn-save-bbch');
   const list = $('bbch-list');
 
   if (addBtn && !addBtn.dataset.bound) {
@@ -405,6 +424,10 @@ function initKulturBBCHEditor() {
         sortierung: ''
       });
     });
+  }
+  if (saveBtn && !saveBtn.dataset.bound) {
+    saveBtn.dataset.bound = '1';
+    saveBtn.addEventListener('click', saveBBCH);
   }
 
   if (list && !list.dataset.bound) {
@@ -423,14 +446,23 @@ function initKulturBBCHEditor() {
     });
 
     list.addEventListener('click', (event) => {
-      const btn = event.target.closest('[data-action="removeBBCHRow"]');
-      if (!btn) return;
+  const saveBtn = event.target.closest('[data-action="saveBBCHRow"]');
+  if (saveBtn) {
+    const key = saveBtn.getAttribute('data-bbch-key');
+    if (!key) return;
 
-      const key = btn.getAttribute('data-bbch-key');
-      if (!key) return;
+    saveSingleBBCHRow(key);
+    return;
+  }
 
-      removeBBCHRow(key);
-    });
+  const removeBtn = event.target.closest('[data-action="removeBBCHRow"]');
+  if (removeBtn) {
+    const key = removeBtn.getAttribute('data-bbch-key');
+    if (!key) return;
+
+    removeBBCHRow(key);
+  }
+});
   }
 }
 
@@ -451,49 +483,176 @@ async function loadBBCHOverviewFromApi(kulturId) {
   if (!container) return;
 
   if (!kulturId) {
+    bbchOverviewItems = [];
     renderBBCHOverview([]);
     return;
   }
 
   try {
     const items = await apiGet(`/api/bbch/kultur/${kulturId}`);
-    bbchOverviewItems = Array.isArray(items) ? items : [];
-    console.log(items)
-    const normalizedItems = normalizeBBCHOverviewItems(items)
-    console.log(normalizedItems)
-    renderBBCHOverview(normalizedItems);
+    bbchOverviewItems = Array.isArray(items) ? items.map(normalizeBBCHItem) : [];
+    renderBBCHOverview(bbchOverviewItems);
   } catch (err) {
     console.error(err);
     bbchOverviewItems = [];
-    renderBBCHOverview();
+    renderBBCHOverview([]);
     toast('❌ BBCH-Übersicht konnte nicht geladen werden');
   }
 }
 
-function renderBBCHOverview() {
+function renderBBCHOverview(items = bbchOverviewItems) {
   const container = $('bbch-overview');
+  const emptyState = $('bbch-empty-state');
+
   if (!container) return;
 
-  if (!Array.isArray(bbchOverviewItems) || !bbchOverviewItems.length) {
-    console.log("Test")
+  const sourceItems = Array.isArray(items) ? items : [];
+
+  if (!sourceItems.length) {
     container.classList.add('hidden');
     container.innerHTML = '';
+
+    if (!bbchDraftItems.length && emptyState) {
+      emptyState.classList.remove('hidden');
+    }
+
     return;
   }
 
-  const sorted = [...bbchOverviewItems].sort((a, b) => {
-    const aSort = a.sortierung ?? Number.MAX_SAFE_INTEGER;
-    const bSort = b.sortierung ?? Number.MAX_SAFE_INTEGER;
+  const sorted = [...sourceItems].sort((a, b) => {
+    const aSort = a.sortierung === '' || a.sortierung == null
+      ? Number.MAX_SAFE_INTEGER
+      : Number(a.sortierung);
+
+    const bSort = b.sortierung === '' || b.sortierung == null
+      ? Number.MAX_SAFE_INTEGER
+      : Number(b.sortierung);
+
     return aSort - bSort;
   });
 
+  if (emptyState) {
+    emptyState.classList.add('hidden');
+  }
+
   container.classList.remove('hidden');
-  container.innerHTML = sorted.map(item => `
-    <div class="bbch-chip">
-      <span class="code">${escapeHtml(item.code || '—')}</span>
-      <span class="label">${escapeHtml(item.bezeichnung || '')}</span>
+  container.innerHTML = `
+    <div class="table-wrap">
+      <table class="table bbch-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Bezeichnung</th>
+            <th>Beschreibung</th>
+            <th>Sortierung</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map(item => `
+            <tr>
+              <td>${escapeHtml(item.code || '—')}</td>
+              <td>${escapeHtml(item.bezeichnung || '—')}</td>
+              <td>${escapeHtml(item.beschreibung || '—')}</td>
+              <td>${escapeHtml(
+                item.sortierung === '' || item.sortierung == null
+                  ? '—'
+                  : String(item.sortierung)
+              )}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     </div>
-  `).join('');
+  `;
+}
+
+async function saveBBCH() {
+  try {
+    if (!currentKulturEditId) {
+      toast('❌ Bitte zuerst die Kultur speichern');
+      return;
+    }
+
+    if (!bbchDraftItems.length && !bbchRemovedIds.length) {
+      toast('ℹ️ Keine BBCH-Änderungen vorhanden');
+      return;
+    }
+
+    await persistBBCHDrafts(currentKulturEditId);
+
+    bbchDraftItems = [];
+    bbchRemovedIds = [];
+
+    await loadBBCHForKultur(currentKulturEditId);
+    updateBBCHSectionState();
+
+    toast('✅ BBCH gespeichert');
+  } catch (err) {
+    console.error(err);
+    toast(`❌ ${err.message || 'BBCH speichern fehlgeschlagen'}`);
+  }
+}
+
+function validateBBCHDrafts() {
+  for (const item of bbchDraftItems) {
+    if (!String(item.code || '').trim()) {
+      return 'Bitte bei allen BBCH-Einträgen einen Code angeben';
+    }
+
+    if (!String(item.bezeichnung || '').trim()) {
+      return 'Bitte bei allen BBCH-Einträgen eine Bezeichnung angeben';
+    }
+  }
+
+  return '';
+}
+
+async function saveSingleBBCHRow(key) {
+  try {
+    if (!currentKulturEditId) {
+      toast('❌ Bitte zuerst die Kultur speichern');
+      return;
+    }
+
+    const index = findBBCHDraftIndexByKey(key);
+    if (index === -1) {
+      toast('❌ BBCH-Zeile nicht gefunden');
+      return;
+    }
+
+    const item = bbchDraftItems[index];
+
+    if (!String(item.code || '').trim()) {
+      toast('❌ Bitte einen BBCH-Code angeben');
+      return;
+    }
+
+    if (!String(item.bezeichnung || '').trim()) {
+      toast('❌ Bitte eine Bezeichnung angeben');
+      return;
+    }
+
+    const payload = {
+      kultur_id: currentKulturEditId,
+      code: String(item.code || '').trim(),
+      bezeichnung: String(item.bezeichnung || '').trim(),
+      beschreibung: String(item.beschreibung || '').trim(),
+      sortierung: item.sortierung === '' ? null : Number(item.sortierung)
+    };
+
+    if (item.id != null) {
+      await apiPut(`/api/bbch/${item.id}`, payload);
+    } else {
+      await apiPost('/api/bbch', payload);
+    }
+
+    await loadBBCHForKultur(currentKulturEditId);
+
+    toast('✅ BBCH gespeichert');
+  } catch (err) {
+    console.error(err);
+    toast(`❌ ${err.message || 'BBCH speichern fehlgeschlagen'}`);
+  }
 }
 
 initKulturBBCHEditor();
