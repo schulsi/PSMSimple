@@ -169,8 +169,8 @@ function renderEinsatzorteList(items = einsatzorteItems) {
         <div class="meta">${escapeHtml(item.flaecheVolumen || '—')} ${escapeHtml(item.einheit || '')}</div>
       </div>
       <div class="item-actions">
-        <button class="btn btn-sm btn-ghost" data-action="editEinsatzort" data-item="${item.id}">Bearbeiten</button>
-        <button class="btn btn-sm btn-danger" data-action="removeEinsatzort" data-item="${item.id}">Löschen</button>
+        <button class="btn btn-sm btn-ghost" data-action="editEinsatzort" data-id="${item.id}">Bearbeiten</button>
+        <button class="btn btn-sm btn-danger" data-action="removeEinsatzort" data-id="${item.id}">Löschen</button>
       </div>
     </div>
   `).join('');
