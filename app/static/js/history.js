@@ -97,10 +97,10 @@ function setDefaultHistoryDates() {
   if (!from || !to) return;
 
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  if (!from.value) from.value = formatDateInputValue(today);
-  if (!to.value) to.value = formatDateInputValue(inOneYear);
+  if (!from.value) from.value = formatDateInputValue(lastYear);
+  if (!to.value) to.value = formatDateInputValue(today);
 }
 
 function setHistoryDateRange(fromDate, toDate) {
@@ -156,9 +156,9 @@ function buildHistoryUrl() {
 
 function resetHistoryFilter() {
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  setHistoryDateRange(today, inOneYear);
+  setHistoryDateRange(lastYear, today);
   loadHistory();
 }
 
@@ -301,10 +301,10 @@ function setDefaultPSMHistoryDates() {
   if (!from || !to) return;
 
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  if (!from.value) from.value = formatDateInputValue(today);
-  if (!to.value) to.value = formatDateInputValue(inOneYear);
+  if (!from.value) from.value = formatDateInputValue(lastYear);
+  if (!to.value) to.value = formatDateInputValue(today);
 }
 
 function setPSMHistoryDateRange(fromDate, toDate) {
@@ -330,9 +330,9 @@ function buildPSMHistoryUrl() {
 
 function resetPSMHistoryFilter() {
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  setPSMHistoryDateRange(today, inOneYear);
+  setPSMHistoryDateRange(lastYear, today);
   loadPSMUsage();
 }
 
@@ -501,10 +501,10 @@ function setDefaultFieldsHistoryDates() {
   if (!from || !to) return;
 
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  if (!from.value) from.value = formatDateInputValue(today);
-  if (!to.value) to.value = formatDateInputValue(inOneYear);
+  if (!from.value) from.value = formatDateInputValue(lastYear);
+  if (!to.value) to.value = formatDateInputValue(today);
 }
 
 function setFieldsHistoryDateRange(fromDate, toDate) {
@@ -530,9 +530,9 @@ function buildFieldsHistoryUrl() {
 
 function resetFieldsHistoryFilter() {
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  setFieldsHistoryDateRange(today, inOneYear);
+  setFieldsHistoryDateRange(lastYear, today);
   loadFieldsUsage();
 }
 
