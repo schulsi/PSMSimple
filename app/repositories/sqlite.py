@@ -54,7 +54,16 @@ def init_appdata_db():
         CREATE TABLE IF NOT EXISTS application_settings (
             key TEXT PRIMARY KEY,
             value TEXT
-        )
+        );
+                    
+        CREATE TABLE IF NOT EXISTS bbch_codes (
+            id INTEGER PRIMARY KEY,
+            kultur_id INTEGER NOT NULL REFERENCES kulturen (id),
+            code TEXT,
+            bezeichnung TEXT,
+            beschreibung TEXT,
+            sortierung INTEGER            
+        );
     """)
     conn.commit()
     c.execute("""
