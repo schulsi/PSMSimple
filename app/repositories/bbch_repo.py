@@ -21,12 +21,12 @@ def get_bbch_by_id(bbch_id: int):
 
 def get_bbch_by_kultur(kultur_id: int):
     conn = get_db()
-    row = conn.execute(
+    rows = conn.execute(
         "SELECT * FROM bbch_codes WHERE kultur_id = ?",
         (kultur_id,)
-    ).fetchone()
+    ).fetchall()
     conn.close()
-    return dict(row) if row else None
+    return [dict(r) for r in rows]
 
 
 def get_bbch_by_code(code: int):
@@ -58,12 +58,15 @@ def create_bbch(data: dict):
     cur = conn.cursor()
     cur.execute(
         """
-        INSERT INTO bbch_codes (code, description)
-        VALUES (?, ?)
+        INSERT INTO bbch_codes (kultur_id, code, beschreibung, bezeichnung, sortierung)
+        VALUES (?, ?, ?, ?, ?)
         """,
         (
+            data["kultur_id"],
             data["code"],
-            data["description"],
+            data["beschreibung"],
+            data["bezeichnung"],
+            data["sortierung"]
         )
     )
     conn.commit()
@@ -77,12 +80,13 @@ def update_bbch(bbch_id: int, data: dict):
     conn.execute(
         """
         UPDATE bbch_codes
-        SET code = ?, description = ?
+        SET code = ?, beschreibung = ?, bezeichnung = ?
         WHERE id = ?
         """,
         (
             data["code"],
-            data["description"],
+            data["beschreibung"],
+            data ["bezeichnung"],
             bbch_id,
         )
     )

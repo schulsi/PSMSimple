@@ -31,6 +31,77 @@
   letter-spacing: .5px;
 }
 
+.section-divider {
+  border: 0;
+  height: 1px;
+  background: var(--cream-dark);
+  margin: 1.25rem 0;
+}
+
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  margin-top: .2rem;
+  font-size: .82rem;
+  color: var(--text-muted);
+}
+
+.bbch-list {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.bbch-row {
+  background: var(--history-surface-soft);
+  border: 1px solid var(--cream-dark);
+}
+
+#bbch-editor-section .btn.btn-sm {
+  background: var(--green-mid);
+  color: #fff;
+}
+
+#bbch-editor-section .btn.btn-sm:hover {
+  background: var(--green-deep);
+}
+
+.bbch-overview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-top: .6rem;
+}
+
+.bbch-chip {
+  background: #fff;
+  border: 1px solid var(--cream-dark);
+  border-radius: 999px;
+  padding: .3rem .65rem;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+}
+
+.bbch-chip .code {
+  font-weight: 700;
+}
+
+.bbch-chip .label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .field input,
 .field select {
   width: 100%;
@@ -677,6 +748,16 @@
 @media (max-width: 640px) {
   .card {
     padding: 1rem;
+  }
+
+  .section-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .section-head .btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .form-grid,

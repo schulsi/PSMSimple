@@ -424,32 +424,43 @@
 <div class="modal-overlay" id="modal-kultur">
   <div class="modal">
     <h3 id="modal-kultur-title">Kultur</h3>
+
     <div class="form-grid">
-      <div class="field"><label>Name <span class="danger-text">*</span></label><input id="k-name" placeholder="Weinbau"></div>
-      <div class="field"><label>EPPO-Code <span class="danger-text">*</span></label><input id="k-eppoCode" placeholder="VITVI"></div>
-    </div>
-     <hr class="section-divider" />
-
-      <div id="bbch-editor-section">
-        <div class="section-head">
-          <div>
-            <h4 class="section-title">BBCH-Codes</h4>
-            <p class="section-subtitle">
-              Hier kannst du die BBCH-Einträge der ausgewählten Kultur direkt bearbeiten.
-            </p>
-          </div>
-          <button type="button" class="btn btn-sm" id="btn-add-bbch-row">
-            + BBCH hinzufügen
-          </button>
-        </div>
-
-        <div id="bbch-empty-state" class="empty">
-          Noch keine BBCH-Einträge vorhanden.
-        </div>
-        <div id="bbch-list" class="bbch-list">
-        </div>
+      <div class="field">
+        <label>Name <span class="danger-text">*</span></label>
+        <input id="k-name" placeholder="Weinbau">
+      </div>
+      <div class="field">
+        <label>EPPO-Code <span class="danger-text">*</span></label>
+        <input id="k-eppoCode" placeholder="VITVI">
       </div>
     </div>
+
+    <hr class="section-divider" />
+
+    <div id="bbch-editor-section">
+      <div class="section-head">
+        <div>
+          <h4 class="section-title">BBCH-Codes</h4>
+          <p class="section-subtitle">
+            Hier kannst du die BBCH-Einträge der ausgewählten Kultur direkt bearbeiten.
+          </p>
+
+          <div id="bbch-overview" class="bbch-overview hidden"></div>
+        </div>
+
+        <button type="button" class="btn btn-sm" id="btn-add-bbch-row">
+          + BBCH hinzufügen
+        </button>
+      </div>
+
+      <div id="bbch-empty-state" class="empty">
+        Noch keine BBCH-Einträge vorhanden.
+      </div>
+
+      <div id="bbch-list" class="bbch-list"></div>
+    </div>
+
     <div class="modal-footer">
       <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-kultur">Abbrechen</button>
       <button type="button" class="btn btn-primary" data-action="saveKultur">Speichern</button>
