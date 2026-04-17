@@ -1,0 +1,71 @@
+.home-landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.home-title {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 700;
+  color: var(--green-deep);
+  margin-bottom: 2rem;
+  line-height: 1.2;
+}
+
+.home-logo-wrap {
+  margin-bottom: 2.5rem;
+}
+
+.home-logo {
+  width: clamp(120px, 40vw, 240px);
+  max-width: 240px;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+
+.btn-home-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  background: var(--green-mid);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: .85rem 2rem;
+  border-radius: 2rem;
+  text-decoration: none;
+  transition: background .15s, transform .1s, box-shadow .15s;
+  box-shadow: 0 4px 14px rgba(74, 153, 89, 0.35);
+}
+
+.btn-home-cta:hover {
+  background: var(--green-deep);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(74, 153, 89, 0.45);
+}
+
+.btn-home-cta:active {
+  transform: translateY(0);
+}
+
+.cta-arrow {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .home-landing {
+    padding: 2rem 1rem;
+    min-height: 50vh;
+  }
+
+  .btn-home-cta {
+    font-size: .95rem;
+    padding: .75rem 1.5rem;
+  }
+}

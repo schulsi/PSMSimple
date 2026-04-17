@@ -31,7 +31,7 @@ function historyField(label, value) {
 
 function renderKulturenHistory(items) {
   if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">Keine Kulturen hinterlegt.</div>`;
+    return `<div class="empty-text empty">Keine Kulturen hinterlegt.</div>`;
   }
 
   return `
@@ -48,7 +48,7 @@ function renderKulturenHistory(items) {
 
 function renderPSMHistory(items) {
   if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">Keine Pflanzenschutzmittel vorhanden.</div>`;
+    return `<div class="empty-text empty">Keine Pflanzenschutzmittel vorhanden.</div>`;
   }
 
   return `
@@ -71,7 +71,7 @@ function renderPSMHistory(items) {
 
 function renderEinsatzorteHistory(items) {
   if (!items || !items.length) {
-    return `<div class="empty" style="padding:1rem">Keine Einsatzorte vorhanden.</div>`;
+    return `<div class="empty-text empty">Keine Einsatzorte vorhanden.</div>`;
   }
 
   return `
@@ -97,10 +97,10 @@ function setDefaultHistoryDates() {
   if (!from || !to) return;
 
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  if (!from.value) from.value = formatDateInputValue(today);
-  if (!to.value) to.value = formatDateInputValue(inOneYear);
+  if (!from.value) from.value = formatDateInputValue(lastYear);
+  if (!to.value) to.value = formatDateInputValue(today);
 }
 
 function setHistoryDateRange(fromDate, toDate) {
@@ -156,9 +156,9 @@ function buildHistoryUrl() {
 
 function resetHistoryFilter() {
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  setHistoryDateRange(today, inOneYear);
+  setHistoryDateRange(lastYear, today);
   loadHistory();
 }
 
@@ -193,8 +193,8 @@ async function loadHistory() {
       <div class="meta"><strong>Kulturen:</strong> ${escapeHtml(item.kulturen || '—')}</div>
     </div>
     <div class="item-actions">
-      <button class="btn btn-sm btn-ghost" onclick="showHistoryDetail(${item.id})">Details</button>
-      <button class="btn btn-sm btn-danger" onclick="deleteHistoryEntry(${item.id})">Löschen</button>
+      <button class="btn btn-sm btn-ghost" data-action="showHistoryDetail" data-id="${item.id}">Details</button>
+      <button class="btn btn-sm btn-danger" data-action="deleteHistoryEntry" data-id="${item.id}">Löschen</button>
     </div>
   </div>
 `).join('');
@@ -261,7 +261,8 @@ async function showHistoryDetail(id) {
       </div>
     `;
 
-    wrap.style.display = 'block';
+    wrap.classList.remove('hidden');
+    wrap.classList.add('visible');
     wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) {
     console.error(err);
@@ -277,7 +278,10 @@ async function deleteHistoryEntry(id) {
     toast('✅ History-Eintrag gelöscht');
 
     const detailWrap = $('history-detail-wrap');
-    if (detailWrap) detailWrap.style.display = 'none';
+    if (detailWrap) {
+      detailWrap.classList.remove('visible');
+      detailWrap.classList.add('hidden');
+    }
 
     await loadHistory();
   } catch (err) {
@@ -297,10 +301,10 @@ function setDefaultPSMHistoryDates() {
   if (!from || !to) return;
 
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  if (!from.value) from.value = formatDateInputValue(today);
-  if (!to.value) to.value = formatDateInputValue(inOneYear);
+  if (!from.value) from.value = formatDateInputValue(lastYear);
+  if (!to.value) to.value = formatDateInputValue(today);
 }
 
 function setPSMHistoryDateRange(fromDate, toDate) {
@@ -326,9 +330,9 @@ function buildPSMHistoryUrl() {
 
 function resetPSMHistoryFilter() {
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  setPSMHistoryDateRange(today, inOneYear);
+  setPSMHistoryDateRange(lastYear, today);
   loadPSMUsage();
 }
 
@@ -472,6 +476,13 @@ function showHistorySubTab(tabName, buttonEl) {
   document.querySelectorAll('.history-sub-tab').forEach(tab => tab.classList.remove('active'));
   document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
 
+  // Hide application details when switching tabs
+  const detailWrap = $('history-detail-wrap');
+  if (detailWrap) {
+    detailWrap.classList.remove('visible');
+    detailWrap.classList.add('hidden');
+  }
+
   // Show selected sub-tab
   document.getElementById(`history-sub-${tabName}`).classList.add('active');
   event.target.classList.add('active');
@@ -490,10 +501,10 @@ function setDefaultFieldsHistoryDates() {
   if (!from || !to) return;
 
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  if (!from.value) from.value = formatDateInputValue(today);
-  if (!to.value) to.value = formatDateInputValue(inOneYear);
+  if (!from.value) from.value = formatDateInputValue(lastYear);
+  if (!to.value) to.value = formatDateInputValue(today);
 }
 
 function setFieldsHistoryDateRange(fromDate, toDate) {
@@ -519,9 +530,9 @@ function buildFieldsHistoryUrl() {
 
 function resetFieldsHistoryFilter() {
   const today = new Date();
-  const inOneYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+  const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
 
-  setFieldsHistoryDateRange(today, inOneYear);
+  setFieldsHistoryDateRange(lastYear, today);
   loadFieldsUsage();
 }
 
@@ -586,15 +597,15 @@ async function loadFieldsUsage() {
     const data = items.map(item => item.usage_count);
 
     window.fieldsChart = new Chart(ctx, {
-      type: 'pie',
+      type: 'bar',
       data: {
         labels: labels,
         datasets: [{
+          label: 'Verwendungen',
           data: data,
           backgroundColor: historyChartPalette(items.length),
           borderColor: '#f8f5ee',
-          borderWidth: 2,
-          hoverOffset: 6
+          borderWidth: 2
         }]
       },
       options: {
@@ -602,24 +613,37 @@ async function loadFieldsUsage() {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'bottom',
-            labels: {
-              color: '#1c2b22',
-              usePointStyle: true,
-              boxWidth: 10,
-              padding: 14
-  }
+            display: false
           },
           tooltip: {
             callbacks: {
               label: function(context) {
                 const item = items[context.dataIndex];
-                let label = `${context.label}: ${context.parsed} Verwendungen`;
+                let label = `${context.label}: ${context.parsed.y} Verwendungen`;
                 if (item.total_area) {
                   label += ` (${item.total_area} ${item.unit || ''})`.trim();
                 }
                 return label;
               }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              color: '#1c2b22'
+            },
+            title: {
+              display: true,
+              text: 'Verwendungen',
+              color: '#1c2b22'
+            }
+          },
+          x: {
+            ticks: {
+              color: '#1c2b22'
             }
           }
         }
@@ -642,9 +666,9 @@ async function loadFieldsUsage() {
               <td>${escapeHtml(item.field_name)}</td>
               <td>${item.usage_count}</td>
               <td>${item.last_used || '—'}</td>
-              <td><button class="btn btn-sm btn-ghost" onclick="toggleFieldDetails('${item.field_name.replace(/'/g, "\\'")}', this)">🔽</button></td>
+              <td><button class="btn btn-sm btn-ghost" data-action="toggleFieldDetails" data-name='${item.field_name.replace(/'/g, "\\'")}', this)">🔽</button></td>
             </tr>
-            <tr id="details-${escapeHtml(item.field_name).replace(/[^a-zA-Z0-9]/g, '_')}" class="field-details-row" style="display:none">
+            <tr id="details-${escapeHtml(item.field_name).replace(/[^a-zA-Z0-9]/g, '_')}" class="field-details-row hidden">
               <td colspan="4" class="field-details-cell">
                 <div class="field-details-loading">Lade Details...</div>
               </td>
@@ -693,10 +717,10 @@ function toggleFieldDetails(fieldName, button) {
     return;
   }
   
-  const isVisible = detailsRow.style.display !== 'none';
+  const isVisible = !detailsRow.classList.contains('hidden');
 
   if (isVisible) {
-    detailsRow.style.display = 'none';
+    detailsRow.classList.add('hidden');
     button.innerHTML = '🔽';
   } else {
     const detailsCell = detailsRow.querySelector('.field-details-cell');
@@ -706,7 +730,7 @@ function toggleFieldDetails(fieldName, button) {
     }
     
     detailsCell.innerHTML = '<div class="field-details-loading">Lade Details...</div>';
-    detailsRow.style.display = '';
+    detailsRow.classList.remove('hidden');
     button.innerHTML = '🔼';
 
     const startDate = document.getElementById('fields-history-date-from').value;
@@ -760,7 +784,7 @@ function toggleFieldDetails(fieldName, button) {
                       <td>${escapeHtml(app.psm_name)}</td>
                       <td>${app.quantity ? `${app.quantity} ${app.unit || ''}`.trim() : '—'}</td>
                       <td>${app.area ? `${app.area} ${app.area_unit || ''}`.trim() : '—'}</td>
-                      <td><a href="javascript:void(0)" onclick="showApplicationDetails(${app.id}); return false;">Anzeigen</a></td>
+                      <td><a href="javascript:void(0)" data-action="showHistoryDetail" data-id="${app.id}">Anzeigen</a></td>
                     </tr>
                   `).join('')}
                 </tbody>

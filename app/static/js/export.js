@@ -18,7 +18,7 @@ function renderExportSelectionList(containerId, items, type) {
       return `
         <div class="exp-item" id="exp-psm-${item.id}">
           <label class="exp-item-header">
-            <input type="checkbox" class="exp-psm-check" data-id="${item.id}" onchange="toggleExpItem('psm', ${item.id})">
+            <input type="checkbox" class="exp-psm-check" data-id="${item.id}" data-action="toggleExpItem" data-type="psm">
             <div>
               <div class="ci-name">${escapeHtml(item.name || '—')}</div>
               <div class="ci-meta">${escapeHtml(item.zulassungsnr || '—')} · ${escapeHtml(item.aufwandEinheit || '—')}</div>
@@ -36,7 +36,7 @@ function renderExportSelectionList(containerId, items, type) {
       return `
         <div class="exp-item" id="exp-einsatzort-${item.id}">
           <label class="exp-item-header">
-            <input type="checkbox" class="exp-einsatzort-check" data-id="${item.id}" onchange="toggleExpItem('einsatzort', ${item.id})">
+            <input type="checkbox" class="exp-einsatzort-check" data-id="${item.id}" data-action="toggleExpItem" data-type="einsatzort">
             <div>
               <div class="ci-name">${escapeHtml(item.name || '—')}</div>
               <div class="ci-meta">${escapeHtml(item.anwendungsbereich || '—')} · ${escapeHtml(item.flaecheVolumen || '—')} ${escapeHtml(item.einheit || '')}</div>
@@ -50,7 +50,7 @@ function renderExportSelectionList(containerId, items, type) {
       return `
         <div class="exp-item" id="exp-kultur-${item.id}">
           <label class="exp-item-header">
-            <input type="checkbox" class="exp-kultur-check" data-id="${item.id}" onchange="toggleExpItem('kultur', ${item.id})">
+            <input type="checkbox" class="exp-kultur-check" data-id="${item.id}" data-action="toggleExpItem" data-type="kultur">
             <div>
               <div class="ci-name">${escapeHtml(item.name || '—')}</div>
               <div class="ci-meta">${escapeHtml(item.eppoCode || '—')}</div>

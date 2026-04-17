@@ -36,8 +36,8 @@ function renderPSMList(items = psmItems) {
         <div class="meta">Einheit: ${escapeHtml(item.aufwandEinheit || '—')} · Bienen: ${escapeHtml(item.bienen || '—')}</div>
       </div>
       <div class="item-actions">
-        <button class="btn btn-sm btn-ghost" onclick="editPSM(${item.id})">Bearbeiten</button>
-        <button class="btn btn-sm btn-danger" onclick="removePSM(${item.id})">Löschen</button>
+        <button class="btn btn-sm btn-ghost" data-action="editPSM" data-id="${item.id}">Bearbeiten</button>
+        <button class="btn btn-sm btn-danger" data-action="removePSM" data-id="${item.id}">Löschen</button>
       </div>
     </div>
   `).join('');
@@ -185,8 +185,8 @@ function renderPSMSearchResults(items) {
   }
 
   resultsBox.innerHTML = items.map(item => `
-    <div class="autocomplete-item" onclick="selectPSMSearchResult('${escapeHtml(item.name)}','${escapeHtml(item.kennr)}')">
-      ${escapeHtml(item.name)} <span style="color:#5a7060">(${escapeHtml(item.kennr || '')})</span>
+    <div class="autocomplete-item" data-action="selectPSMSearchResult" data-name="${escapeHtml(item.name)}" data-kennr="${escapeHtml(item.kennr)}">
+      ${escapeHtml(item.name)} <span class="text-muted">(${escapeHtml(item.kennr || '')})</span>
     </div>
   `).join('');
 

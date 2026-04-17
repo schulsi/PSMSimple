@@ -12,8 +12,14 @@ function updateSaveModeLabels(localSave) {
   const lblBrowser = $('lbl-browser-download');
   const lblLocal   = $('lbl-local-save');
   const desc       = $('save-mode-desc');
-  if (lblBrowser) lblBrowser.style.color = localSave ? 'var(--text-muted)' : 'inherit';
-  if (lblLocal)   lblLocal.style.color   = localSave ? 'inherit' : 'var(--text-muted)';
+  if (lblBrowser) {
+    lblBrowser.classList.toggle('label-muted', localSave);
+    lblBrowser.classList.toggle('label-inherit', !localSave);
+  }
+  if (lblLocal) {
+    lblLocal.classList.toggle('label-inherit', localSave);
+    lblLocal.classList.toggle('label-muted', !localSave);
+  }
   if (desc) {
     desc.textContent = localSave
       ? 'Datei wird auf dem Server im Exportordner abgelegt'
@@ -30,8 +36,14 @@ function updateWizSaveModeLabels(localSave) {
   const lblBrowser = $('wiz-lbl-browser');
   const lblLocal   = $('wiz-lbl-local');
   const desc       = $('wiz-save-mode-desc');
-  if (lblBrowser) lblBrowser.style.color = localSave ? 'var(--text-muted)' : 'inherit';
-  if (lblLocal)   lblLocal.style.color   = localSave ? 'inherit' : 'var(--text-muted)';
+  if (lblBrowser) {
+    lblBrowser.classList.toggle('label-muted', localSave);
+    lblBrowser.classList.toggle('label-inherit', !localSave);
+  }
+  if (lblLocal) {
+    lblLocal.classList.toggle('label-inherit', localSave);
+    lblLocal.classList.toggle('label-muted', !localSave);
+  }
   if (desc) {
     desc.textContent = localSave
       ? 'Datei wird auf dem Server im Exportordner abgelegt'
@@ -46,8 +58,20 @@ function onWizSaveModeToggle(checkbox) {
 function updateExportButtons(localSave) {
   const btnSave     = $('btn-save');
   const btnDownload = $('btn-download');
-  if (btnSave)     btnSave.style.display     = localSave ? '' : 'none';
-  if (btnDownload) btnDownload.style.display = localSave ? 'none' : '';
+  if (btnSave) {
+    if (localSave) {
+      btnSave.classList.remove('hidden');
+    } else {
+      btnSave.classList.add('hidden');
+    }
+  }
+  if (btnDownload) {
+    if (localSave) {
+      btnDownload.classList.add('hidden');
+    } else {
+      btnDownload.classList.remove('hidden');
+    }
+  }
 }
 let APP_PERMISSIONS = null;
 async function loadSettings() {
@@ -56,14 +80,20 @@ async function loadSettings() {
     APP_PERMISSIONS = me.permissions || null;
 
     const settings = await apiGet('/api/user/settings');
-
     const toggle                = $('save-mode-toggle');
     const defaultAnwender       = $('set-default-anwender');
     const defaultVerantwortlich = $('set-default-verantwortlich');
     const registrationAllowed   = $('set-registration-allowed');
 
-    if (registrationAllowed) {
-      registrationAllowed.checked = !!settings.registration_allowed;
+    // Lade registration_allowed von /api/app/settings (global)
+    if (registrationAllowed && APP_PERMISSIONS?.can_manage_users) {
+      try {
+        const appSettings = await apiGet('/api/app/settings');
+        registrationAllowed.checked = !!appSettings.registration_allowed;
+      } catch (err) {
+        console.warn('[loadSettings] Fehler beim Laden von App-Settings:', err);
+        registrationAllowed.checked = false;
+      }
     }
 
     const localSave = settings.local_save !== undefined ? !!settings.local_save : true;
@@ -79,12 +109,12 @@ async function loadSettings() {
 
     if (APP_PERMISSIONS?.can_manage_users) {
       await loadUserRoles();
-
+    } else {
     }
 
     applyDefaultSettingsToExport(settings);
   } catch (err) {
-    console.error(err);
+    console.error('[loadSettings] Fehler:', err);
     toast('❌ Einstellungen konnten nicht geladen werden');
   }
 }
@@ -108,7 +138,7 @@ function collectWizardSaveMode() {
 
 function collectAppSettings() {
   return {
-    registration_allowed: $('set-registration-allowed') ? $('set-registration-allowed').checked : true
+    registration_allowed: $('set-registration-allowed') ? ($('set-registration-allowed').checked ? "1" : "0") : "0"
   };
 }
 
@@ -167,35 +197,41 @@ async function renameUser() {
 
 async function loadUserRoles() {
   const wrap = document.getElementById('user-role-list');
-  if (!wrap) return;
+  if (!wrap) {
+    console.warn('[loadUserRoles] Element mit ID "user-role-list" nicht gefunden');
+    return;
+  }
 
   try {
     const users = await apiGet('/api/users');
+    if (!Array.isArray(users) || users.length === 0) {
+      wrap.innerHTML = '<div class="user-item-empty">Keine Benutzer vorhanden.</div>';
+      return;
+    }
 
     wrap.innerHTML = users.map(user => `
-      <div class="item-row" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.75rem;padding:.75rem;border:1px solid #ddd;border-radius:.5rem">
-        <div>
-          <div style="font-weight:600">${escapeHtml(user.username)}</div>
-          <div style="font-size:.8rem;color:#666">ID: ${user.id}</div>
-          <div style="font-size:.8rem;color:#666">Rolle: ${user.role}</div>
+      <div class="user-item">
+        <div class="user-item-info">
+          <div>${escapeHtml(user.username)}</div>
+          <div class="user-item-meta">ID: ${user.id}</div>
+          <div class="user-item-meta">Rolle: ${user.role}</div>
         </div>
 
-        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <div class="user-item-actions">
           <select id="role-user-${user.id}">
             <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
             <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
             <option value="read-only" ${user.role === 'read-only' ? 'selected' : ''}>Read-only</option>
           </select>
 
-          <button type="button" class="btn btn-primary" style="width:auto" onclick="saveUserRole(${user.id})">
+          <button type="button" class="btn btn-primary btn-auto-width" data-action="saveUserRole" data-id="${user.id}">
             Speichern
           </button>
 
           <button 
             type="button"
-            class="btn btn-danger"
-            style="width:auto"
-            onclick="openDeleteUserConfirm(${user.id}, '${escapeJs(user.username)}')"
+            class="btn btn-danger btn-auto-width"
+            data-action="openDeleteUserConfirm" data-id="${user.id}" data-username="${escapeJs(user.username)}"
             ${user.is_current_user ? 'disabled' : ''}
           >
             Löschen
@@ -204,8 +240,8 @@ async function loadUserRoles() {
       </div>
     `).join('');
   } catch (err) {
-    console.error(err);
-    wrap.innerHTML = '<div style="color:#b00020">Benutzer konnten nicht geladen werden.</div>';
+    console.error('[loadUserRoles] Fehler beim Laden:', err);
+    wrap.innerHTML = '<div class="user-item-error">❌ Benutzer konnten nicht geladen werden: ' + (err.message || 'Unbekannter Fehler') + '</div>';
   }
 }
 async function saveUserRole(userId) {
@@ -239,4 +275,13 @@ async function deleteUser(userId) {
     console.error(err);
     toast(`❌ ${err.message}`);
   }
+}
+
+function escapeJs(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }

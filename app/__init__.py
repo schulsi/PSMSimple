@@ -11,7 +11,6 @@ from .repositories.sqlite import init_appdata_db
 from .services.permissions import seed_roles
 
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -53,8 +52,8 @@ def create_app():
         # Erst bewusst etwas lockerer starten, später weiter einschränken
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline'; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; "
+            "script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
+            "style-src 'self' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; "
             "font-src 'self' https://fonts.gstatic.com; "
             "img-src 'self' data: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; "
             "connect-src 'self' https://psm-api.bvl.bund.de https://cdn.jsdelivr.net; "
