@@ -463,6 +463,26 @@ function initKulturBBCHEditor() {
     removeBBCHRow(key);
   }
 });
+document.addEventListener('click', async (event) => {
+  const btn = event.target.closest('[data-action="deleteBBCHOverview"]');
+  if (!btn) return;
+
+  const id = btn.getAttribute('data-id');
+  if (!id) return;
+
+  if (!confirm('Diesen BBCH-Eintrag wirklich löschen?')) return;
+
+  try {
+    await apiDelete(`/api/bbch/${id}`);
+    toast('✅ BBCH gelöscht');
+
+    if (currentKulturEditId) {
+      await loadBBCHForKultur(currentKulturEditId);
+    }
+  } catch (err) {
+    toast(`❌ ${err.message}`);
+  }
+});
   }
 }
 
@@ -545,6 +565,7 @@ function renderBBCHOverview(items = bbchOverviewItems) {
             <th>Bezeichnung</th>
             <th>Beschreibung</th>
             <th>Sortierung</th>
+            <th>Aktionen</th>
           </tr>
         </thead>
         <tbody>
@@ -558,6 +579,15 @@ function renderBBCHOverview(items = bbchOverviewItems) {
                   ? '—'
                   : String(item.sortierung)
               )}</td>
+               <td>
+                <button
+                  class="btn btn-sm btn-danger"
+                  data-action="deleteBBCHOverview"
+                  data-id="${item.id}"
+                >
+                  Löschen
+                </button>
+              </td>
             </tr>
           `).join('')}
         </tbody>
