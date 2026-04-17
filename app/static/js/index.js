@@ -60,7 +60,9 @@ const hasKult = payload.kult_overrides.length > 0;
 const hasDate = !!payload.anwendung.datum;
 const hasTime = !!payload.anwendung.uhrzeit;
 const hasArt  = !!payload.anwendung.artVerwendung;
-const valid   = hasPSM && hasEO && hasKult && hasDate && hasTime && hasArt;
+const hasPSMAmount = hasPSM && payload.psm_overrides.every(p => !!p.aufwandMenge);
+const hasKultBBCH = hasKult && payload.kult_overrides.every(k => !!k.bbchCode);
+const valid   = hasPSM && hasEO && hasKult && hasDate && hasTime && hasArt && hasPSMAmount && hasKultBBCH;
 
 if (previewBtn) previewBtn.disabled = !valid;
 
@@ -81,7 +83,7 @@ if (msg) {
     msg.textContent = '';
     } else {
     msg.style.display = 'block';
-    msg.textContent = 'Bitte mindestens ein Pflanzenschutzmittel, einen Einsatzort, eine Kultur sowie Datum, Uhrzeit und Art der Verwendung auswählen.';
+    msg.textContent = 'Bitte mindestens ein Pflanzenschutzmittel, einen Einsatzort, eine Kultur sowie Datum, Uhrzeit und Art der Verwendung auswählen. Aufwandsmenge und BBCH-Code sind erforderlich.';
     }
 }
 }

@@ -30,18 +30,18 @@
       <a href="/export" data-action="showTab" data-tab="export" data-also="loadExportSelections,syncLegacyExportUI"><span class="ico">📄</span> Applikation dokumentieren</a>
       {% endif %}
       <div class="section-label">Verlauf</div>
-      <a href="/history" data-action="showTab" data-tab="history" data-also="loadHistory"><span class="ico">🕘</span> Gespeicherte Applikationen</a>
+      <a href="/history" data-action="showTab" data-tab="history" data-also="loadHistory"><span class="ico">🕘</span> Übersicht Applikationen</a>
     </div>
 
     <div class="nav-user">
       <div class="nav-user-popup" id="user-popup">
         <div class="popup-header">
-          <div class="popup-username" id="popup-username">{{ current_user.username }}</div>
           <div class="popup-label">Angemeldet als</div>
+          <div class="popup-username" id="popup-username">{{ current_user.username }}</div>
           <div class="popup-label">Rolle: {{ permissions.role }}</div>
         </div>
 
-        <a href="/settings" data-action="showTab" data-tab="settings"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
+        <a href="/settings" data-action="showTab" data-tab="settings" class="popup-button-reset"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
         <button type="button" data-action="logout" class="popup-button-reset"><span class="ico">🚪</span> <div class="popup-label">Abmelden</div></button>
       </div>
 
@@ -117,7 +117,7 @@
     </div>
 
     <div id="tab-export" class="tab">
-      <h2>📄 JSON erstellen</h2>
+      <h2>📄 Dokumentation erstellen</h2>
 
       <div class="card export-section">
         <h3>🧪 Pflanzenschutzmittel &amp; Aufwandsmenge</h3>
@@ -505,7 +505,11 @@
 <script src="{{ url_for('static', filename='js/einsatzorte.js') }}"></script>
 <script src="{{ url_for('static', filename='js/kulturen.js') }}"></script>
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
-<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history-init.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history-fields.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history-list.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history-psm.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history/history-utils.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}
