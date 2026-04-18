@@ -26,7 +26,8 @@ function normalizeBBCHItem(item = {}) {
     beschreibung: String(item.beschreibung ?? '').trim(),
     sortierung: item.sortierung == null || item.sortierung === ''
       ? ''
-      : String(item.sortierung)
+      : String(item.sortierung),
+      sortierungManuell: Boolean(item.sortierungManuell)
   };
 }
 
@@ -175,6 +176,7 @@ async function saveKultur() {
 
     await loadKulturen();
     toast(isEdit ? '✅ Kultur gespeichert' : '✅ Kultur hinzugefügt');
+    closeModal('modal-kultur')
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message || 'Speichern fehlgeschlagen'}`);
@@ -375,7 +377,28 @@ function removeBBCHRow(key) {
 
 function updateBBCHDraftField(key, field, value) {
   const index = findBBCHDraftIndexByKey(key);
-  if (index !== -1) bbchDraftItems[index][field] = value;
+  if (index === -1) return;
+
+  const item = bbchDraftItems[index];
+  item[field] = value;
+
+  if (field === 'sortierung') {
+    const codeValue = String(item.code ?? '').trim();
+    const sortValue = String(value ?? '').trim();
+    item.sortierungManuell = sortValue !== '' && sortValue !== codeValue;
+  }
+
+  if (field === 'code' && !item.sortierungManuell) {
+    const newSortierung = String(value ?? '').trim();
+    item.sortierung = newSortierung;
+
+    // Nur das Sortierungsfeld in derselben Zeile aktualisieren
+    const row = document.querySelector(`[data-bbch-key="${CSS.escape(key)}"]`);
+    const sortierungInput = row?.querySelector('[data-bbch-field="sortierung"]');
+    if (sortierungInput && sortierungInput.value !== newSortierung) {
+      sortierungInput.value = newSortierung;
+    }
+  }
 }
 
 // ─── BBCH Speichern ───────────────────────────────────────────────────────────
