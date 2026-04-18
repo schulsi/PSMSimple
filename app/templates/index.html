@@ -305,49 +305,9 @@
                 <option value="120">Nächste 5 Tage</option>
               </select>
             </div>
-
-            <div class="field">
-              <label>Max. Wind (m/s)</label>
-              <input id="forecast-max-wind" type="number" step="0.1" value="3.5">
-            </div>
-
-            <div class="field">
-              <label>Max. Niederschlag (mm)</label>
-              <input id="forecast-max-precip" type="number" step="0.1" value="0.0">
-            </div>
-
-            <div class="field">
-              <label>Min. Temperatur (°C)</label>
-              <input id="forecast-min-temp" type="number" step="0.1" value="8">
-            </div>
-
-            <div class="field">
-              <label>Max. Temperatur (°C)</label>
-              <input id="forecast-max-temp" type="number" step="0.1" value="25">
-            </div>
-
-            <div class="field">
-              <label>Min. Luftfeuchte (%)</label>
-              <input id="forecast-min-humidity" type="number" step="1" value="50">
-            </div>
-
             <div class="field">
               <label>Min. Fensterdauer (h)</label>
               <input id="forecast-min-window-hours" type="number" step="1" value="2">
-            </div>
-
-            <div class="field">
-              <label>Trocken danach (h)</label>
-              <input id="forecast-dry-hours-after" type="number" step="1" value="3">
-            </div>
-            <div class="field">
-              <label>Früheste Uhrzeit</label>
-              <input id="forecast-min-hour" type="number" min="0" max="23" value="6">
-            </div>
-
-            <div class="field">
-              <label>Späteste Uhrzeit</label>
-              <input id="forecast-max-hour" type="number" min="0" max="23" value="23">
             </div>
           </div>
 
@@ -436,6 +396,48 @@
           <div class="popup-rename-row">
             <input type="text" id="rename-input" placeholder="{{ current_user.username }}">
             <button type="button" data-action="renameUser">Speichern</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title">🌦️ Vorhersage-Standardwerte</h3>
+        <div class="form-grid maxw-600">
+          <div class="field">
+            <label>Max. Wind (m/s)</label>
+            <input id="set-forecast-max-wind" type="number" step="0.1">
+          </div>
+          <div class="field">
+            <label>Max. Niederschlag (mm)</label>
+            <input id="set-forecast-max-precip" type="number" step="0.1">
+          </div>
+          <div class="field">
+            <label>Min. Temperatur (°C)</label>
+            <input id="set-forecast-min-temp" type="number" step="0.1">
+          </div>
+          <div class="field">
+            <label>Max. Temperatur (°C)</label>
+            <input id="set-forecast-max-temp" type="number" step="0.1">
+          </div>
+          <div class="field">
+            <label>Min. Luftfeuchte (%)</label>
+            <input id="set-forecast-min-humidity" type="number" step="1">
+          </div>
+          <div class="field">
+            <label>Trocken danach (h)</label>
+            <input id="set-forecast-dry-hours-after" type="number" step="1">
+          </div>
+          <div class="field">
+            <label>Früheste Uhrzeit</label>
+            <input id="set-forecast-min-hour" type="number" min="0" max="23">
+          </div>
+          <div class="field">
+            <label>Späteste Uhrzeit</label>
+            <input id="set-forecast-max-hour" type="number" min="0" max="23">
+          </div>
+          <div class="field">
+            <label>Standard-Zeitraum (Stunden)</label>
+            <input id="set-forecast-range-hours" type="number" step="1">
           </div>
         </div>
       </div>

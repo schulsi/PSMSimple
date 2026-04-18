@@ -80,21 +80,31 @@ async function loadSettings() {
     APP_PERMISSIONS = me.permissions || null;
 
     const settings = await apiGet('/api/user/settings');
+
+     let appSettings = {};
+
+    if (APP_PERMISSIONS?.can_manage_users) {
+      try {
+        appSettings = await apiGet('/api/app/settings');
+      } catch (err) {
+        console.warn('[loadSettings] Fehler beim Laden von App-Settings:', err);
+        appSettings = {};
+      }
+    }
+
     const toggle                = $('save-mode-toggle');
     const defaultAnwender       = $('set-default-anwender');
     const defaultVerantwortlich = $('set-default-verantwortlich');
     const registrationAllowed   = $('set-registration-allowed');
-
-    // Lade registration_allowed von /api/app/settings (global)
-    if (registrationAllowed && APP_PERMISSIONS?.can_manage_users) {
-      try {
-        const appSettings = await apiGet('/api/app/settings');
-        registrationAllowed.checked = !!appSettings.registration_allowed;
-      } catch (err) {
-        console.warn('[loadSettings] Fehler beim Laden von App-Settings:', err);
-        registrationAllowed.checked = false;
-      }
-    }
+    const forecastMaxWind        = $('set-forecast-max-wind');
+    const forecastMaxPrecip      = $('set-forecast-max-precip');
+    const forecastMinTemp        = $('set-forecast-min-temp');
+    const forecastMaxTemp        = $('set-forecast-max-temp');
+    const forecastMinHumidity    = $('set-forecast-min-humidity');
+    const forecastDryHoursAfter  = $('set-forecast-dry-hours-after');
+    const forecastMinHour        = $('set-forecast-min-hour');
+    const forecastMaxHour        = $('set-forecast-max-hour');
+    const forecastRangeHours     = $('set-forecast-range-hours');   
 
     const localSave = settings.local_save !== undefined ? !!settings.local_save : true;
 
@@ -104,15 +114,37 @@ async function loadSettings() {
     }
 
     updateExportButtons(localSave);
+
+    if (defaultAnwender) {
+      defaultAnwender.value = settings.default_anwender || '';
+    }
+
+    if (defaultVerantwortlich) {
+      defaultVerantwortlich.value = settings.default_verantwortlich || '';
+    }
+
+    if (registrationAllowed) {
+      registrationAllowed.checked = !!appSettings.registration_allowed;
+    }
+
     if (defaultAnwender)       defaultAnwender.value       = settings.default_anwender       || '';
     if (defaultVerantwortlich) defaultVerantwortlich.value = settings.default_verantwortlich || '';
-
+    if (forecastMaxWind)        forecastMaxWind.value        = settings.forecast_default_max_wind_ms ?? 3.5;
+    if (forecastMaxPrecip)      forecastMaxPrecip.value      = settings.forecast_default_max_precip_mm ?? 0.0;
+    if (forecastMinTemp)        forecastMinTemp.value        = settings.forecast_default_min_temp_c ?? 8.0;
+    if (forecastMaxTemp)        forecastMaxTemp.value        = settings.forecast_default_max_temp_c ?? 25.0;
+    if (forecastMinHumidity)    forecastMinHumidity.value    = settings.forecast_default_min_humidity_pct ?? 50;
+    if (forecastDryHoursAfter)  forecastDryHoursAfter.value  = settings.forecast_default_dry_hours_after ?? 3;
+    if (forecastMinHour)        forecastMinHour.value        = settings.forecast_default_min_hour ?? 6;
+    if (forecastMaxHour)        forecastMaxHour.value        = settings.forecast_default_max_hour ?? 23;
+    if (forecastRangeHours)     forecastRangeHours.value     = settings.forecast_default_range_hours ?? 72;
+    
     if (APP_PERMISSIONS?.can_manage_users) {
       await loadUserRoles();
-    } else {
     }
 
     applyDefaultSettingsToExport(settings);
+    applyDefaultSettingsToForecast(settings);
   } catch (err) {
     console.error('[loadSettings] Fehler:', err);
     toast('❌ Einstellungen konnten nicht geladen werden');
@@ -138,22 +170,67 @@ function collectWizardSaveMode() {
 
 function collectAppSettings() {
   return {
-    registration_allowed: $('set-registration-allowed') ? ($('set-registration-allowed').checked ? "1" : "0") : "0"
+    registration_allowed: $('set-registration-allowed') ? ($('set-registration-allowed').checked ? "1" : "0") : "0",
+    forecast_default_max_wind_ms: $('set-forecast-max-wind')
+      ? parseFloat($('set-forecast-max-wind').value || '3.5')
+      : 3.5,
+
+    forecast_default_max_precip_mm: $('set-forecast-max-precip')
+      ? parseFloat($('set-forecast-max-precip').value || '0.0')
+      : 0.0,
+
+    forecast_default_min_temp_c: $('set-forecast-min-temp')
+      ? parseFloat($('set-forecast-min-temp').value || '8')
+      : 8,
+
+    forecast_default_max_temp_c: $('set-forecast-max-temp')
+      ? parseFloat($('set-forecast-max-temp').value || '25')
+      : 25,
+
+    forecast_default_min_humidity_pct: $('set-forecast-min-humidity')
+      ? parseInt($('set-forecast-min-humidity').value || '50', 10)
+      : 50,
+
+    forecast_default_dry_hours_after: $('set-forecast-dry-hours-after')
+      ? parseInt($('set-forecast-dry-hours-after').value || '3', 10)
+      : 3,
+
+    forecast_default_min_hour: $('set-forecast-min-hour')
+      ? parseInt($('set-forecast-min-hour').value || '6', 10)
+      : 6,
+
+    forecast_default_max_hour: $('set-forecast-max-hour')
+      ? parseInt($('set-forecast-max-hour').value || '23', 10)
+      : 23,
+
+    forecast_default_range_hours: $('set-forecast-range-hours')
+      ? parseInt($('set-forecast-range-hours').value || '72', 10)
+      : 72,
   };
 }
 
 async function saveSettings() {
   try {
-    const payload = collectSettingsForm();
-    const result = await apiPost('/api/user/settings', payload);
+    const payloadUser = collectSettingsForm();
+    const resultUser = await apiPost('/api/user/settings', payloadUser);
 
-    const registrationAllowed = $('set-registration-allowed');
-    if (registrationAllowed) {
-      const payloadApp = collectAppSettings();
-      await apiPost('/api/app/settings', payloadApp);
+    const payloadApp = collectAppSettings();
+    const resultApp = await apiPost('/api/app/settings', payloadApp);
+    
+    if (payloadApp.forecast_default_min_hour < 0 || payloadApp.forecast_default_min_hour > 23) {
+      toast('❌ Früheste Uhrzeit muss zwischen 0 und 23 liegen');
+      return;
     }
-    applyDefaultSettingsToExport(result.settings || payload);
-    updateExportButtons(payload.local_save);
+
+    if (payloadApp.forecast_default_max_hour < 0 || payloadApp.forecast_default_max_hour > 23) {
+      toast('❌ Späteste Uhrzeit muss zwischen 0 und 23 liegen');
+      return;
+    }
+
+    applyDefaultSettingsToExport(resultUser.settings || payloadUser);
+    applyDefaultSettingsToForecast(resultApp.settings || payloadApp);
+    updateExportButtons(payloadUser.local_save);
+
     toast('✅ Einstellungen gespeichert');
   } catch (err) {
     console.error(err);
@@ -274,6 +351,56 @@ async function deleteUser(userId) {
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);
+  }
+}
+
+function applyDefaultSettingsToForecast(settings) {
+  const mappings = [
+    ['forecast-max-wind', 'forecast_default_max_wind_ms', 3.5],
+    ['forecast-max-precip', 'forecast_default_max_precip_mm', 0.0],
+    ['forecast-min-temp', 'forecast_default_min_temp_c', 8.0],
+    ['forecast-max-temp', 'forecast_default_max_temp_c', 25.0],
+    ['forecast-min-humidity', 'forecast_default_min_humidity_pct', 50],
+    ['forecast-dry-hours-after', 'forecast_default_dry_hours_after', 3],
+    ['forecast-min-hour', 'forecast_default_min_hour', 6],
+    ['forecast-max-hour', 'forecast_default_max_hour', 23],
+  ];
+
+  for (const [id, key, fallback] of mappings) {
+    const el = $(id);
+    if (el && !el.value) {
+      el.value = settings[key] ?? fallback;
+    }
+  }
+
+  const rangeEl = $('forecast-range');
+  if (rangeEl && !rangeEl.value) {
+    rangeEl.value = String(settings.forecast_default_range_hours ?? 72);
+  }
+}
+
+function applyDefaultAppSettingsToForecast(appSettings) {
+  const mappings = [
+    ['forecast-max-wind', 'forecast_default_max_wind_ms', 3.5],
+    ['forecast-max-precip', 'forecast_default_max_precip_mm', 0.0],
+    ['forecast-min-temp', 'forecast_default_min_temp_c', 8.0],
+    ['forecast-max-temp', 'forecast_default_max_temp_c', 25.0],
+    ['forecast-min-humidity', 'forecast_default_min_humidity_pct', 50],
+    ['forecast-dry-hours-after', 'forecast_default_dry_hours_after', 3],
+    ['forecast-min-hour', 'forecast_default_min_hour', 6],
+    ['forecast-max-hour', 'forecast_default_max_hour', 23],
+  ];
+
+  for (const [id, key, fallback] of mappings) {
+    const el = $(id);
+    if (el && !el.value) {
+      el.value = appSettings[key] ?? fallback;
+    }
+  }
+
+  const rangeEl = $('forecast-range');
+  if (rangeEl && !rangeEl.value) {
+    rangeEl.value = String(appSettings.forecast_default_range_hours ?? 72);
   }
 }
 

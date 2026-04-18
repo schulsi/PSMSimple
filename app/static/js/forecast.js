@@ -97,7 +97,6 @@ async function calculateForecastWindow() {
     const result = await apiPost(`/api/einsatzorte/${einsatzortId}/spray-window`, payload);
 
     renderForecastLoading(false);
-    console.log(result)
 
     if (!result || result.error) {
       renderForecastError(result?.message || 'Vorhersage konnte nicht berechnet werden.');
