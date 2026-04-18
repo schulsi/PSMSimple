@@ -55,7 +55,7 @@ function logout() {
     'previewJSON', 'exportSave', 'exportDownloadZip',
     'resetHistoryFilter', 'resetPSMHistoryFilter', 'resetFieldsHistoryFilter',
     'saveSettings', 'renameUser', 'saveBetriebWizard',
-    'closeModal', 'logout',
+    'closeModal', 'logout',  'calculateForecastWindow', 'forecastSelectAllOrte', 'forecastSelectNoOrte'
   ]);
 
   // Aktionen mit einem Argument aus data-tab, data-period, data-subtab oder data-panel

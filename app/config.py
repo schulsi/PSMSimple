@@ -38,6 +38,9 @@ class Config:
     LOG_DIR = LOG_DIR
     SWAGGER = {"title": "PSM API", "uiversion": 3, "securityDefinitions": {"cookieAuth": {"type": "apiKey", "in": "cookie", "name": "session"}}
                }
+    OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+    OPEN_METEO_GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
+
 
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY environment variable is not set.")

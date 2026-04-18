@@ -69,7 +69,7 @@ def create_app():
                 "style-src 'self' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; "
-                "connect-src 'self' https://psm-api.bvl.bund.de https://cdn.jsdelivr.net; "
+                "connect-src 'self' https://psm-api.bvl.bund.de https://cdn.jsdelivr.net https://api.open-meteo.com https://geocoding-api.open-meteo.com; "
                 "frame-ancestors 'none'; "
                 "base-uri 'self'; "
                 "form-action 'self'"

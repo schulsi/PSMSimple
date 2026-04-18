@@ -14,9 +14,47 @@ let _eoMap = null;
 let _eoMarker = null;
 let _eoMapSelection = null; // { lat, lng } confirmed in map modal
 
-const EO_MAP_DEFAULT     = [51.1657, 10.4515]; // Germany center
+const EO_MAP_DEFAULT      = [51.1657, 10.4515];
 const EO_MAP_DEFAULT_ZOOM = 6;
 const EO_MAP_POINT_ZOOM   = 15;
+
+let einsatzorteItems = [];
+let currentEinsatzortEditId = null;
+
+/* NEU */
+let orteItems = [];
+
+function getOrtNameById(ortId) {
+  const ort = orteItems.find(o => String(o.id) === String(ortId));
+  return ort?.name || ort?.bezeichnung || `Ort #${ortId}`;
+}
+
+/* NEU */
+async function loadOrte(selectedOrtId = '') {
+  const select = $('eo-ort_id');
+  if (!select) return;
+
+  try {
+    orteItems = await apiGet('/api/orte');
+
+    select.innerHTML = `
+      <option value="">Bitte Ort wählen</option>
+      ${orteItems.map(ort => `
+        <option value="${ort.id}">
+          ${escapeHtml(ort.name || ort.bezeichnung || `Ort ${ort.id}`)}
+        </option>
+      `).join('')}
+    `;
+
+    if (selectedOrtId !== '' && selectedOrtId !== null && selectedOrtId !== undefined) {
+      select.value = String(selectedOrtId);
+    }
+  } catch (err) {
+    console.error(err);
+    select.innerHTML = `<option value="">Orte konnten nicht geladen werden</option>`;
+    toast('❌ Orte konnten nicht geladen werden');
+  }
+}
 
 function openMapModal() {
   openModal('modal-map');
@@ -101,17 +139,14 @@ function _eoMapSetPoint(lat, lng) {
 
   _eoMapSelection = { lat: latR, lng: lngR };
 
-  // Update coord display bar
   const latEl = document.getElementById('map-lat-display');
   const lngEl = document.getElementById('map-lng-display');
   if (latEl) latEl.textContent = latR;
   if (lngEl) lngEl.textContent = lngR;
 
-  // Enable confirm button
   const btn = document.getElementById('map-confirm-btn');
   if (btn) btn.disabled = false;
 
-  // Place / move draggable marker
   if (_eoMarker) {
     _eoMarker.setLatLng([latR, lngR]);
   } else {
@@ -138,19 +173,22 @@ function confirmMapSelection() {
 }
 
 function _eoResetMap() {
-  if (_eoMarker) { _eoMarker.remove(); _eoMarker = null; }
+  if (_eoMarker) {
+    _eoMarker.remove();
+    _eoMarker = null;
+  }
   _eoMapSelection = null;
+
   const latEl = document.getElementById('map-lat-display');
   const lngEl = document.getElementById('map-lng-display');
   if (latEl) latEl.textContent = '—';
   if (lngEl) lngEl.textContent = '—';
+
   const btn = document.getElementById('map-confirm-btn');
   if (btn) btn.disabled = true;
+
   if (_eoMap) _eoMap.setView(EO_MAP_DEFAULT, EO_MAP_DEFAULT_ZOOM);
 }
-
-let einsatzorteItems = [];
-let currentEinsatzortEditId = null;
 
 function renderEinsatzorteList(items = einsatzorteItems) {
   const list = $('einsatzorte-list');
@@ -165,8 +203,14 @@ function renderEinsatzorteList(items = einsatzorteItems) {
     <div class="item">
       <div class="item-info">
         <div class="name">${escapeHtml(item.name || '—')}</div>
-        <div class="meta">${escapeHtml(item.anwendungsbereich || '—')} · ${escapeHtml(item.geoTyp || '—')}</div>
-        <div class="meta">${escapeHtml(item.flaecheVolumen || '—')} ${escapeHtml(item.einheit || '')}</div>
+        <div class="meta">
+          ${escapeHtml(getOrtNameById(item.ort_id))} ·
+          ${escapeHtml(item.anwendungsbereich || '—')} ·
+          ${escapeHtml(item.geoTyp || '—')}
+        </div>
+        <div class="meta">
+          ${escapeHtml(item.flaecheVolumen || '—')} ${escapeHtml(item.einheit || '')}
+        </div>
       </div>
       <div class="item-actions">
         <button class="btn btn-sm btn-ghost" data-action="editEinsatzort" data-id="${item.id}">Bearbeiten</button>
@@ -178,9 +222,14 @@ function renderEinsatzorteList(items = einsatzorteItems) {
 
 async function loadEinsatzorte() {
   try {
+    /* wichtig: zuerst Orte laden, dann Einsatzorte rendern */
+    await loadOrte();
+
     einsatzorteItems = await apiGet('/api/einsatzorte');
+
     const count = document.getElementById('eo-count');
     renderEinsatzorteList();
+
     if (count) count.textContent = String(einsatzorteItems.length);
     if (typeof loadExportSelections === 'function') {
       loadExportSelections();
@@ -191,7 +240,7 @@ async function loadEinsatzorte() {
   }
 }
 
-function resetEinsatzortForm() {
+async function resetEinsatzortForm() {
   currentEinsatzortEditId = null;
 
   const defaultValues = {
@@ -209,8 +258,11 @@ function resetEinsatzortForm() {
     if (el) el.value = value;
   });
 
+  await loadOrte('');
+
   const modalTitle = $('modal-einsatzort-title');
   if (modalTitle) modalTitle.textContent = 'Einsatzort hinzufügen';
+
   _eoResetMap();
 }
 
@@ -222,12 +274,13 @@ function collectEinsatzortForm() {
     anwendungsbereich: $('eo-anwendungsbereich') ? $('eo-anwendungsbereich').value.trim() : '',
     geoTyp: $('eo-geoTyp') ? $('eo-geoTyp').value.trim() : '',
     einheit: $('eo-einheit') ? $('eo-einheit').value.trim() : '',
-    flaecheVolumen: $('eo-flaecheVolumen') ? $('eo-flaecheVolumen').value.trim() : ''
+    flaecheVolumen: $('eo-flaecheVolumen') ? $('eo-flaecheVolumen').value.trim() : '',
+    ort_id: $('eo-ort_id') ? $('eo-ort_id').value : ''
   };
 }
 
-function openEinsatzortModal() {
-  resetEinsatzortForm();
+async function openEinsatzortModal() {
+  await resetEinsatzortForm();
   openModal('modal-einsatzort');
 }
 
@@ -241,11 +294,13 @@ async function editEinsatzort(id) {
       if (el) el.value = item[field] || '';
     });
 
+    await loadOrte(item.ort_id);
+
     const modalTitle = $('modal-einsatzort-title');
     if (modalTitle) modalTitle.textContent = 'Einsatzort bearbeiten';
 
     openModal('modal-einsatzort');
-    // Pre-load map marker if coords exist (lazy — map opened on demand)
+
     const _lat = parseFloat(item.gpsRechtswert);
     const _lng = parseFloat(item.gpsHochwert);
     if (!isNaN(_lat) && !isNaN(_lng)) _eoMapSelection = { lat: _lat, lng: _lng };
@@ -264,6 +319,11 @@ async function saveEinsatzort() {
       return;
     }
 
+    if (!payload.ort_id) {
+      toast('❌ Bitte einen Ort auswählen');
+      return;
+    }
+
     if (currentEinsatzortEditId) {
       await apiPut(`/api/einsatzorte/${currentEinsatzortEditId}`, payload);
       toast('✅ Einsatzort gespeichert');
@@ -273,7 +333,7 @@ async function saveEinsatzort() {
     }
 
     closeModal('modal-einsatzort');
-    resetEinsatzortForm();
+    await resetEinsatzortForm();
     await loadEinsatzorte();
   } catch (err) {
     console.error(err);
