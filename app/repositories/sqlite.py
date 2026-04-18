@@ -29,7 +29,12 @@ def init_appdata_db():
             id INTEGER PRIMARY KEY,
             name TEXT, gpsRechtswert REAL,
             gpsHochwert REAL, anwendungsbereich TEXT,
-            geoTyp TEXT, einheit TEXT, flaecheVolumen REAL
+            geoTyp TEXT, einheit TEXT, flaecheVolumen REAL, ort_id INTEGER NOT NULL REFERENCES orte (id)
+        );
+                    
+        CREATE TABLE IF NOT EXISTS orte(
+            id INTEGER PRIMARY KEY,
+            name TEXT, plz INTEGER
         );
 
         CREATE TABLE IF NOT EXISTS kulturen (

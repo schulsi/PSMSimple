@@ -19,6 +19,15 @@ def get_einsatzort_by_id(einsatzort_id: int):
     conn.close()
     return dict(row) if row else None
 
+def get_einsatzorte_by_ort(ort_id: int):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM einsatzorte WHERE ort_id = ?",
+        (ort_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
 
 def list_einsatzorte_by_ids(einsatzort_ids: list[int]):
     if not einsatzort_ids:
@@ -40,8 +49,8 @@ def create_einsatzort(data: dict):
     cur.execute(
         """
         INSERT INTO einsatzorte
-            (name, gpsRechtswert, gpsHochwert, anwendungsbereich, geoTyp, einheit, flaecheVolumen)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+            (name, gpsRechtswert, gpsHochwert, anwendungsbereich, geoTyp, einheit, flaecheVolumen, ort_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             data["name"],
@@ -51,6 +60,7 @@ def create_einsatzort(data: dict):
             data["geoTyp"],
             data["einheit"],
             data["flaecheVolumen"],
+            data["ort_id"]
         )
     )
     conn.commit()
@@ -65,7 +75,7 @@ def update_einsatzort(einsatzort_id: int, data: dict):
         """
         UPDATE einsatzorte
         SET name = ?, gpsRechtswert = ?, gpsHochwert = ?,
-            anwendungsbereich = ?, geoTyp = ?, einheit = ?, flaecheVolumen = ?
+            anwendungsbereich = ?, geoTyp = ?, einheit = ?, flaecheVolumen = ?, ort_id = ?
         WHERE id = ?
         """,
         (
@@ -76,6 +86,7 @@ def update_einsatzort(einsatzort_id: int, data: dict):
             data["geoTyp"],
             data["einheit"],
             data["flaecheVolumen"],
+            data["ort_id"],
             einsatzort_id,
         )
     )
