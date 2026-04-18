@@ -1,7 +1,25 @@
 let lastSavedHistorySignature = null;
+const exportBBCHCache = {};
 
 function getPayloadSignature(payload) {
   return JSON.stringify(payload);
+}
+async function getBBCHOptionsForKultur(kulturId) {
+  if (exportBBCHCache[kulturId]) {
+    return exportBBCHCache[kulturId];
+  }
+
+  const items = await apiGet(`/api/bbch/kultur/${kulturId}`);
+  const normalized = Array.isArray(items) ? items : [];
+
+  normalized.sort((a, b) => {
+    const aSort = a.sortierung ?? Number.MAX_SAFE_INTEGER;
+    const bSort = b.sortierung ?? Number.MAX_SAFE_INTEGER;
+    return aSort - bSort;
+  });
+
+  exportBBCHCache[kulturId] = normalized;
+  return normalized;
 }
 
 function renderExportSelectionList(containerId, items, type) {
@@ -58,7 +76,18 @@ function renderExportSelectionList(containerId, items, type) {
           </label>
           <div class="exp-item-extra">
             <label>BBCH-Code</label>
-            <input type="number" class="exp-kultur-bbch" data-id="${item.id}" placeholder="z. B. 39">
+            <div class="autocomplete-wrap exp-bbch-autocomplete">
+              <input
+                type="text"
+                class="exp-kultur-bbch"
+                data-id="${item.id}"
+                data-kultur-name="${escapeHtml(item.name || '')}"
+                placeholder="Code oder Beschreibung suchen"
+                autocomplete="off"
+              >
+              <div class="autocomplete-results exp-kultur-bbch-results" data-id="${item.id}"></div>
+            </div>
+            <div class="exp-kultur-bbch-hint text-muted" data-id="${item.id}"></div>
           </div>
         </div>
       `;
@@ -68,7 +97,7 @@ function renderExportSelectionList(containerId, items, type) {
   }).join('');
 }
 
-function toggleExpItem(type, id) {
+async function toggleExpItem(type, id) {
   let wrap = null;
   if (type === 'psm')        wrap = $(`exp-psm-${id}`);
   if (type === 'einsatzort') wrap = $(`exp-einsatzort-${id}`);
@@ -77,6 +106,14 @@ function toggleExpItem(type, id) {
   const checkbox = wrap.querySelector('input[type="checkbox"]');
   if (!checkbox) return;
   wrap.classList.toggle('selected', checkbox.checked);
+  if (type === 'kultur' && checkbox.checked) {
+    try {
+      await getBBCHOptionsForKultur(id);
+    } catch (err) {
+      console.error(err);
+      toast('❌ BBCH-Codes konnten nicht geladen werden');
+    }
+  }
 }
 
 function loadExportSelections() {
@@ -285,6 +322,247 @@ async function exportDownloadZip() {
   }
 }
 
+function searchBBCHItems(items, query) {
+  const q = String(query || '').trim().toLowerCase();
+
+  if (!q) {
+    return items.slice(0, 8);
+  }
+
+  return items.filter(item => {
+    const code = String(item.code || '').toLowerCase();
+    const bezeichnung = String(item.bezeichnung || '').toLowerCase();
+    const beschreibung = String(item.beschreibung || '').toLowerCase();
+
+    return (
+      code.includes(q) ||
+      bezeichnung.includes(q) ||
+      beschreibung.includes(q)
+    );
+  }).slice(0, 8);
+}
+
+/**
+ * Positioniert das Dropdown unter dem Input (nötig wegen modal overflow:auto).
+ */
+function positionBBCHDropdown(kulturId) {
+  const input = document.querySelector(`.exp-kultur-bbch[data-id="${kulturId}"]`);
+  const results = document.querySelector(`.exp-kultur-bbch-results[data-id="${kulturId}"]`);
+  if (!input || !results) return;
+  const rect = input.getBoundingClientRect();
+  results.style.top   = rect.bottom + 4 + 'px';
+  results.style.left  = rect.left + 'px';
+  results.style.width = rect.width + 'px';
+}
+
+function renderBBCHAutocompleteResults(kulturId, matches) {
+  const results = document.querySelector(`.exp-kultur-bbch-results[data-id="${kulturId}"]`);
+  if (!results) return;
+
+  if (!matches.length) {
+    results.innerHTML = `<div class="autocomplete-empty">Keine passenden BBCH-Codes gefunden</div>`;
+    positionBBCHDropdown(kulturId);
+    results.classList.add('show');
+    return;
+  }
+
+  results.innerHTML = matches.map(item => `
+    <button
+      type="button"
+      class="autocomplete-item exp-bbch-item"
+      data-action="selectExportBBCH"
+      data-id="${kulturId}"
+      data-code="${escapeHtml(String(item.code || ''))}"
+      data-bezeichnung="${escapeHtml(item.bezeichnung || '')}"
+      data-beschreibung="${escapeHtml(item.beschreibung || '')}"
+    >
+      <div><strong>${escapeHtml(String(item.code || ''))}</strong> – ${escapeHtml(item.bezeichnung || 'Ohne Bezeichnung')}</div>
+      ${item.beschreibung ? `<div class="ci-meta">${escapeHtml(item.beschreibung)}</div>` : ''}
+    </button>
+  `).join('');
+
+  positionBBCHDropdown(kulturId);
+  results.classList.add('show');
+}
+
+function applyExportBBCHSelection(kulturId, item) {
+  const input = document.querySelector(`.exp-kultur-bbch[data-id="${kulturId}"]`);
+  const hint = document.querySelector(`.exp-kultur-bbch-hint[data-id="${kulturId}"]`);
+  const results = document.querySelector(`.exp-kultur-bbch-results[data-id="${kulturId}"]`);
+
+  if (input) {
+    input.value = String(item.code || '');
+    input.dataset.selectedCode = String(item.code || '');
+  }
+
+  if (hint) {
+    const bezeichnung = String(item.bezeichnung || '').trim();
+    const beschreibung = String(item.beschreibung || '').trim();
+
+    hint.textContent = beschreibung
+      ? `${bezeichnung} | ${beschreibung}`
+      : bezeichnung;
+  }
+
+  if (results) {
+    results.classList.remove('show');
+    results.innerHTML = '';
+  }
+}
+
+function initExportBBCHAutocomplete() {
+  document.addEventListener('focusin', async (event) => {
+    const input = event.target.closest('.exp-kultur-bbch');
+    if (!input) return;
+
+    const kulturId = Number(input.dataset.id);
+    if (!kulturId) return;
+
+    try {
+      const items = await getBBCHOptionsForKultur(kulturId);
+      const matches = searchBBCHItems(items, input.value);
+
+      renderBBCHAutocompleteResults(kulturId, matches);
+    } catch (err) {
+      console.error(err);
+      toast(`❌ BBCH-Autocomplete konnte nicht geladen werden: ${err.message || err}`);
+    }
+  });
+
+  document.addEventListener('input', async (event) => {
+    const input = event.target.closest('.exp-kultur-bbch');
+    if (!input) return;
+
+    const kulturId = Number(input.dataset.id);
+    if (!kulturId) return;
+
+    input.dataset.selectedCode = '';
+
+    try {
+      const items = await getBBCHOptionsForKultur(kulturId);
+      const matches = searchBBCHItems(items, input.value);
+      renderBBCHAutocompleteResults(kulturId, matches);
+
+      const hint = document.querySelector(`.exp-kultur-bbch-hint[data-id="${kulturId}"]`);
+      if (hint && !String(input.value || '').trim()) {
+        hint.textContent = '';
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    const option = event.target.closest('[data-action="selectExportBBCH"]');
+    if (option) {
+      const kulturId = Number(option.dataset.id);
+
+      applyExportBBCHSelection(kulturId, {
+        code: option.dataset.code || '',
+        bezeichnung: option.dataset.bezeichnung || '',
+        beschreibung: option.dataset.beschreibung || ''
+      });
+      return;
+    }
+
+    document.querySelectorAll('.exp-kultur-bbch-results.show').forEach(el => {
+      if (!el.contains(event.target) && !event.target.closest('.exp-bbch-autocomplete')) {
+        el.classList.remove('show');
+      }
+    });
+  });
+
+  document.addEventListener('blur', async (event) => {
+    const input = event.target.closest('.exp-kultur-bbch');
+    if (!input) return;
+
+    const kulturId = Number(input.dataset.id);
+    if (!kulturId) return;
+
+    const value = String(input.value || '').trim();
+
+    setTimeout(() => {
+      const results = document.querySelector(`.exp-kultur-bbch-results[data-id="${kulturId}"]`);
+      if (results) {
+        results.classList.remove('show');
+      }
+    }, 150);
+
+    const hint = document.querySelector(`.exp-kultur-bbch-hint[data-id="${kulturId}"]`);
+    if (!hint) return;
+
+    if (!value) {
+      hint.textContent = '';
+      input.dataset.selectedCode = '';
+      return;
+    }
+
+    try {
+      const items = await getBBCHOptionsForKultur(kulturId);
+      const exact = items.find(item => String(item.code) === value);
+
+      if (exact) {
+        input.dataset.selectedCode = String(exact.code || '');
+        hint.textContent = exact.beschreibung
+          ? `${exact.bezeichnung} – ${exact.beschreibung}`
+          : `${exact.bezeichnung}`;
+      } else {
+        input.dataset.selectedCode = '';
+        hint.textContent = 'Unbekannter BBCH-Code für diese Kultur';
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, true);
+
+  document.addEventListener('keydown', async (event) => {
+    const input = event.target.closest('.exp-kultur-bbch');
+    if (!input) return;
+
+    const kulturId = Number(input.dataset.id);
+    const results = document.querySelector(`.exp-kultur-bbch-results[data-id="${kulturId}"]`);
+    if (!results || !results.classList.contains('show')) return;
+
+    const items = [...results.querySelectorAll('[data-action="selectExportBBCH"]')];
+    if (!items.length) return;
+
+    const activeIndex = items.findIndex(el => el.classList.contains('active'));
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      const nextIndex = activeIndex < items.length - 1 ? activeIndex + 1 : 0;
+      items.forEach(el => el.classList.remove('active'));
+      items[nextIndex].classList.add('active');
+      items[nextIndex].scrollIntoView({ block: 'nearest' });
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      const nextIndex = activeIndex > 0 ? activeIndex - 1 : items.length - 1;
+      items.forEach(el => el.classList.remove('active'));
+      items[nextIndex].classList.add('active');
+      items[nextIndex].scrollIntoView({ block: 'nearest' });
+    }
+
+    if (event.key === 'Enter') {
+      const selected = activeIndex >= 0 ? items[activeIndex] : items[0];
+      if (!selected) return;
+
+      event.preventDefault();
+      applyExportBBCHSelection(kulturId, {
+        code: selected.dataset.code || '',
+        bezeichnung: selected.dataset.bezeichnung || '',
+        beschreibung: selected.dataset.beschreibung || ''
+      });
+    }
+
+    if (event.key === 'Escape') {
+      results.classList.remove('show');
+    }
+  });
+}
+
 // Keep legacy functions as aliases so any other code that calls them still works
 async function exportJSON() { return exportSave(); }
 async function exportPDF()  { return exportSave(); }
+initExportBBCHAutocomplete();

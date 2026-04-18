@@ -424,10 +424,68 @@
 <div class="modal-overlay" id="modal-kultur">
   <div class="modal">
     <h3 id="modal-kultur-title">Kultur</h3>
+
     <div class="form-grid">
-      <div class="field"><label>Name <span class="danger-text">*</span></label><input id="k-name" placeholder="Weinbau"></div>
-      <div class="field"><label>EPPO-Code <span class="danger-text">*</span></label><input id="k-eppoCode" placeholder="VITVI"></div>
+      <div class="field">
+        <label>Name <span class="danger-text">*</span></label>
+        <input id="k-name" placeholder="Weinbau">
+      </div>
+      <div class="field">
+        <label>EPPO-Code <span class="danger-text">*</span></label>
+        <input id="k-eppoCode" placeholder="VITVI">
+      </div>
     </div>
+
+    <hr class="section-divider" />
+
+        <div id="bbch-editor-section">
+      <div class="section-head">
+        <div>
+          <h4 class="section-title">BBCH-Codes</h4>
+          <p class="section-subtitle">
+            Bereits gespeicherte BBCH-Codes werden in der Tabelle angezeigt. Neue BBCH-Einträge kannst du direkt darunter erfassen.
+          </p>
+        </div>
+      </div>
+
+      <div id="bbch-empty-state" class="empty">
+        Noch keine BBCH-Einträge vorhanden.
+      </div>
+
+      <div id="bbch-overview" class="hidden"></div>
+
+      <div class="bbch-editor-wrap">
+        <div class="bbch-editor-actions">
+          <button type="button" class="btn btn-sm" id="btn-add-bbch-row">
+            + BBCH hinzufügen
+          </button>
+        </div>
+
+        <div class="bbch-table-wrap hidden" id="bbch-editor-table-wrap">
+          <table class="table bbch-table" id="bbch-editor-table">
+            <colgroup>
+              <col class="code-col">
+              <col class="label-col">
+              <col class="desc-col">
+              <col class="sort-col">
+              <col class="actions-col">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Bezeichnung</th>
+                <th>Beschreibung</th>
+                <th>Sortierung</th>
+                <th>Aktion</th>
+              </tr>
+            </thead>
+            <tbody id="bbch-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
     <div class="modal-footer">
       <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-kultur">Abbrechen</button>
       <button type="button" class="btn btn-primary" data-action="saveKultur">Speichern</button>

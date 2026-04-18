@@ -9,6 +9,7 @@ from .pages import bp as pages_bp
 from .export import bp as export_bp
 from .psm_lookup import bp as psm_lookup_bp
 from .settings import settings_bp
+from .bbch import bp as bbch_bp
 
 
 def register_blueprints(app):
@@ -23,3 +24,4 @@ def register_blueprints(app):
     app.register_blueprint(export_bp)
     app.register_blueprint(psm_lookup_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(bbch_bp)
