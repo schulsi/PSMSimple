@@ -342,16 +342,27 @@ function searchBBCHItems(items, query) {
   }).slice(0, 8);
 }
 
+/**
+ * Positioniert das Dropdown unter dem Input (nötig wegen modal overflow:auto).
+ */
+function positionBBCHDropdown(kulturId) {
+  const input = document.querySelector(`.exp-kultur-bbch[data-id="${kulturId}"]`);
+  const results = document.querySelector(`.exp-kultur-bbch-results[data-id="${kulturId}"]`);
+  if (!input || !results) return;
+  const rect = input.getBoundingClientRect();
+  results.style.top   = rect.bottom + 4 + 'px';
+  results.style.left  = rect.left + 'px';
+  results.style.width = rect.width + 'px';
+}
+
 function renderBBCHAutocompleteResults(kulturId, matches) {
   const results = document.querySelector(`.exp-kultur-bbch-results[data-id="${kulturId}"]`);
   if (!results) return;
 
   if (!matches.length) {
     results.innerHTML = `<div class="autocomplete-empty">Keine passenden BBCH-Codes gefunden</div>`;
+    positionBBCHDropdown(kulturId);
     results.classList.add('show');
-    results.style.display = 'block';
-    results.style.visibility = 'visible';
-    results.style.opacity = '1';
     return;
   }
 
@@ -370,8 +381,8 @@ function renderBBCHAutocompleteResults(kulturId, matches) {
     </button>
   `).join('');
 
+  positionBBCHDropdown(kulturId);
   results.classList.add('show');
-  results.style.display = 'block';
 }
 
 function applyExportBBCHSelection(kulturId, item) {
@@ -396,7 +407,6 @@ function applyExportBBCHSelection(kulturId, item) {
   if (results) {
     results.classList.remove('show');
     results.innerHTML = '';
-    results.style.display = 'none';
   }
 }
 
@@ -458,7 +468,6 @@ function initExportBBCHAutocomplete() {
     document.querySelectorAll('.exp-kultur-bbch-results.show').forEach(el => {
       if (!el.contains(event.target) && !event.target.closest('.exp-bbch-autocomplete')) {
         el.classList.remove('show');
-        el.style.display = 'none';
       }
     });
   });
@@ -474,11 +483,9 @@ function initExportBBCHAutocomplete() {
 
     setTimeout(() => {
       const results = document.querySelector(`.exp-kultur-bbch-results[data-id="${kulturId}"]`);
-      if (results)
-        {
-           results.classList.remove('show');
-           results.style.display='none';
-        }
+      if (results) {
+        results.classList.remove('show');
+      }
     }, 150);
 
     const hint = document.querySelector(`.exp-kultur-bbch-hint[data-id="${kulturId}"]`);
