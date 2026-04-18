@@ -1,5 +1,6 @@
 let _forecastInitialized = false;
-let _forecastEinsatzorteLoaded = false;
+let _forecastOrteLoaded = false;
+let _forecastOrteItems = [];
 
 function initForecastTab() {
   if (!_forecastInitialized) {
@@ -7,44 +8,76 @@ function initForecastTab() {
     bindForecastUI();
   }
 
-  if (!_forecastEinsatzorteLoaded) {
-    loadForecastEinsatzorte();
+  if (!_forecastOrteLoaded) {
+    loadForecastOrte();
   }
 }
 
 function bindForecastUI() {
-  // Falls du nur über data-action arbeitest, kann das leer bleiben.
-  // Falls nötig, hier zusätzliche Listener registrieren.
+  // optional zusätzliche Listener
 }
 
-async function loadForecastEinsatzorte() {
-  const select = document.getElementById('forecast-einsatzort');
-  if (!select) return;
+async function loadForecastOrte() {
+  const container = document.getElementById('forecast-orte');
+  if (!container) return;
 
   try {
-    const items = await apiGet('/api/einsatzorte');
+    const items = await apiGet('/api/orte');
     const list = Array.isArray(items) ? items : [];
+    _forecastOrteItems = list;
 
-    select.innerHTML = '';
+    container.innerHTML = '';
 
     if (!list.length) {
-      select.innerHTML = '<option value="">Keine Einsatzorte vorhanden</option>';
-      _forecastEinsatzorteLoaded = true;
+      container.innerHTML = `<div class="empty">Keine Orte vorhanden</div>`;
+      _forecastOrteLoaded = true;
       return;
     }
 
-    for (const eo of list) {
-      const opt = document.createElement('option');
-      opt.value = eo.id;
-      opt.textContent = eo.name || `Einsatzort ${eo.id}`;
-      select.appendChild(opt);
-    }
+    container.innerHTML = list.map(ort => {
+      const id = ort.id;
+      const name = escapeHtml(ort.name || ort.bezeichnung || `Ort ${id}`);
 
-    _forecastEinsatzorteLoaded = true;
+      return `
+        <label class="forecast-checkbox-item">
+          <input
+            type="checkbox"
+            class="forecast-ort-checkbox"
+            value="${id}"
+          >
+          <span>${name}</span>
+        </label>
+      `;
+    }).join('');
+
+    _forecastOrteLoaded = true;
   } catch (err) {
-    console.error('loadForecastEinsatzorte failed', err);
-    select.innerHTML = '<option value="">Fehler beim Laden</option>';
+    console.error('loadForecastOrte failed', err);
+    container.innerHTML = `<div class="empty">Fehler beim Laden</div>`;
   }
+}
+
+function getSelectedForecastOrtIds() {
+  return Array.from(
+    document.querySelectorAll('#forecast-orte .forecast-ort-checkbox:checked')
+  )
+    .map(cb => cb.value)
+    .filter(Boolean);
+}
+
+function forecastSelectAllOrte() {
+  document.querySelectorAll('#forecast-orte .forecast-ort-checkbox')
+    .forEach(cb => { cb.checked = true; });
+}
+
+function forecastSelectNoOrte() {
+  document.querySelectorAll('#forecast-orte .forecast-ort-checkbox')
+    .forEach(cb => { cb.checked = false; });
+}
+
+function getForecastOrtNameById(id) {
+  const ort = _forecastOrteItems.find(o => String(o.id) === String(id));
+  return ort?.name || ort?.bezeichnung || `Ort ${id}`;
 }
 
 function getForecastRangeHours() {
@@ -74,17 +107,15 @@ function getForecastPayload() {
       dry_hours_after: parseInt(document.getElementById('forecast-dry-hours-after')?.value || '3', 10),
       min_hour: parseInt(document.getElementById('forecast-min-hour')?.value || '6', 10),
       max_hour: parseInt(document.getElementById('forecast-max-hour')?.value || '23', 10),
-    
     }
   };
 }
 
 async function calculateForecastWindow() {
-  const select = document.getElementById('forecast-einsatzort');
-  const einsatzortId = select?.value;
+  const ortIds = getSelectedForecastOrtIds();
 
-  if (!einsatzortId) {
-    renderForecastError('Bitte zuerst einen Einsatzort auswählen.');
+  if (!ortIds.length) {
+    renderForecastError('Bitte mindestens einen Ort auswählen.');
     return;
   }
 
@@ -94,16 +125,30 @@ async function calculateForecastWindow() {
 
   try {
     const payload = getForecastPayload();
-    const result = await apiPost(`/api/einsatzorte/${einsatzortId}/spray-window`, payload);
+
+    const results = await Promise.all(
+      ortIds.map(async (ortId) => {
+        try {
+          const result = await apiGet(`/api/orte/${ortId}/spray-window`, payload);
+          return {
+            ort_id: ortId,
+            ort_name: getForecastOrtNameById(ortId),
+            ok: !result?.error,
+            data: result
+          };
+        } catch (err) {
+          return {
+            ort_id: ortId,
+            ort_name: getForecastOrtNameById(ortId),
+            ok: false,
+            error: err?.message || 'Fehler beim Laden'
+          };
+        }
+      })
+    );
 
     renderForecastLoading(false);
-
-    if (!result || result.error) {
-      renderForecastError(result?.message || 'Vorhersage konnte nicht berechnet werden.');
-      return;
-    }
-
-    renderForecastResult(result);
+    renderForecastMultiResult(results);
   } catch (err) {
     console.error('calculateForecastWindow failed', err);
     renderForecastLoading(false);
@@ -145,64 +190,127 @@ function clearForecastResult() {
   if (altList) altList.innerHTML = '';
 }
 
-function renderForecastResult(data) {
-  const best = data.best_window;
-  const windows = Array.isArray(data.windows) ? data.windows : [];
-
+function renderForecastMultiResult(results) {
   const bestEl = document.getElementById('forecast-best-window');
   const altWrap = document.getElementById('forecast-alt-wrap');
   const altList = document.getElementById('forecast-alt-list');
 
   if (!bestEl || !altWrap || !altList) return;
 
-  if (!best) {
+  const successful = results.filter(r => r.ok && r.data);
+  const failed = results.filter(r => !r.ok);
+
+  if (!successful.length) {
+    bestEl.className = 'forecast-best-window';
+    bestEl.innerHTML = `
+      <div class="forecast-best-title">Keine Vorhersage verfügbar</div>
+      <div>Für die ausgewählten Orte konnten keine Ergebnisse geladen werden.</div>
+    `;
+    bestEl.classList.remove('hidden');
+
+    altList.innerHTML = failed.map(r => `
+      <div class="forecast-window-item">
+        <div class="forecast-window-title">${escapeHtml(r.ort_name)}</div>
+        <div>Fehler: <strong>${escapeHtml(r.error || 'Unbekannter Fehler')}</strong></div>
+      </div>
+    `).join('');
+
+    altWrap.classList.toggle('hidden', !failed.length);
+    return;
+  }
+
+  const ranked = successful
+    .map(r => ({
+      ...r,
+      best_window: r.data?.best_window || null,
+      windows: Array.isArray(r.data?.windows) ? r.data.windows : []
+    }))
+    .sort((a, b) => {
+      const aScore = a.best_window?.avg_score ?? -Infinity;
+      const bScore = b.best_window?.avg_score ?? -Infinity;
+      return bScore - aScore;
+    });
+
+  const bestOverall = ranked[0];
+
+  if (!bestOverall.best_window) {
     bestEl.className = 'forecast-best-window';
     bestEl.innerHTML = `
       <div class="forecast-best-title">Kein passendes Zeitfenster gefunden</div>
-      <div>Im gewählten Zeitraum wurde mit den aktuellen Thresholds kein geeignetes Spritzfenster erkannt.</div>
+      <div>Für keinen der ausgewählten Orte wurde mit den aktuellen Thresholds ein geeignetes Spritzfenster erkannt.</div>
     `;
     bestEl.classList.remove('hidden');
-    altWrap.classList.add('hidden');
-    return;
+  } else {
+    const best = bestOverall.best_window;
+
+    bestEl.className = 'forecast-best-window is-good';
+    bestEl.innerHTML = `
+      <div class="forecast-best-title">Bestes Zeitfenster über alle Orte</div>
+      <div class="forecast-best-time">${formatForecastWindow(best.start, best.end)}</div>
+      <div><strong>Ort:</strong> ${escapeHtml(bestOverall.ort_name)}</div>
+
+      <div class="forecast-best-meta">
+        <div class="forecast-meta-box">
+          <div class="forecast-meta-label">Dauer</div>
+          <div class="forecast-meta-value">${best.duration_hours} h</div>
+        </div>
+        <div class="forecast-meta-box">
+          <div class="forecast-meta-label">Score</div>
+          <div class="forecast-meta-value">${best.avg_score}</div>
+        </div>
+        <div class="forecast-meta-box">
+          <div class="forecast-meta-label">Beginn</div>
+          <div class="forecast-meta-value">${formatDateTime(best.start)}</div>
+        </div>
+      </div>
+    `;
+    bestEl.classList.remove('hidden');
   }
 
-  bestEl.className = 'forecast-best-window is-good';
-  bestEl.innerHTML = `
-    <div class="forecast-best-title">Empfohlenes Zeitfenster</div>
-    <div class="forecast-best-time">${formatForecastWindow(best.start, best.end)}</div>
-    <div>Das aktuell beste erkannte Spritzfenster liegt in diesem Zeitraum.</div>
+  altList.innerHTML = ranked.map(r => {
+    const best = r.best_window;
 
-    <div class="forecast-best-meta">
-      <div class="forecast-meta-box">
-        <div class="forecast-meta-label">Dauer</div>
-        <div class="forecast-meta-value">${best.duration_hours} h</div>
-      </div>
-      <div class="forecast-meta-box">
-        <div class="forecast-meta-label">Score</div>
-        <div class="forecast-meta-value">${best.avg_score}</div>
-      </div>
-      <div class="forecast-meta-box">
-        <div class="forecast-meta-label">Beginn</div>
-        <div class="forecast-meta-value">${formatDateTime(best.start)}</div>
-      </div>
-    </div>
-  `;
-  bestEl.classList.remove('hidden');
+    if (!best) {
+      return `
+        <div class="forecast-window-item">
+          <div class="forecast-window-title">${escapeHtml(r.ort_name)}</div>
+          <div>Kein passendes Zeitfenster gefunden.</div>
+        </div>
+      `;
+    }
 
-  const alternatives = windows.slice(1, 4);
-  if (!alternatives.length) {
-    altWrap.classList.add('hidden');
-    altList.innerHTML = '';
-    return;
+    const alternatives = r.windows.slice(1, 3);
+
+    return `
+      <div class="forecast-window-item">
+        <div class="forecast-window-title">${escapeHtml(r.ort_name)}</div>
+        <div>${formatForecastWindow(best.start, best.end)}</div>
+        <div>Dauer: <strong>${best.duration_hours} h</strong> · Score: <strong>${best.avg_score}</strong></div>
+        ${
+          alternatives.length
+            ? `<div class="forecast-sublist">
+                ${alternatives.map((w, idx) => `
+                  <div class="forecast-subitem">
+                    Alt ${idx + 1}: ${formatForecastWindow(w.start, w.end)}
+                    · <strong>${w.duration_hours} h</strong>
+                    · Score <strong>${w.avg_score}</strong>
+                  </div>
+                `).join('')}
+              </div>`
+            : ''
+        }
+      </div>
+    `;
+  }).join('');
+
+  if (failed.length) {
+    altList.innerHTML += failed.map(r => `
+      <div class="forecast-window-item">
+        <div class="forecast-window-title">${escapeHtml(r.ort_name)}</div>
+        <div>Fehler: <strong>${escapeHtml(r.error || 'Unbekannter Fehler')}</strong></div>
+      </div>
+    `).join('');
   }
-
-  altList.innerHTML = alternatives.map((w, idx) => `
-    <div class="forecast-window-item">
-      <div class="forecast-window-title">Alternative ${idx + 1}</div>
-      <div>${formatForecastWindow(w.start, w.end)}</div>
-      <div>Dauer: <strong>${w.duration_hours} h</strong> · Score: <strong>${w.avg_score}</strong></div>
-    </div>
-  `).join('');
 
   altWrap.classList.remove('hidden');
 }

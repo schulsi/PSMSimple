@@ -8,7 +8,8 @@ from app.services.weather_service import (
 )
 from ..utils.weather_utils import build_windows
 from ..services.permissions import login_required
-from ..repositories.einsatzorte_repo import get_einsatzort_by_id
+from ..repositories.orte_repo import get_ort_by_id
+from ..routes.einsatzorte import cord2plz
 
 bp = Blueprint("weather", __name__)
 
@@ -362,9 +363,9 @@ def geocode():
         return jsonify({"error": True, "message": str(exc)}), 502
 
 
-@bp.post("/api/einsatzorte/<int:einsatzort_id>/spray-window")
+@bp.get("/api/orte/<int:ort_id>/spray-window")
 @login_required
-def spray_window_for_einsatzort(einsatzort_id: int):
+def spray_window_for_ort(ort_id: int):
     """
     Spritzfenster für einen Einsatzort berechnen
     ---
@@ -446,13 +447,15 @@ def spray_window_for_einsatzort(einsatzort_id: int):
 
     data = request.get_json(silent=True)
 
-    eo = get_einsatzort_by_id(einsatzort_id)
+    ort = get_ort_by_id(ort_id)
 
-    if not eo:
+    if not ort:
         return jsonify({"error": True, "message": "Einsatzort nicht gefunden"}), 404
 
-    lat = eo.get("gpsHochwert")
-    lon = eo.get("gpsRechtswert")
+    temp = cord2plz(ort.get("plz"))
+    gps = temp.get_json()
+    lat = float(gps["lat"])
+    lon = float(gps["lon"])
 
     hours = int((data or {}).get("hours", 72))
     t = (data or {}).get("thresholds", {}) or {}
@@ -475,7 +478,7 @@ def spray_window_for_einsatzort(einsatzort_id: int):
 
         return jsonify({
             "error": False,
-            "einsatzort_id": einsatzort_id,
+            "ort_id": ort_id,
             "meta": forecast["meta"],
             "thresholds": thresholds.__dict__,
             **window_result,

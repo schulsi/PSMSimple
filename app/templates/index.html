@@ -274,68 +274,78 @@
       </div>
     </div>
 
-    <div id="tab-forecast" class="tab">
-      <h2>📈 Vorhersage <span class="badge" id="forecast-status-badge">Spritzfenster</span></h2>
+<div id="tab-forecast" class="tab">
+  <h2>📈 Vorhersage <span class="badge" id="forecast-status-badge">Spritzfenster</span></h2>
 
-      <div class="forecast-layout">
-        <div class="card forecast-settings-card">
-          <div class="forecast-settings-head">
-            <div>
-              <h3 class="section-title">⚙️ Einstellungen</h3>
-              <p class="text-muted-history">
-                Zeitraum und Thresholds für die Berechnung des besten Spritzfensters.
-              </p>
-            </div>
-          </div>
+  <div class="forecast-layout">
 
-          <div class="form-grid forecast-grid">
-            <div class="field">
-              <label>Felder</label>
-              <select id="forecast-einsatzort"></select>
-            </div>
-
-            <div class="field">
-              <label>Zeitraum</label>
-              <select id="forecast-range">
-                <option value="today">Heute</option>
-                <option value="24">Nächster 1 Tag</option>
-                <option value="48">Nächste 2 Tage</option>
-                <option value="72" selected>Nächste 3 Tage</option>
-                <option value="96">Nächste 4 Tage</option>
-                <option value="120">Nächste 5 Tage</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Min. Fensterdauer (h)</label>
-              <input id="forecast-min-window-hours" type="number" step="1" value="2">
-            </div>
-          </div>
-
-          <div class="mt-1 flex-end">
-            <button type="button" class="btn btn-primary" id="btn-forecast-calc" data-action="calculateForecastWindow">
-              📈 Vorhersage berechnen
-            </button>
-          </div>
-        </div>
-
-        <div class="card forecast-result-card">
-          <h3 class="section-title">🌤 Bestes Zeitfenster</h3>
-
-          <div id="forecast-loading" class="forecast-info-box hidden">
-            Vorhersage wird geladen...
-          </div>
-
-          <div id="forecast-error" class="forecast-error-box hidden"></div>
-
-          <div id="forecast-best-window" class="forecast-best-window hidden"></div>
-
-          <div id="forecast-alt-wrap" class="hidden">
-            <h4 class="section-title mt-1">Weitere Zeitfenster</h4>
-            <div id="forecast-alt-list" class="forecast-alt-list"></div>
-          </div>
+    <div class="card forecast-settings-card">
+      <div class="forecast-settings-head">
+        <div>
+          <h3 class="section-title">⚙️ Einstellungen</h3>
+          <p class="text-muted-history">
+            Zeitraum und Thresholds für die Berechnung des besten Spritzfensters.
+          </p>
         </div>
       </div>
-    </div>
+
+      <div class="form-grid forecast-grid">
+
+        <div class="field forecast-orte-field">
+          <label>Orte auswählen</label>
+          <div class="forecast-checkbox-toolbar">
+            <button type="button" class="btn btn-sm btn-ghost" data-action="forecastSelectAllOrte">Alle</button>
+            <button type="button" class="btn btn-sm btn-ghost" data-action="forecastSelectNoOrte">Keine</button>
+          </div>
+          <div id="forecast-orte" class="forecast-checkbox-list"></div>
+        </div>
+
+        <div class="field">
+          <label>Zeitraum</label>
+          <select id="forecast-range">
+            <option value="today">Heute</option>
+            <option value="24">Bis Morgen</option>
+            <option value="48">Nächste 2 Tage</option>
+            <option value="72" selected>Nächste 3 Tage</option>
+            <option value="96">Nächste 4 Tage</option>
+            <option value="120">Nächste 5 Tage</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Min. Fensterdauer (h)</label>
+          <input id="forecast-min-window-hours" type="number" step="1" value="2">
+        </div>
+
+      </div><!-- /.form-grid -->
+
+      <div class="forecast-actions">
+        <button type="button" class="btn btn-primary" id="btn-forecast-calc" data-action="calculateForecastWindow">
+          📈 Vorhersage berechnen
+        </button>
+      </div>
+
+    </div><!-- /.card forecast-settings-card -->
+
+    <div class="card forecast-result-card">
+      <h3 class="section-title">🌤 Bestes Zeitfenster</h3>
+
+      <div id="forecast-loading" class="forecast-info-box hidden">
+        Vorhersage wird geladen...
+      </div>
+
+      <div id="forecast-error" class="forecast-error-box hidden"></div>
+
+      <div id="forecast-best-window" class="forecast-best-window hidden"></div>
+
+      <div id="forecast-alt-wrap" class="hidden">
+        <h4 class="section-title mt-1">Weitere Zeitfenster</h4>
+        <div id="forecast-alt-list" class="forecast-alt-list"></div>
+      </div>
+    </div><!-- /.card forecast-result-card -->
+
+  </div><!-- /.forecast-layout -->
+</div><!-- /#tab-forecast -->
 
     <div id="tab-settings" class="tab">
       <h2>⚙️ Einstellungen</h2>
@@ -506,7 +516,7 @@
       <div class="field"><label>Geo-Typ</label><select id="eo-geoTyp"><option value="GPS-Koordinaten">GPS-Koordinaten</option><option value="Polygon">Polygon</option><option value="Schlagname">Schlagname</option></select></div>
       <div class="field"><label>Fläche <span class="danger-text">*</span></label><input type="number" id="eo-flaecheVolumen" step="0.01"></div>
       <div class="field"><label>Einheit</label><select id="eo-einheit"><option value="m2">m2</option><option value="ha">ha</option><option value="ar">ar</option></select></div>
-      <div class="form-group">
+      <div class="field">
         <label for="eo-ort_id">Ort</label>
         <select id="eo-ort_id" class="input">
           <option value="">Bitte Ort wählen</option>
