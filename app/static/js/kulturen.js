@@ -176,6 +176,7 @@ async function saveKultur() {
 
     await loadKulturen();
     toast(isEdit ? '✅ Kultur gespeichert' : '✅ Kultur hinzugefügt');
+    closeModal('modal-kultur')
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message || 'Speichern fehlgeschlagen'}`);
