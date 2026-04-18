@@ -372,6 +372,16 @@ main {
   padding: 0.5rem;     
 }
 
+.forecast-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}
+
+.forecast-actions .btn {
+  width: 100%;
+}
+
 .forecast-checkbox-item {
   display: flex;
   align-items: center;
