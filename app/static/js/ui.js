@@ -32,6 +32,7 @@ const tabToPath = {
   export: "/export",
   history: "/history",
   settings: "/settings",
+  forecast: "/prediction",
 };
 
 const pathToTab = {
@@ -45,6 +46,7 @@ const pathToTab = {
   "export": "export",
   "history": "history",
   "settings": "settings",
+  "prediction": "forecast"
 };
 function showTab(tabName, el, push = true) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -158,4 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
   showTab(tabName, navLink, false);
   // Replace so the initial entry also carries state for popstate
   history.replaceState({ tab: tabName }, '', window.location.pathname);
+  if (tabName === 'forecast' && typeof initForecastTab === 'function') {
+    initForecastTab();
+  }
 });

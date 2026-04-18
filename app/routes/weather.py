@@ -362,7 +362,7 @@ def geocode():
         return jsonify({"error": True, "message": str(exc)}), 502
 
 
-@bp.post("/einsatzorte/<int:einsatzort_id>/spray-window")
+@bp.post("/api/einsatzorte/<int:einsatzort_id>/spray-window")
 @login_required
 def spray_window_for_einsatzort(einsatzort_id: int):
     """
@@ -443,17 +443,16 @@ def spray_window_for_einsatzort(einsatzort_id: int):
       502:
         description: Fehler bei Wetterdaten
     """
-    
+
     data = request.get_json(silent=True)
 
-    # 🔥 hier dein bestehender DB Zugriff
     eo = get_einsatzort_by_id(einsatzort_id)
 
     if not eo:
         return jsonify({"error": True, "message": "Einsatzort nicht gefunden"}), 404
 
-    lat = eo.gpsHochwert
-    lon = eo.gpsRechtswert
+    lat = eo.get("gpsHochwert")
+    lon = eo.get("gpsRechtswert")
 
     hours = int((data or {}).get("hours", 72))
     t = (data or {}).get("thresholds", {}) or {}
@@ -466,10 +465,12 @@ def spray_window_for_einsatzort(einsatzort_id: int):
         min_humidity_pct=float(t.get("min_humidity_pct", 50.0)),
         min_window_hours=int(t.get("min_window_hours", 2)),
         dry_hours_after=int(t.get("dry_hours_after", 3)),
+        min_hour=int(t.get("min_hour", 6)),
+        max_hour=int(t.get("max_hour", 23)),
     )
 
     try:
-        forecast = fetch_forecast(lat=lat, lon=lon, hours=hours)
+        forecast = fetch_forecast(lat=float(lat), lon=float(lon), hours=hours)
         window_result = build_windows(forecast["rows"], thresholds)
 
         return jsonify({

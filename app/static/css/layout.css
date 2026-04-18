@@ -236,6 +236,124 @@ main {
   display: block;
 }
 
+.forecast-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.forecast-settings-card,
+.forecast-result-card {
+  min-height: 100%;
+}
+
+.forecast-grid {
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.forecast-settings-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.forecast-info-box,
+.forecast-error-box,
+.forecast-best-window,
+.forecast-window-item {
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+}
+
+.forecast-info-box {
+  border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+  background: var(--card-soft-bg, rgba(255,255,255,0.04));
+}
+
+.forecast-error-box {
+  border: 1px solid rgba(190, 60, 60, 0.35);
+  background: rgba(190, 60, 60, 0.12);
+}
+
+.forecast-best-window {
+  border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+  background: var(--card-soft-bg, rgba(255,255,255,0.04));
+}
+
+.forecast-best-window.is-good {
+  border-left: 5px solid #2e9f5b;
+}
+
+.forecast-best-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.45rem;
+}
+
+.forecast-best-time {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.forecast-best-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.forecast-meta-box {
+  border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+  background: rgba(255,255,255,0.03);
+}
+
+.forecast-meta-label {
+  font-size: 0.8rem;
+  opacity: 0.72;
+  margin-bottom: 0.25rem;
+}
+
+.forecast-meta-value {
+  font-weight: 700;
+}
+
+.forecast-alt-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.forecast-window-item {
+  border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+  background: var(--card-soft-bg, rgba(255,255,255,0.03));
+}
+
+.forecast-window-title {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+@media (max-width: 1100px) {
+  .forecast-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .forecast-grid,
+  .forecast-best-meta {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .forecast-grid,
+  .forecast-best-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .app {
     grid-template-columns: 180px 1fr;

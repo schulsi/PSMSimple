@@ -20,6 +20,8 @@ class SprayThresholds:
     min_humidity_pct: float = 50.0
     min_window_hours: int = 2
     dry_hours_after: int = 3
+    min_hour: int = 6
+    max_hour: int = 23
 
 
 def _to_hourly_rows(hourly: dict[str, list[Any]]) -> list[dict[str, Any]]:

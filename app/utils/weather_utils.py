@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from requests import request
+from datetime import datetime
 
 from app.services.weather_service import SprayThresholds
 
@@ -19,6 +20,22 @@ def score_hour(
     """
     score = 0
     reasons: list[str] = []
+
+    try:
+        dt = datetime.fromisoformat(row["time"])
+        hour = dt.hour
+    except Exception:
+        return 0, ["Ungültige Zeit"], False
+
+    if thresholds.min_hour <= thresholds.max_hour:
+        # Normaler Fall (z. B. 6–23)
+        valid = thresholds.min_hour <= hour <= thresholds.max_hour
+    else:
+        # 🔥 Edge Case: über Mitternacht (z. B. 22–6)
+        valid = hour >= thresholds.min_hour or hour <= thresholds.max_hour
+
+    if not valid:
+        return 0, ["Außerhalb erlaubter Uhrzeit"], False
 
     wind = row.get("wind_speed_10m")
     precip = row.get("precipitation")
@@ -66,11 +83,11 @@ def build_windows(
     rows: list[dict[str, Any]],
     thresholds: SprayThresholds,
 ) -> dict[str, Any]:
-    
+
     evaluated: list[dict[str, Any]] = []
 
     for idx, row in enumerate(rows):
-        future_rows = rows[idx + 1 : idx + 1 + thresholds.dry_hours_after]
+        future_rows = rows[idx + 1: idx + 1 + thresholds.dry_hours_after]
         score, reasons, is_good = score_hour(row, future_rows, thresholds)
         evaluated.append({
             **row,

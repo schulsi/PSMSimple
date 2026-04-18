@@ -31,6 +31,9 @@
       {% endif %}
       <div class="section-label">Verlauf</div>
       <a href="/history" data-action="showTab" data-tab="history" data-also="loadHistory"><span class="ico">🕘</span> Übersicht Applikationen</a>
+      <div class="section-label">Vorhersage</div>
+      <a href="/prediction" data-action="showTab" data-tab="forecast" data-also="initForecastTab"><span class="ico">📈</span> Vorhersage</a>
+    
     </div>
 
     <div class="nav-user">
@@ -268,6 +271,109 @@
           🔍 Applikationsdetails
         </h3>
         <div id="history-detail" class="history-detail"></div>
+      </div>
+    </div>
+
+    <div id="tab-forecast" class="tab">
+      <h2>📈 Vorhersage <span class="badge" id="forecast-status-badge">Spritzfenster</span></h2>
+
+      <div class="forecast-layout">
+        <div class="card forecast-settings-card">
+          <div class="forecast-settings-head">
+            <div>
+              <h3 class="section-title">⚙️ Einstellungen</h3>
+              <p class="text-muted-history">
+                Zeitraum und Thresholds für die Berechnung des besten Spritzfensters.
+              </p>
+            </div>
+          </div>
+
+          <div class="form-grid forecast-grid">
+            <div class="field">
+              <label>Felder</label>
+              <select id="forecast-einsatzort"></select>
+            </div>
+
+            <div class="field">
+              <label>Zeitraum</label>
+              <select id="forecast-range">
+                <option value="today">Heute</option>
+                <option value="24">Nächster 1 Tag</option>
+                <option value="48">Nächste 2 Tage</option>
+                <option value="72" selected>Nächste 3 Tage</option>
+                <option value="96">Nächste 4 Tage</option>
+                <option value="120">Nächste 5 Tage</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Max. Wind (m/s)</label>
+              <input id="forecast-max-wind" type="number" step="0.1" value="3.5">
+            </div>
+
+            <div class="field">
+              <label>Max. Niederschlag (mm)</label>
+              <input id="forecast-max-precip" type="number" step="0.1" value="0.0">
+            </div>
+
+            <div class="field">
+              <label>Min. Temperatur (°C)</label>
+              <input id="forecast-min-temp" type="number" step="0.1" value="8">
+            </div>
+
+            <div class="field">
+              <label>Max. Temperatur (°C)</label>
+              <input id="forecast-max-temp" type="number" step="0.1" value="25">
+            </div>
+
+            <div class="field">
+              <label>Min. Luftfeuchte (%)</label>
+              <input id="forecast-min-humidity" type="number" step="1" value="50">
+            </div>
+
+            <div class="field">
+              <label>Min. Fensterdauer (h)</label>
+              <input id="forecast-min-window-hours" type="number" step="1" value="2">
+            </div>
+
+            <div class="field">
+              <label>Trocken danach (h)</label>
+              <input id="forecast-dry-hours-after" type="number" step="1" value="3">
+            </div>
+            <div class="field">
+              <label>Früheste Uhrzeit</label>
+              <input id="forecast-min-hour" type="number" min="0" max="23" value="6">
+            </div>
+
+            <div class="field">
+              <label>Späteste Uhrzeit</label>
+              <input id="forecast-max-hour" type="number" min="0" max="23" value="23">
+            </div>
+          </div>
+
+          <div class="mt-1 flex-end">
+            <button type="button" class="btn btn-primary" id="btn-forecast-calc" data-action="calculateForecastWindow">
+              📈 Vorhersage berechnen
+            </button>
+          </div>
+        </div>
+
+        <div class="card forecast-result-card">
+          <h3 class="section-title">🌤 Bestes Zeitfenster</h3>
+
+          <div id="forecast-loading" class="forecast-info-box hidden">
+            Vorhersage wird geladen...
+          </div>
+
+          <div id="forecast-error" class="forecast-error-box hidden"></div>
+
+          <div id="forecast-best-window" class="forecast-best-window hidden"></div>
+
+          <div id="forecast-alt-wrap" class="hidden">
+            <h4 class="section-title mt-1">Weitere Zeitfenster</h4>
+            <div id="forecast-alt-list" class="forecast-alt-list"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -563,6 +669,7 @@
 <script src="{{ url_for('static', filename='js/einsatzorte.js') }}"></script>
 <script src="{{ url_for('static', filename='js/kulturen.js') }}"></script>
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
+<script src="{{ url_for('static', filename='js/forecast.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-init.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-fields.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-list.js') }}"></script>
@@ -570,4 +677,5 @@
 <script src="{{ url_for('static', filename='js/history/history-utils.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
 {% endblock %}
