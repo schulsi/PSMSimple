@@ -1,15 +1,14 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 
-from ..models.settings import get_setting, set_setting
+from ..models.settings import get_setting, set_setting, get_settings
 from ..services.permissions import require_write_access, require_admin
 from ..extensions import logger
 
 settings_bp = Blueprint("settings", __name__)
 
 ALLOWED_SETTINGS = {"registration_allowed", "forecast_default_max_wind_ms", "forecast_default_max_precip_mm", "forecast_default_min_temp_c", "forecast_default_max_temp_c", "forecast_default_min_humidity_pct",
-                    "forecast_default_dry_hours_after", "forecast_default_min_hour", "forecast_default_max_hour", "forecast_default_range_hours", "inventory_enabled", "inventory_warn_on_save",
-                    "inventory_negative_stock_allowed"}
+                    "forecast_default_dry_hours_after", "forecast_default_min_hour", "forecast_default_max_hour", "forecast_default_range_hours", "inventory_warn_default", "inventory_min_default"}
 
 
 @settings_bp.route("/api/app/settings", methods=["GET", "POST"])
@@ -49,6 +48,5 @@ def settings():
                 f"Setting '{key}' updated to '{value}' by user: {current_user.username} from IP: {request.remote_addr}")
         return jsonify({"ok": True})
 
-    registration_allowed = get_setting("registration_allowed") == "1"
-
-    return jsonify({"registration_allowed": registration_allowed})
+    setting = get_settings()
+    return jsonify(setting)

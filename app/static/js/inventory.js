@@ -117,8 +117,8 @@ function renderInventoryMovements(rows) {
             <td>${escapeHtml(row.psm_name || '—')}</td>
             <td><span class="movement-type movement-type-${row.typ}">${escapeHtml(MOVEMENT_TYPE_LABEL[row.typ] || row.typ)}</span></td>
             <td class="text-right">${row.menge} ${escapeHtml(row.einheit || '')}</td>
-            <td class="text-muted">${escapeHtml(row.notiz || '—')}</td>
-            <td class="text-muted">${escapeHtml(row.quelle || '—')}</td>
+            <td class="text-muted">${escapeHtml(row.notiz || '-')}</td>
+            <td class="text-muted">${escapeHtml(row.quelle || '-')}</td>
           </tr>`).join('')}
       </tbody>
     </table>`;

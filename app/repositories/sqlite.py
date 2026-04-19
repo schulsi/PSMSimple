@@ -83,7 +83,7 @@ def init_appdata_db():
     conn.commit()
     c.execute("""
         INSERT OR IGNORE INTO application_settings (key, value)
-        VALUES ('registration_allowed', '1')
+        VALUES ('registration_allowed', '1'), ('inventory_warn_default','2'), ('inventory_min_default','2')
     """)
     conn.commit()
     conn.close()
