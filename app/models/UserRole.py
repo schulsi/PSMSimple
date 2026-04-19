@@ -1,0 +1,7 @@
+from ..extensions import db
+
+class UserRole(db.Model):
+    __bind_key__ = "user_db"
+    __tablename__ = "user_roles"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)

@@ -29,7 +29,11 @@ class Config:
     RATELIMIT_HEADER_ENABLED = True
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
     SESSION_REFRESH_EACH_REQUEST = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR, "users.db")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR)
+    SQLALCHEMY_BINDS = {
+        "app_db": f"sqlite:///{DB_DIR}/app.db",
+        "user_db": f"sqlite:///{DB_DIR}/users.db",
+    }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     APP_DATA_DB = os.path.join(DB_DIR, "pflanzenschutz.db")
     EXPORTS_DIR = os.path.join(EXPORT_DIR)
