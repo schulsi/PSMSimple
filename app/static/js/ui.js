@@ -57,6 +57,8 @@ function showTab(tabName, el, push = true) {
   document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
   if (el) el.classList.add('active');
 
+  closeUserPopup();
+
   if (push) {
     history.pushState({ tab: tabName }, '', tabToPath[tabName] || "/betrieb");
   }

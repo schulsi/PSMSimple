@@ -104,7 +104,9 @@ async function loadSettings() {
     const forecastDryHoursAfter  = $('set-forecast-dry-hours-after');
     const forecastMinHour        = $('set-forecast-min-hour');
     const forecastMaxHour        = $('set-forecast-max-hour');
-    const forecastRangeHours     = $('set-forecast-range-hours');   
+    const forecastRangeHours     = $('set-forecast-range-hours');
+    const lagerwarndefault       = $('set-lager-warn');
+    const lagermindefault       = $('set-lager-min');    
 
     const localSave = settings.local_save !== undefined ? !!settings.local_save : true;
 
@@ -138,6 +140,8 @@ async function loadSettings() {
     if (forecastMinHour)        forecastMinHour.value        = settings.forecast_default_min_hour ?? 6;
     if (forecastMaxHour)        forecastMaxHour.value        = settings.forecast_default_max_hour ?? 23;
     if (forecastRangeHours)     forecastRangeHours.value     = settings.forecast_default_range_hours ?? 72;
+    if (lagermindefault)        lagermindefault.value        = settings.inventory_min_default ?? 2;
+    if (lagerwarndefault)       lagerwarndefault.value       = settings.inventory_warn_default ?? 2;
     
     if (APP_PERMISSIONS?.can_manage_users) {
       await loadUserRoles();
@@ -206,6 +210,12 @@ function collectAppSettings() {
     forecast_default_range_hours: $('set-forecast-range-hours')
       ? parseInt($('set-forecast-range-hours').value || '72', 10)
       : 72,
+    inventory_warn_default: $('set-lager-warn')
+      ? parseInt($('set-lager-warn').value || '2', 10)
+      : 2,
+    inventory_min_default: $('set-lager-min')
+      ? parseInt($('set-lager-min').value || '2', 10)
+      : 2,
   };
 }
 

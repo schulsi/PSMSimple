@@ -109,6 +109,10 @@ async function editPSM(id) {
     if ($('psm-wirkstoffe')) $('psm-wirkstoffe').value = item.wirkstoffe || '';
     if ($('psm-aufwandEinheit')) $('psm-aufwandEinheit').value = item.aufwandEinheit || '';
     if ($('psm-bienen')) $('psm-bienen').value = item.bienen || '';
+    if ($('psm-lager_einheit')) $('psm-lager_einheit').value = item.lager_einheit || '';
+    if ($('psm-min_lager')) $('psm-min_lager').value = item.min_lager || '';
+    if ($('psm-warnung_lager')) $('psm-warnung_lager').value = item.warnung_lager || '';
+
     const modalTitle = $('modal-psm-title');
     if (modalTitle) modalTitle.textContent = 'Pflanzenschutzmittel bearbeiten';
 
