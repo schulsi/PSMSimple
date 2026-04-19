@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadPSM(),
         loadEinsatzorte(),
         loadKulturen(),
-        loadSettings()
+        loadSettings(),
+        loadInventory()
       ]);
 
       initPSMSearch();
@@ -55,7 +56,8 @@ function logout() {
     'previewJSON', 'exportSave', 'exportDownloadZip',
     'resetHistoryFilter', 'resetPSMHistoryFilter', 'resetFieldsHistoryFilter',
     'saveSettings', 'renameUser', 'saveBetriebWizard',
-    'closeModal', 'logout',  'calculateForecastWindow', 'forecastSelectAllOrte', 'forecastSelectNoOrte'
+    'closeModal', 'logout',  'calculateForecastWindow', 'forecastSelectAllOrte', 'forecastSelectNoOrte',
+    'loadInventoryMovements', 'loadInventoryMovements', 'saveInventoryMovement'
   ]);
 
   // Aktionen mit einem Argument aus data-tab, data-period, data-subtab oder data-panel
@@ -79,6 +81,8 @@ function logout() {
     ['selectPSMSearchResult', el => [el.dataset.name, el.dataset.kennr]],
     ['openDeleteUserConfirm', el => [el.dataset.id, el.dataset.username]],
     ['showPanelAuth',        el => [el.dataset.panel]],
+    ['openInventoryMovementModal', el => [el.dataset.id, el.dataset.name, el.dataset.einheit]],
+    ['showInventorySubTab', el => [el.dataset.subtab, el]],
   ]);
 
   // Aktionen, die nach showTab zusätzlich aufgerufen werden (data-also)
@@ -88,7 +92,7 @@ function logout() {
   const CHANGE_ACTIONS = new Set([
     'updateArtSubkategorie', 'syncArtVerwendungField',
     'loadHistory', 'loadPSMUsage', 'loadFieldsUsage',
-    'onSaveModeToggle', 'onWizSaveModeToggle',
+    'onSaveModeToggle', 'onWizSaveModeToggle', 'loadInventoryMovements',
   ]);
 
   // change-Aktionen mit type und id Parameter

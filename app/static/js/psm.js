@@ -59,15 +59,23 @@ async function loadPSM() {
   }
 }
 
-function resetPSMForm() {
+async function resetPSMForm() {
   currentPsmEditId = null;
   setPSMInfoLoading(false);
+  const payload = await apiGet('/api/app/settings');
 
   const fields = ['name', 'zulassungsnr', 'wirkstoffe', 'aufwandEinheit', 'bienen'];
   fields.forEach(field => {
     const el = $(`psm-${field}`);
     if (el) el.value = '';
   });
+  console.log(payload.inventory_warn_default)
+  if($('psm-warnung_lager')) {
+    $('psm-warnung_lager').value = payload.inventory_warn_default ?? ''; 
+  }
+  if($('psm-min_lager')) {
+    $('psm-min_lager').value = payload.inventory_min_default ?? ''; 
+  }
 
   const modalTitle = $('modal-psm-title');
   if (modalTitle) modalTitle.textContent = 'Pflanzenschutzmittel hinzufügen';
@@ -79,7 +87,10 @@ function collectPSMForm() {
     zulassungsnr: $('psm-zulassungsnr') ? $('psm-zulassungsnr').value.trim() : '',
     wirkstoffe: $('psm-wirkstoffe') ? $('psm-wirkstoffe').value.trim() : '',
     aufwandEinheit: $('psm-aufwandEinheit') ? $('psm-aufwandEinheit').value.trim() : '',
-    bienen: $('psm-bienen') ? $('psm-bienen').value.trim() : ''
+    bienen: $('psm-bienen') ? $('psm-bienen').value.trim() : '',
+    lager_einheit: $('psm-lager_einheit') ? $('psm-lager_einheit').value.trim() : '',
+    min_lager: $('psm-min_lager') ? $('psm-min_lager').value.trim() : '',
+    warnung_lager: $('psm-warnung_lager') ? $('psm-warnung_lager').value.trim() : '',
   };
 }
 
@@ -213,6 +224,8 @@ async function selectPSMSearchResult(name, kennr) {
       }
     }
     if ($('psm-aufwandEinheit')) $('psm-aufwandEinheit').value = info.aufwand_einheit || '';
+    const [einheit, ...rest] = info.aufwand_einheit.split('/')
+    if($('psm-lager_einheit')) $('psm-lager_einheit').value = einheit || '';
   } catch (err) {
     console.error(err);
     toast('⚠️ Wirkstoffdaten konnten nicht geladen werden');

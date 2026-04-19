@@ -33,7 +33,11 @@
       <a href="/history" data-action="showTab" data-tab="history" data-also="loadHistory"><span class="ico">🕘</span> Übersicht Applikationen</a>
       <div class="section-label">Vorhersage</div>
       <a href="/prediction" data-action="showTab" data-tab="forecast" data-also="initForecastTab"><span class="ico">📈</span> Vorhersage</a>
-    
+      <div class="section-label">Lager</div>
+      <a href="/inventory" data-action="showTab" data-tab="inventory" data-also="loadInventory">
+        <span class="ico">📦</span> Lagerbestand
+        <span class="badge badge-critical hidden" id="inventory-warning-count"></span>
+      </a>
     </div>
 
     <div class="nav-user">
@@ -346,7 +350,43 @@
 
   </div><!-- /.forecast-layout -->
 </div><!-- /#tab-forecast -->
-
+ 
+  <div id="tab-inventory" class="tab">
+    <h2>📦 Lagerbestand</h2>
+  
+    <div class="sub-tabs">
+      <button class="sub-tab-btn active" data-action="showInventorySubTab" data-subtab="overview">
+        📊 Übersicht
+      </button>
+      <button class="sub-tab-btn" data-action="showInventorySubTab" data-subtab="movements">
+        📋 Bewegungshistorie
+      </button>
+    </div>
+  
+    {# --- Übersicht --- #}
+    <div id="inventory-sub-overview" class="history-sub-tab active">
+      <div class="item-list" id="inventory-list"></div>
+    </div>
+  
+    {# --- Bewegungshistorie --- #}
+    <div id="inventory-sub-movements" class="history-sub-tab">
+      <div class="card mb-085">
+        <div class="form-grid filter-grid">
+          <div class="field">
+            <label>Anzahl Einträge</label>
+            <select id="inventory-movements-limit" data-action="loadInventoryMovements">
+              <option value="50">50</option>
+              <option value="200" selected>200</option>
+              <option value="500">500</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div id="inventory-movements-list"></div>
+      </div>
+    </div>
+  </div>
     <div id="tab-settings" class="tab">
       <h2>⚙️ Einstellungen</h2>
 
@@ -491,6 +531,9 @@
           <option value="B4">(B4) Nicht bienengefährlich</option>
         </select>
       </div>
+      <div class="field"><label>Lagereinheit</label><input id="psm-lager_einheit"></div>
+      <div class="field"><label>Mindestbestand</label><input type="number" id="psm-min_lager" step="0.01" value="0"></div>
+      <div class="field"><label>Warnbestand</label><input type="number" id="psm-warnung_lager" step="0.01" value="0"></div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-psm">Abbrechen</button>
@@ -675,6 +718,49 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-inventory">
+  <div class="modal">
+    <h3 id="modal-inventory-title">Lagerbuchung</h3>
+    <input type="hidden" id="inv-psm-id">
+ 
+    <div class="form-grid">
+      <div class="field">
+        <label>Buchungstyp</label>
+        <select id="inv-typ">
+          <option value="purchase">Einkauf (Zugang)</option>
+          <option value="correction_plus">Korrektur + (Zugang)</option>
+          <option value="correction_minus">Korrektur − (Abgang)</option>
+          <option value="disposal">Entsorgung (Abgang)</option>
+        </select>
+      </div>
+ 
+      <div class="field">
+        <label>Menge (<span id="inv-einheit-label">—</span>)</label>
+        <input type="number" id="inv-menge" step="0.001" min="0" placeholder="0.000">
+      </div>
+ 
+      <div class="field">
+        <label>Datum</label>
+        <input type="date" id="inv-datum">
+      </div>
+ 
+      <div class="field span-2">
+        <label>Notiz (optional)</label>
+        <input id="inv-notiz" placeholder="z.B. Lieferschein-Nr. oder Grund">
+      </div>
+    </div>
+ 
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-inventory">
+        Abbrechen
+      </button>
+      <button type="button" class="btn btn-primary" data-action="saveInventoryMovement">
+        Buchen
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 {% endblock %}
 
@@ -688,6 +774,7 @@
 <script src="{{ url_for('static', filename='js/kulturen.js') }}"></script>
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
 <script src="{{ url_for('static', filename='js/forecast.js') }}"></script>
+<script src="{{ url_for('static', filename='js/inventory.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-init.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-fields.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-list.js') }}"></script>

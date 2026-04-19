@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 
 from ..services.permissions import require_write_access
 from ..extensions import logger
+from ..services.inventory_service import rebuild_inventory_for_application
 from ..repositories.history_repo import (
     list_history,
     get_history_entry,
@@ -172,6 +173,9 @@ def api_create_history():
     result = create_history_entry(data)
     logger.info(
         f"History entry created by user: {current_user.username} from IP: {request.remote_addr} with data: {data}")
+    out = rebuild_inventory_for_application(result["id"])
+    logger.info(
+        f"Inventory Movement entry created by user: {current_user.username} from IP: {request.remote_addr} with data: {out}")
     return jsonify(result)
 
 
