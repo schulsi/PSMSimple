@@ -240,12 +240,84 @@ main {
 .inventory-bestand { font-size: 1.35rem; font-weight: 700; margin-top: .2rem; }
 .bestand-einheit { font-size: .85rem; font-weight: 400; color: var(--text-muted); margin-left: .25rem; }
 .inventory-thresholds { display: flex; gap: .5rem; margin-top: .2rem; }
-.threshold { font-size: .75rem; color: var(--text-muted); }
+.threshold {
+  font-size: .7rem;
+  padding: .2rem .45rem;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.05);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.threshold.min {
+  background: rgba(230, 168, 23, 0.15);
+  color: #9a6d00;
+}
+
+.threshold.warn {
+  background: rgba(214, 69, 69, 0.15);
+  color: #a12626;
+}
  
-.badge-ok       { background: var(--color-success, #2d9e5f); color: #fff; }
-.badge-warning  { background: var(--color-warning, #e6a817); color: #fff; }
-.badge-critical { background: var(--color-danger,  #d64545); color: #fff; }
-.badge-negative { background: #7b2d8b; color: #fff; }
+#inventory-warning-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+
+  border-radius: 999px;
+
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+
+  margin-left: auto;
+}
+
+#inventory-warning-count:empty {
+  display: none;
+}
+
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  padding: .38rem .7rem;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+.badge-ok {
+  background: rgba(45, 158, 95, 0.16);
+  color: #1d6f42;
+  border: 1px solid rgba(45, 158, 95, 0.28);
+}
+
+.badge-warning {
+  background: rgba(230, 168, 23, 0.16);
+  color: #9a6d00;
+  border: 1px solid rgba(230, 168, 23, 0.28);
+}
+
+.badge-critical {
+  background: rgba(214, 69, 69, 0.16);
+  color: #a12626;
+  border: 1px solid rgba(214, 69, 69, 0.28);
+}
+
+.badge-negative {
+  background: rgba(123, 45, 139, 0.16);
+  color: #6d2480;
+  border: 1px solid rgba(123, 45, 139, 0.28);
+}
  
 [data-status="warning"]  { border-left: 3px solid var(--color-warning, #e6a817); }
 [data-status="critical"] { border-left: 3px solid var(--color-danger,  #d64545); }

@@ -92,7 +92,7 @@ def update_psm(psm_id: int, data: dict):
     conn.execute(
         """
         UPDATE pflanzenschutzmittel
-        SET name = ?, zulassungsnr = ?, wirkstoffe = ?, aufwandEinheit = ?, bienen = ?
+        SET name = ?, zulassungsnr = ?, wirkstoffe = ?, aufwandEinheit = ?, bienen = ?, lager_einheit = ?, min_lager = ?, warnung_lager = ?
         WHERE id = ?
         """,
         (
@@ -101,6 +101,9 @@ def update_psm(psm_id: int, data: dict):
             data["wirkstoffe"],
             data["aufwandEinheit"],
             data["bienen"],
+            data["lager_einheit"],
+            data["min_lager"],
+            data["warnung_lager"],
             psm_id,
         )
     )

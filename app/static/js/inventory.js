@@ -44,8 +44,8 @@ function renderInventoryOverview(items) {
     const s = STATUS_LABEL[item.status] || STATUS_LABEL.ok;
     const warnRow = item.status !== 'ok' ? `
       <div class="inventory-thresholds">
-        ${item.min_lager   ? `<span class="threshold">Min: ${item.min_lager} ${item.einheit}</span>` : ''}
-        ${item.warnung_lager ? `<span class="threshold">Warnung: ${item.warnung_lager} ${item.einheit}</span>` : ''}
+        ${item.min_lager   ? `<span class="threshold min">Min: ${item.min_lager} ${item.einheit}</span>` : ''}
+        ${item.warnung_lager ? `<span class="threshold warn">Warnung: ${item.warnung_lager} ${item.einheit}</span>` : ''}
       </div>` : '';
 
     return `
@@ -59,7 +59,7 @@ function renderInventoryOverview(items) {
         ${warnRow}
       </div>
       <div class="item-actions">
-        <span class="badge ${s.cls}">${s.text}</span>
+        <span class="badge-status ${s.cls}">${s.text}</span>
         <button class="btn btn-sm btn-ghost" data-action="openInventoryMovementModal" data-id="${item.psm_id}" data-name="${escapeHtml(item.name)}" data-einheit="${escapeHtml(item.einheit || '')}">+ Buchung</button>
       </div>
     </div>`;

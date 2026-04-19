@@ -178,7 +178,6 @@ def rebuild_inventory_for_application(applikations_id: int) -> list[dict]:
             "menge": aufwand_menge,
             "einheit": einheit,
         })
-    print(created)
     return created
 
 

@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadPSM(),
         loadEinsatzorte(),
         loadKulturen(),
-        loadSettings()
+        loadSettings(),
+        loadInventory()
       ]);
 
       initPSMSearch();
