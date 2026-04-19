@@ -37,3 +37,23 @@ def build_export_filename(data: dict, ext: str) -> str:
         data["pflanzenschutzmittel"][0]["name"] if data.get("pflanzenschutzmittel") else "PSM"
     )
     return f"PSM_Anwendung_{datum}_{psm_slug}_{eo_name}.{ext}"
+
+def to_hectares(value: float, unit: str) -> float:
+    if value is None:
+        raise ValueError("Wert darf nicht None sein")
+
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"Ungültiger Zahlenwert: {value}")
+
+    unit = (unit or "").strip().lower()
+
+    if unit == "ha":
+        return value
+    elif unit == "ar":
+        return value / 100.0
+    elif unit in ("m2", "m²"):
+        return value / 10_000.0
+    else:
+        raise ValueError(f"Unbekannte Einheit: {unit}")

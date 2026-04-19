@@ -142,32 +142,17 @@ def rebuild_inventory_for_application(applikations_id: int) -> list[dict]:
 
     delete_auto_inventory_movements_by_application(applikations_id)
 
-    flaeche_ha = float(
-        payload.get("flaeche_ha")
-        or payload.get("flaeche")
-        or payload.get("fläche")
-        or 0
-    )
-
     mittel_liste = payload.get(
         "pflanzenschutzmittel") or payload.get("psm") or []
 
     created = []
-    print("-"*30)
-    print("Applikation:")
-    print(applikation)
-    print("-"*30)
-    print("Payload:")
-    print( payload)
-    print("-"*30)
-    print("Mittel:")
-    print( mittel_liste)
+
     for item in mittel_liste:
         psm_id = item.get("id")
         aufwand_menge = float(item.get("aufwandMenge")
                               or item.get("aufwandmenge") or 0)
 
-        if not psm_id or aufwand_menge <= 0 or flaeche_ha <= 0:
+        if not psm_id or aufwand_menge <= 0:
             continue
 
         psm = get_psm_by_id(psm_id)
@@ -175,24 +160,22 @@ def rebuild_inventory_for_application(applikations_id: int) -> list[dict]:
             continue
 
         einheit = (psm.get("lager_einheit") or "").strip() or "kg"
-        verbrauch = round(aufwand_menge * flaeche_ha, 4)
 
         insert_inventory_movement(
             psm_id=psm_id,
             applikations_id=applikations_id,
             typ="application",
-            menge=verbrauch,
+            menge=aufwand_menge,
             einheit=einheit,
             datum=datum,
             notiz=f"Automatisch aus Applikation {applikations_id}",
             quelle="auto_from_application",
         )
-        print("ADDED movment")
 
         created.append({
             "psm_id": psm_id,
             "psm_name": psm["name"],
-            "menge": verbrauch,
+            "menge": aufwand_menge,
             "einheit": einheit,
         })
     print(created)

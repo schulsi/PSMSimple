@@ -181,3 +181,28 @@ function resetInventoryMovementForm() {
     if (el) el.value = id === 'inv-typ' ? 'purchase' : '';
   });
 }
+
+function showInventorySubTab(subtab, btn = null) {
+  document.querySelectorAll('#tab-inventory .sub-tab-btn').forEach(el => {
+    el.classList.remove('active');
+  });
+
+  document.querySelectorAll('#tab-inventory .history-sub-tab').forEach(el => {
+    el.classList.remove('active');
+  });
+
+  if (btn) {
+    btn.classList.add('active');
+  }
+
+  const target = document.getElementById(`inventory-sub-${subtab}`);
+  if (target) {
+    target.classList.add('active');
+  }
+
+  if (subtab === 'movements') {
+    loadInventoryMovements();
+  } else {
+    loadInventory();
+  }
+}

@@ -8,7 +8,6 @@ from ..services.export_service import (
     build_export_filename,
     build_output_for_current_betrieb,
     json_bytes,
-    save_and_rebuild_inventory,
     save_buffer_to_exports,
 )
 from ..services.pdf_service import generate_pdf
@@ -42,8 +41,6 @@ def export_json():
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
 
-    applikations_id = save_and_rebuild_inventory(output)
-
     buf = json_bytes(output)
     filename = build_export_filename(output, "json")
     settings = UserSettings.for_user(current_user.id)
@@ -55,13 +52,13 @@ def export_json():
             datum=output.get("anwendung", {}).get("datum"),
         )
 
-    logger.info(f"JSON export by {current_user.username}, applikations_id={applikations_id}")
+    logger.info(f"JSON export by {current_user.username}")
 
     if settings.browser_download:
         buf.seek(0)
         return send_file(buf, mimetype="application/json", as_attachment=True, download_name=filename)
 
-    return jsonify({"ok": True, "filename": filename, "applikations_id": applikations_id})
+    return jsonify({"ok": True, "filename": filename})
 
 
 @bp.route("/api/pdf", methods=["POST"])
@@ -74,11 +71,6 @@ def export_pdf():
         output = build_output_for_current_betrieb(payload)
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
-
-    # Inventory nur aktualisieren wenn nicht explizit übersprungen.
-    # Das Frontend setzt skip_inventory=true wenn /api/export das bereits erledigt hat.
-    if not payload.get("skip_inventory"):
-        save_and_rebuild_inventory(output)
 
     buf = generate_pdf(output)
     filename = build_export_filename(output, "pdf")
