@@ -8,7 +8,8 @@ from ..extensions import logger
 settings_bp = Blueprint("settings", __name__)
 
 ALLOWED_SETTINGS = {"registration_allowed", "forecast_default_max_wind_ms", "forecast_default_max_precip_mm", "forecast_default_min_temp_c", "forecast_default_max_temp_c", "forecast_default_min_humidity_pct",
-                    "forecast_default_dry_hours_after", "forecast_default_min_hour", "forecast_default_max_hour", "forecast_default_range_hours"}
+                    "forecast_default_dry_hours_after", "forecast_default_min_hour", "forecast_default_max_hour", "forecast_default_range_hours", "inventory_enabled", "inventory_warn_on_save",
+                    "inventory_negative_stock_allowed"}
 
 
 @settings_bp.route("/api/app/settings", methods=["GET", "POST"])

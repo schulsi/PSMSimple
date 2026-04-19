@@ -22,7 +22,8 @@ def init_appdata_db():
             id INTEGER PRIMARY KEY,
             name TEXT, zulassungsnr TEXT,
             wirkstoffe TEXT,
-            aufwandEinheit TEXT, bienen TEXT
+            aufwandEinheit TEXT, bienen TEXT, lager_einheit TEXT,
+            min_lager REAL DEFAULT 0, warnung_lager REAL DEFAULT 0
         );
 
         CREATE TABLE IF NOT EXISTS einsatzorte (
@@ -69,6 +70,14 @@ def init_appdata_db():
             beschreibung TEXT,
             sortierung INTEGER            
         );
+        CREATE TABLE IF NOT EXISTS inventory_movements (
+            id INTEGER PRIMARY KEY,
+            psm_id INTEGER NOT NULL REFERENCES pflanzenschutzmittel (id),
+            applikations_Id INTEGER REFERENCES applikationen (id),
+            typ TEXT NOT NULL, menge REAL NOT NULL CHECK (menge>=0), einheit TEXT NOT NULL, datum TEXT NOT NULL CHECK (datum GLOB '????-??-??'), notiz TEXT,
+            quelle TEXT, created_at TEXT NOT NULL
+        );  
+        CREATE INDEX IF NOT EXISTS idx_inventory_movements_psm_id ON inventory_movements (psm_id);          
     """)
     conn.commit()
     c.execute("""
