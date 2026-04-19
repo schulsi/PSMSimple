@@ -7,6 +7,7 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def init_appdata_db():
     conn = get_db()
     c = conn.cursor()
@@ -75,7 +76,7 @@ def init_appdata_db():
             psm_id INTEGER NOT NULL REFERENCES pflanzenschutzmittel (id),
             applikations_Id INTEGER REFERENCES applikationen (id),
             typ TEXT NOT NULL, menge REAL NOT NULL CHECK (menge>=0), einheit TEXT NOT NULL, datum TEXT NOT NULL CHECK (datum GLOB '????-??-??'), notiz TEXT,
-            quelle TEXT, created_at TEXT NOT NULL
+            quelle TEXT, updated_at TEXT NOT NULL CHECK(datum GLOB '????-??-??'), created_at TEXT NOT NULL CHECK(datum GLOB '????-??-??')
         );  
         CREATE INDEX IF NOT EXISTS idx_inventory_movements_psm_id ON inventory_movements (psm_id);          
     """)

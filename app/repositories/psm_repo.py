@@ -65,8 +65,9 @@ def create_psm(data: dict):
     cur.execute(
         """
         INSERT INTO pflanzenschutzmittel
-            (name, zulassungsnr, wirkstoffe, aufwandEinheit, bienen)
-        VALUES (?, ?, ?, ?, ?)
+            (name, zulassungsnr, wirkstoffe, aufwandEinheit, bienen, lager_einheit,
+            min_lager, warnung_lager)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             data["name"],
@@ -74,6 +75,9 @@ def create_psm(data: dict):
             data["wirkstoffe"],
             data["aufwandEinheit"],
             data["bienen"],
+            data["lager_einheit"],
+            data["min_lager"],
+            data["warnung_lager"],
         )
     )
     conn.commit()

@@ -11,7 +11,8 @@ from ..repositories.inventory_repo import (
 )
 
 
-MANUAL_MOVEMENT_TYPES = {"purchase", "correction_plus", "correction_minus", "disposal"}
+MANUAL_MOVEMENT_TYPES = {"purchase",
+                         "correction_plus", "correction_minus", "disposal"}
 AUTO_MOVEMENT_TYPES = {"application"}
 ALLOWED_MOVEMENT_TYPES = MANUAL_MOVEMENT_TYPES | AUTO_MOVEMENT_TYPES
 
@@ -51,7 +52,8 @@ def _build_stock_status(psm: dict, bestand: float) -> dict:
 
 def validate_movement_type(typ: str) -> None:
     if typ not in ALLOWED_MOVEMENT_TYPES:
-        raise ValueError(f"Ungültiger Bewegungstyp: '{typ}'. Erlaubt: {sorted(ALLOWED_MOVEMENT_TYPES)}")
+        raise ValueError(
+            f"Ungültiger Bewegungstyp: '{typ}'. Erlaubt: {sorted(ALLOWED_MOVEMENT_TYPES)}")
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +137,6 @@ def rebuild_inventory_for_application(applikations_id: int) -> list[dict]:
     applikation = get_application_by_id(applikations_id)
     if not applikation:
         raise ValueError(f"Applikation {applikations_id} nicht gefunden")
-
     datum = applikation["datum"]
     payload = json.loads(applikation.get("json_data") or "{}")
 
@@ -148,13 +149,23 @@ def rebuild_inventory_for_application(applikations_id: int) -> list[dict]:
         or 0
     )
 
-    mittel_liste = payload.get("pflanzenschutzmittel") or payload.get("psm") or []
+    mittel_liste = payload.get(
+        "pflanzenschutzmittel") or payload.get("psm") or []
 
     created = []
-
+    print("-"*30)
+    print("Applikation:")
+    print(applikation)
+    print("-"*30)
+    print("Payload:")
+    print( payload)
+    print("-"*30)
+    print("Mittel:")
+    print( mittel_liste)
     for item in mittel_liste:
         psm_id = item.get("id")
-        aufwand_menge = float(item.get("aufwandMenge") or item.get("aufwandmenge") or 0)
+        aufwand_menge = float(item.get("aufwandMenge")
+                              or item.get("aufwandmenge") or 0)
 
         if not psm_id or aufwand_menge <= 0 or flaeche_ha <= 0:
             continue
@@ -176,6 +187,7 @@ def rebuild_inventory_for_application(applikations_id: int) -> list[dict]:
             notiz=f"Automatisch aus Applikation {applikations_id}",
             quelle="auto_from_application",
         )
+        print("ADDED movment")
 
         created.append({
             "psm_id": psm_id,
@@ -183,7 +195,7 @@ def rebuild_inventory_for_application(applikations_id: int) -> list[dict]:
             "menge": verbrauch,
             "einheit": einheit,
         })
-
+    print(created)
     return created
 
 

@@ -33,6 +33,7 @@ const tabToPath = {
   history: "/history",
   settings: "/settings",
   forecast: "/prediction",
+  inventory: "/inventory"
 };
 
 const pathToTab = {
@@ -46,7 +47,8 @@ const pathToTab = {
   "export": "export",
   "history": "history",
   "settings": "settings",
-  "prediction": "forecast"
+  "prediction": "forecast",
+  "inventory": "inventory"
 };
 function showTab(tabName, el, push = true) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));

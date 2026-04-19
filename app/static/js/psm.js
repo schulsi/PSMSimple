@@ -79,7 +79,10 @@ function collectPSMForm() {
     zulassungsnr: $('psm-zulassungsnr') ? $('psm-zulassungsnr').value.trim() : '',
     wirkstoffe: $('psm-wirkstoffe') ? $('psm-wirkstoffe').value.trim() : '',
     aufwandEinheit: $('psm-aufwandEinheit') ? $('psm-aufwandEinheit').value.trim() : '',
-    bienen: $('psm-bienen') ? $('psm-bienen').value.trim() : ''
+    bienen: $('psm-bienen') ? $('psm-bienen').value.trim() : '',
+    lager_einheit: $('psm-lager_einheit') ? $('psm-lager_einheit').value.trim() : '',
+    min_lager: $('psm-min_lager') ? $('psm-min_lager').value.trim() : '',
+    warnung_lager: $('psm-warnung_lager') ? $('psm-warnung_lager').value.trim() : '',
   };
 }
 
