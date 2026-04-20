@@ -1,17 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from .sqlite import get_db
+from ..models.ApplicationSetting import ApplicationSetting
 
 
 def insert_applikation(datum: str, json_data: str) -> int:
     """Speichert eine neue Applikation und gibt die neue ID zurück."""
-    conn = get_db()
-    now = datetime.utcnow().isoformat()
-    cur = conn.execute(
-        """
-        INSERT INTO applikationen (datum, json_data, created_at)
-        VALUES (?, ?, ?)
-        """,
-        (datum, json_data, now),
+    db = get_db()
+    obj = ApplicationSetting(
+        datum = datum,
+        json_data = json_data,
+        created_at = datetime.now(timezone.utc)
     )
-    conn.commit()
-    return cur.lastrowid
+    db.session.add(obj)
+    db.session.commit()
+    return obj.id

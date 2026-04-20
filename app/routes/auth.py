@@ -5,7 +5,7 @@ import re
 
 from ..extensions import db, limiter, logger
 from ..models.user import User
-from ..models.settings import get_setting
+from ..repositories.settings_repo import get_setting
 from ..repositories.role_repo import get_role_id
 
 USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{2,50}$")

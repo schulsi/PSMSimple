@@ -1,6 +1,7 @@
 flask>=3.0.0
 flask_login
 flask_sqlalchemy
+Flask-Migrate
 flask_wtf
 flask-limiter
 redis

@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, render_template, flash, redirect, url
 from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_migrate import Migrate, upgrade
 
 from .config import Config
 from .extensions import db, login_manager, csrf, limiter, swagger
@@ -22,6 +23,8 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     swagger.init_app(app)
+    migrate = Migrate()
+    migrate.init_app(app, db)
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -52,16 +55,16 @@ def create_app():
         # Erst bewusst etwas lockerer starten, später weiter einschränken
         if request.path.startswith("/apidocs") or request.path.startswith("/flasgger_static"):
             response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; "
-            "font-src 'self' https://fonts.gstatic.com; "
-            "img-src 'self' data: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; "
-            "connect-src 'self'; "
-            "frame-ancestors 'none'; "
-            "base-uri 'self'; "
-            "form-action 'self'"
-        )
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; "
+                "font-src 'self' https://fonts.gstatic.com; "
+                "img-src 'self' data: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; "
+                "connect-src 'self'; "
+                "frame-ancestors 'none'; "
+                "base-uri 'self'; "
+                "form-action 'self'"
+            )
         else:
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
@@ -81,6 +84,7 @@ def create_app():
         db.create_all()
         seed_roles()
         init_appdata_db()
+        upgrade()
 
     register_blueprints(app)
     return app

@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install curl -y
 
 COPY app/ app/
 
+COPY migrations/ migrations/
+
 COPY run.py .
 
 VOLUME ["/data"]
@@ -19,6 +21,8 @@ ENV DATA_DIR=/data
 ENV SECRET_KEY=""
 
 ENV RATELIMIT_STORAGE_URI="redis://redis:6379/0"
+
+ENV FLASK_APP=run:app
 
 EXPOSE 80
 

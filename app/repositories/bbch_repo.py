@@ -1,106 +1,74 @@
 from .sqlite import get_db
+from ..models.BBCH_Codes import BBCHCode
 
 
 def list_bbch():
-    conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM bbch_codes ORDER BY code"
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    db = get_db()
+    return [code.to_dict() for code in db.session.query(BBCHCode).order_by(BBCHCode.code).all()]
+    
 
 
 def get_bbch_by_id(bbch_id: int):
-    conn = get_db()
-    row = conn.execute(
-        "SELECT * FROM bbch_codes WHERE id = ?",
-        (bbch_id,)
-    ).fetchone()
-    conn.close()
-    return dict(row) if row else None
+    db = get_db()
+    obj = db.session.get(BBCHCode, bbch_id).to_dict()
+    return obj if obj else None
+
 
 def get_bbch_by_kultur(kultur_id: int):
-    conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM bbch_codes WHERE kultur_id = ?",
-        (kultur_id,)
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    db = get_db()
+    objs = db.session.query(BBCHCode).filter_by(kultur_id=kultur_id).all()
+    return [obj.to_dict() for obj in objs]
 
 
 def get_bbch_by_code(code: int):
-    conn = get_db()
-    row = conn.execute(
-        "SELECT * FROM bbch_codes WHERE code = ?",
-        (code,)
-    ).fetchone()
-    conn.close()
-    return dict(row) if row else None
+    db = get_db()
+    obj = db.session.query(BBCHCode).filter_by(code=code).first()
+    return obj.to_dict() if obj else None
+    
 
 
 def list_bbch_by_ids(bbch_ids: list[int]):
+    db = get_db()
     if not bbch_ids:
         return []
 
-    placeholders = ",".join("?" for _ in bbch_ids)
-    conn = get_db()
-    rows = conn.execute(
-        f"SELECT * FROM bbch_codes WHERE id IN ({placeholders})",
-        bbch_ids
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
-
+    objs = db.session.query(BBCHCode).filter(BBCHCode.id.in_(bbch_ids)).all()
+    return [obj.to_dict() for obj in objs]
 
 def create_bbch(data: dict):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        INSERT INTO bbch_codes (kultur_id, code, beschreibung, bezeichnung, sortierung)
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        (
-            data["kultur_id"],
-            data["code"],
-            data["beschreibung"],
-            data["bezeichnung"],
-            data["sortierung"]
-        )
+    db = get_db()
+    bbch = BBCHCode(
+        kultur_id = data["kultur_id"],
+        code = data["code"],
+        beschreibung = data["beschreibung"],
+        bezeichnung = data["bezeichnung"],
+        sortierung = data["sortierung"]
     )
-    conn.commit()
-    new_id = cur.lastrowid
-    conn.close()
-    return {"ok": True, "id": new_id}
+    db.session.add(bbch)
+    db.session.commit()
+    return {"ok": True, "id": bbch.id}
 
 
 def update_bbch(bbch_id: int, data: dict):
-    conn = get_db()
-    conn.execute(
-        """
-        UPDATE bbch_codes
-        SET code = ?, beschreibung = ?, bezeichnung = ?
-        WHERE id = ?
-        """,
-        (
-            data["code"],
-            data["beschreibung"],
-            data ["bezeichnung"],
-            bbch_id,
-        )
-    )
-    conn.commit()
-    conn.close()
+    db = get_db()
+    bbch = db.session.get(BBCHCode, bbch_id)
+    if not bbch:
+        return {"ok": False, "error": "Not Found"}
+    
+    bbch.code = data["code"]
+    bbch.beschreibung = data["beschreibung"]
+    bbch.bezeichnung = data ["bezeichnung"]
+    
+    db.session.commit()
     return {"ok": True}
 
 
 def delete_bbch(bbch_id: int):
-    conn = get_db()
-    conn.execute(
-        "DELETE FROM bbch_codes WHERE id = ?",
-        (bbch_id,)
-    )
-    conn.commit()
-    conn.close()
+    db = get_db()
+    bbch = db.session.get(BBCHCode, bbch_id)
+    if not bbch:
+        return {"ok": False, "error": "Not Found"}
+    db.session.delete(bbch)
+    db.session.commit()
+
     return {"ok": True}

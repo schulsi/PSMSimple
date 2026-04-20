@@ -393,6 +393,8 @@ function applyExportBBCHSelection(kulturId, item) {
   if (input) {
     input.value = String(item.code || '');
     input.dataset.selectedCode = String(item.code || '');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   if (hint) {

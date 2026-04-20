@@ -25,6 +25,7 @@ limiter = Limiter(
     key_func=get_remote_address,
     default_limits=[],
     headers_enabled=True,
+    storage_uri=Config.RATELIMIT_STORAGE_URI
 )
 
 login_manager.login_view = "auth.login"

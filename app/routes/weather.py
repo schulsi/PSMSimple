@@ -110,7 +110,7 @@ def weather_forecast():
         description: Fehler bei Open-Meteo API
     """
 
-    data = request.get_data(silent=True)
+    data = request.get_json(silent=True)
     if not data:
         return jsonify({"ok": False, "message": "No data send"}), 400
 

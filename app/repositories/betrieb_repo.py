@@ -1,33 +1,34 @@
 from .sqlite import get_db
+from ..models.Betrieb import Betrieb
 import uuid
 
+
 def get_betrieb():
-    conn = get_db()
-    row = conn.execute("SELECT * FROM betrieb LIMIT 1").fetchone()
-    conn.close()
-    return dict(row) if row else {}
+    db = get_db()
+    return db.session.query(Betrieb).first().to_dict()
+
 
 def save_betrieb(data):
-    conn = get_db()
-    row = conn.execute("SELECT id FROM betrieb LIMIT 1").fetchone()
-    if row:
-        conn.execute("""
-            UPDATE betrieb
-            SET firma=?, name=?, vorname=?, strHnr=?, plz=?, ort=?, bundesland=?
-            WHERE id=?
-        """, (
-            data["firma"], data["name"], data["vorname"],
-            data["strHnr"], data["plz"], data["ort"], data["bundesland"],
-            row["id"]
-        ))
+    db = get_db()
+    betrieb = db.session.query(Betrieb).first()
+    if betrieb:
+        betrieb.firma = data["firma"]
+        betrieb.name = data["name"]
+        betrieb.vorname = data["vorname"]
+        betrieb.strHnr = data["strHnr"]
+        betrieb.plz = data["plz"]
+        betrieb.ort = data["ort"]
+        betrieb.bundesland = data["bundesland"]
     else:
-        conn.execute("""
-            INSERT INTO betrieb (firma, name, vorname, strHnr, plz, ort, bundesland, guid)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            data["firma"], data["name"], data["vorname"],
-            data["strHnr"], data["plz"], data["ort"], data["bundesland"],
-            str(uuid.uuid4())
-        ))
-    conn.commit()
-    conn.close()
+        betrieb = Betrieb(
+            firma=data["firma"],
+            name=data["name"],
+            vorname=data["vorname"],
+            strHnr=data["strHnr"],
+            plz=data["plz"],
+            ort=data["ort"],
+            bundesland=data["bundesland"],
+            guid=str(uuid.uuid4())
+        )
+        db.session.add(betrieb)
+        db.session.commit()
