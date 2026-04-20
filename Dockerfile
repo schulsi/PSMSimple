@@ -20,6 +20,8 @@ ENV SECRET_KEY=""
 
 ENV RATELIMIT_STORAGE_URI="redis://redis:6379/0"
 
+ENV FLASK_APP=run:app
+
 EXPOSE 80
 
 CMD ["sh", "-c", "flask db upgrade && exec gunicorn -b 0.0.0.0:80 run:app"]
