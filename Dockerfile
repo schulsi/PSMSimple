@@ -24,4 +24,8 @@ ENV FLASK_APP=run:app
 
 EXPOSE 80
 
-CMD ["sh", "-c", "flask db upgrade && exec gunicorn -b 0.0.0.0:80 run:app"]
+COPY entrypoint.sh .
+
+RUN chmod +x entrypoint.sh
+
+CMD ["./entrypoint.sh"]
