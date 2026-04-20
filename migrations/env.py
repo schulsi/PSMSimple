@@ -1,5 +1,4 @@
-import logging
-from logging.config import fileConfig
+from app.extensions import logger
 
 from flask import current_app
 
