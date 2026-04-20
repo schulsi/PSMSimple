@@ -49,7 +49,9 @@ class Config:
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
     ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
     OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-
+    CACHE_TYPE = "RedisCache"
+    CACHE_REDIS_URL = os.environ.get("RATELIMIT_STORAGE_URI")
+    CACHE_DEFAULT_TIMEOUT = 60 * 60 * 24 * 20  # 20d — BVL aktualisiert monatlich
 
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY environment variable is not set.")

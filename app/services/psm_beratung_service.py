@@ -7,6 +7,7 @@ from typing import Any
 import requests
 
 from ..config import Config
+from ..extensions import cache
 
 # bereits in deiner Config: "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
 PSM_API = Config.PSM_API
@@ -88,15 +89,7 @@ def suche_kultur_by_eppo(eppo_code: str) -> list[str]:
 def suche_schadorganismen(suchbegriff: str, eppo_code: str | None = None) -> list[dict]:
 
     if eppo_code:
-        # 1. AWG-IDs für die Kultur holen
-        kultur_data = _get_all_items("awg_kultur/", params={
-            "q": json.dumps({"KULTUR": {"$instr": eppo_code}})
-        })
-        kultur_awg_ids = {
-            item["awg_id"]
-            for item in kultur_data
-            if item.get("ausgenommen") != "J"
-        }
+        kultur_awg_ids = _get_kultur_awg_ids(eppo_code)
 
         if not kultur_awg_ids:
             return []
@@ -276,3 +269,15 @@ def suche_mittel(
     # Nach geringem Risiko und dann Mittelname sortieren
     ergebnisse.sort(key=lambda m: (not m.geringes_risiko, m.mittelname))
     return ergebnisse
+
+@cache.memoize(timeout=60 * 60 * 24)
+def _get_kultur_awg_ids(eppo_code: str) -> set[str]:
+    """Gecachte AWG-IDs für eine Kultur — 24h TTL."""
+    kultur_data = _get_all_items("awg_kultur/", params={
+        "q": json.dumps({"KULTUR": {"$instr": eppo_code}})
+    })
+    return {
+        item["awg_id"]
+        for item in kultur_data
+        if item.get("ausgenommen") != "J"
+    }

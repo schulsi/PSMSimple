@@ -4,6 +4,7 @@ flask_sqlalchemy
 Flask-Migrate
 flask_wtf
 flask-limiter
+flask-caching
 redis
 werkzeug
 reportlab
