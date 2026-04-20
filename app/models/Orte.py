@@ -1,6 +1,6 @@
 from ..extensions import db
 
-class Orte(db.Model):
+class Ort(db.Model):
     __bind_key__ = "app_db"
     __tablename__ = "orte"
 
@@ -9,7 +9,14 @@ class Orte(db.Model):
     plz = db.Column(db.Integer)
 
     einsatzorte = db.relationship(
-        "Einsatzort",
+        "Felder",
         back_populates="ort",
         cascade="all, delete-orphan"
     )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "plz": self.plz,
+        }

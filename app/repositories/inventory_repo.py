@@ -1,41 +1,22 @@
 from datetime import datetime
+from sqlalchemy import func, case
+
 from .sqlite import get_db
-
-def _row_to_dict(cursor, row) -> dict:
-    """Wandelt eine sqlite3.Row anhand der Cursor-Beschreibung in ein dict um."""
-    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
-
-
-def _rows_to_dicts(cursor, rows) -> list[dict]:
-    return [_row_to_dict(cursor, row) for row in rows]
+from ..models.Inventory import Inventory
+from ..models.Pflanzenschutzmittel import Pflanzenschutzmittel
+from ..models.Applikationen import Applikation
 
 
 def get_application_by_id(applikations_id: int) -> dict | None:
-    conn = get_db()
-    cur = conn.execute(
-        """
-        SELECT id, datum, json_data
-        FROM applikationen
-        WHERE id = ?
-        """,
-        (applikations_id,),
-    )
-    row = cur.fetchone()
-    return _row_to_dict(cur, row) if row else None
+    db = get_db()
+    obj = db.session.get(Applikation, applikations_id)
+    return obj.to_dict() if obj else None
 
 
 def get_psm_by_id(psm_id: int) -> dict | None:
-    conn = get_db()
-    cur = conn.execute(
-        """
-        SELECT id, name, lager_einheit, min_lager, warnung_lager
-        FROM pflanzenschutzmittel
-        WHERE id = ?
-        """,
-        (psm_id,),
-    )
-    row = cur.fetchone()
-    return _row_to_dict(cur, row) if row else None
+    db = get_db()
+    obj = db.session.get(Pflanzenschutzmittel, psm_id)
+    return obj.to_dict() if obj else None
 
 
 # ---------------------------------------------------------------------------
@@ -43,54 +24,72 @@ def get_psm_by_id(psm_id: int) -> dict | None:
 # ---------------------------------------------------------------------------
 
 def sum_inventory_for_psm(psm_id: int) -> float:
-    """Berechnet den aktuellen Lagerbestand für ein einzelnes PSM."""
-    conn = get_db()
-    cur = conn.execute(
-        """
-        SELECT COALESCE(SUM(
-            CASE
-                WHEN typ IN ('purchase', 'correction_plus') THEN menge
-                WHEN typ IN ('application', 'correction_minus', 'disposal') THEN -menge
-                ELSE 0
-            END
-        ), 0) AS bestand
-        FROM inventory_movements
-        WHERE psm_id = ?
-        """,
-        (psm_id,),
+    db = get_db()
+
+    bestand_expr = func.coalesce(
+        func.sum(
+            case(
+                (Inventory.typ.in_(["purchase", "correction_plus"]), Inventory.menge),
+                (Inventory.typ.in_(["application", "correction_minus", "disposal"]), -Inventory.menge),
+                else_=0
+            )
+        ),
+        0
     )
-    row = cur.fetchone()
-    return float(row[0] or 0)
+
+    bestand = db.session.query(bestand_expr).filter(
+        Inventory.psm_id == psm_id
+    ).scalar()
+
+    return float(bestand or 0)
 
 
 def get_inventory_overview_raw() -> list[dict]:
-    """
-    Gibt Bestand + PSM-Stammdaten für alle Mittel in einer einzigen Query zurück.
-    Ersetzt das N+1-Muster aus dem Service.
-    """
-    conn = get_db()
-    cur = conn.execute(
-        """
-        SELECT
-            p.id,
-            p.name,
-            p.lager_einheit,
-            COALESCE(p.min_lager, 0)      AS min_lager,
-            COALESCE(p.warnung_lager, 0)  AS warnung_lager,
-            COALESCE(SUM(
-                CASE
-                    WHEN im.typ IN ('purchase', 'correction_plus') THEN im.menge
-                    WHEN im.typ IN ('application', 'correction_minus', 'disposal') THEN -im.menge
-                    ELSE 0
-                END
-            ), 0) AS bestand
-        FROM pflanzenschutzmittel p
-        LEFT JOIN inventory_movements im ON im.psm_id = p.id
-        GROUP BY p.id
-        ORDER BY p.name COLLATE NOCASE ASC
-        """
+    db = get_db()
+
+    bestand_expr = func.coalesce(
+        func.sum(
+            case(
+                (Inventory.typ.in_(["purchase", "correction_plus"]), Inventory.menge),
+                (Inventory.typ.in_(["application", "correction_minus", "disposal"]), -Inventory.menge),
+                else_=0
+            )
+        ),
+        0
+    ).label("bestand")
+
+    rows = (
+        db.session.query(
+            Pflanzenschutzmittel.id,
+            Pflanzenschutzmittel.name,
+            Pflanzenschutzmittel.lager_einheit,
+            func.coalesce(Pflanzenschutzmittel.min_lager, 0).label("min_lager"),
+            func.coalesce(Pflanzenschutzmittel.warnung_lager, 0).label("warnung_lager"),
+            bestand_expr
+        )
+        .outerjoin(Inventory, Inventory.psm_id == Pflanzenschutzmittel.id)
+        .group_by(
+            Pflanzenschutzmittel.id,
+            Pflanzenschutzmittel.name,
+            Pflanzenschutzmittel.lager_einheit,
+            Pflanzenschutzmittel.min_lager,
+            Pflanzenschutzmittel.warnung_lager,
+        )
+        .order_by(Pflanzenschutzmittel.name.asc())
+        .all()
     )
-    return _rows_to_dicts(cur, cur.fetchall())
+
+    return [
+        {
+            "id": row.id,
+            "name": row.name,
+            "lager_einheit": row.lager_einheit,
+            "min_lager": row.min_lager,
+            "warnung_lager": row.warnung_lager,
+            "bestand": float(row.bestand or 0),
+        }
+        for row in rows
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -108,46 +107,35 @@ def insert_inventory_movement(
     notiz: str | None,
     quelle: str | None,
 ) -> dict:
-    conn = get_db()
+    db = get_db()
     now = datetime.utcnow().isoformat()
 
-    cur = conn.execute(
-        """
-        INSERT INTO inventory_movements (
-            psm_id, applikations_id, typ, menge, einheit, datum,
-            notiz, quelle, created_at, updated_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            psm_id,
-            applikations_id,
-            typ,
-            menge,
-            einheit,
-            datum,
-            notiz,
-            quelle,
-            now,
-            now,
-        ),
+    movement = Inventory(
+        psm_id=psm_id,
+        applikations_id=applikations_id,
+        typ=typ,
+        menge=menge,
+        einheit=einheit,
+        datum=datum,
+        notiz=notiz,
+        quelle=quelle,
+        created_at=now,
+        updated_at=now,
     )
-    conn.commit()
-    return {"ok": True, "id": cur.lastrowid}
+    db.session.add(movement)
+    db.session.commit()
+
+    return {"ok": True, "id": movement.id}
 
 
 def delete_auto_inventory_movements_by_application(applikations_id: int) -> None:
-    conn = get_db()
-    conn.execute(
-        """
-        DELETE FROM inventory_movements
-        WHERE applikations_id = ?
-          AND typ = 'application'
-          AND quelle = 'auto_from_application'
-        """,
-        (applikations_id,),
-    )
-    conn.commit()
+    db = get_db()
+    db.session.query(Inventory).filter(
+        Inventory.applikations_id == applikations_id,
+        Inventory.typ == "application",
+        Inventory.quelle == "auto_from_application",
+    ).delete(synchronize_session=False)
+    db.session.commit()
 
 
 # ---------------------------------------------------------------------------
@@ -155,26 +143,20 @@ def delete_auto_inventory_movements_by_application(applikations_id: int) -> None
 # ---------------------------------------------------------------------------
 
 def get_inventory_movements(limit: int = 200) -> list[dict]:
-    conn = get_db()
-    cur = conn.execute(
-        """
-        SELECT
-            im.id,
-            im.psm_id,
-            p.name          AS psm_name,
-            im.applikations_id,
-            im.typ,
-            im.menge,
-            im.einheit,
-            im.datum,
-            im.notiz,
-            im.quelle,
-            im.created_at
-        FROM inventory_movements im
-        LEFT JOIN pflanzenschutzmittel p ON p.id = im.psm_id
-        ORDER BY im.datum DESC, im.id DESC
-        LIMIT ?
-        """,
-        (limit,),
+    db = get_db()
+
+    rows = (
+        db.session.query(Inventory, Pflanzenschutzmittel.name.label("psm_name"))
+        .outerjoin(Pflanzenschutzmittel, Pflanzenschutzmittel.id == Inventory.psm_id)
+        .order_by(Inventory.datum.desc(), Inventory.id.desc())
+        .limit(limit)
+        .all()
     )
-    return _rows_to_dicts(cur, cur.fetchall())
+
+    result = []
+    for movement, psm_name in rows:
+        item = movement.to_dict()
+        item["psm_name"] = psm_name
+        result.append(item)
+
+    return result

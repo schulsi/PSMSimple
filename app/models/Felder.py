@@ -1,5 +1,6 @@
 from ..extensions import db
 
+
 class Felder(db.Model):
     __bind_key__ = "app_db"
     __tablename__ = "einsatzorte"
@@ -24,3 +25,16 @@ class Felder(db.Model):
 
     # Beziehung
     ort = db.relationship("Ort", back_populates="einsatzorte")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "gpsRechtswert": self.gpsRechtswert,
+            "gpsHochwert": self.gpsHochwert,
+            "anwendungsbereich": self.anwendungsbereich,
+            "geoTyp": self.geoTyp,
+            "einheit": self.einheit,
+            "flaecheVolumen": self.flaecheVolumen,
+            "ort_id": self.ort_id
+        }

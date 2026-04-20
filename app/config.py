@@ -12,7 +12,7 @@ os.makedirs(DB_DIR,     exist_ok=True)
 os.makedirs(EXPORT_DIR, exist_ok=True)
 os.makedirs(LOG_DIR,    exist_ok=True)
 
-DB = os.path.join(DB_DIR, "pflanzenschutz.db")
+DB = os.path.join(DB_DIR, "app.db")
 
 
 class Config:
@@ -29,7 +29,7 @@ class Config:
     RATELIMIT_HEADER_ENABLED = True
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
     SESSION_REFRESH_EACH_REQUEST = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR)
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR+ "/users.db")
     SQLALCHEMY_BINDS = {
         "app_db": f"sqlite:///{DB_DIR}/app.db",
         "user_db": f"sqlite:///{DB_DIR}/users.db",

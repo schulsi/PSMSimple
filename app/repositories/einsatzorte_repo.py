@@ -1,106 +1,71 @@
 from .sqlite import get_db
-
+from ..models.Felder import Felder
 
 def list_einsatzorte():
-    conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM einsatzorte ORDER BY name"
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    db = get_db()
+    return [feld.to_dict() for feld in db.session.query(Felder).all()]
 
 
 def get_einsatzort_by_id(einsatzort_id: int):
-    conn = get_db()
-    row = conn.execute(
-        "SELECT * FROM einsatzorte WHERE id = ?",
-        (einsatzort_id,)
-    ).fetchone()
-    conn.close()
-    return dict(row) if row else None
+    db = get_db()
+    obj = db.session.get(Felder, einsatzort_id)
+    return obj.to_dict() if obj else None
 
 def get_einsatzorte_by_ort(ort_id: int):
-    conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM einsatzorte WHERE ort_id = ?",
-        (ort_id,)
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
-
+    db = get_db()
+    return[feld.to_dict() for feld in db.session.query(Felder).filter_by(ort_id=ort_id).all()]
 
 def list_einsatzorte_by_ids(einsatzort_ids: list[int]):
     if not einsatzort_ids:
         return []
 
     placeholders = ",".join("?" for _ in einsatzort_ids)
-    conn = get_db()
-    rows = conn.execute(
-        f"SELECT * FROM einsatzorte WHERE id IN ({placeholders})",
-        einsatzort_ids
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    db = get_db()
+    objs = db.session.query(Felder).filter(Felder.id.in_(einsatzort_ids).all())
+    return [obj.to_dict() for obj in objs]
 
 
 def create_einsatzort(data: dict):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        INSERT INTO einsatzorte
-            (name, gpsRechtswert, gpsHochwert, anwendungsbereich, geoTyp, einheit, flaecheVolumen, ort_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            data["name"],
-            data["gpsRechtswert"],
-            data["gpsHochwert"],
-            data["anwendungsbereich"],
-            data["geoTyp"],
-            data["einheit"],
-            data["flaecheVolumen"],
-            data["ort_id"]
-        )
+    db = get_db()
+    feld = Felder(
+            name = data["name"],
+            gpsRechtswert = data["gpsRechtswert"],
+            gpsHochwert = data["gpsHochwert"],
+            anwendungsbereich = data["anwendungsbereich"],
+            geoTyp = data["geoTyp"],
+            einheit = data["einheit"],
+            flaecheVolumen = data["flaecheVolumen"],
+            ort_id = data["ort_id"]
     )
-    conn.commit()
-    new_id = cur.lastrowid
-    conn.close()
-    return {"ok": True, "id": new_id}
+    db.session.add(feld)
+    db.session.commit()
+    return {"ok": True, "id": feld.id}
 
 
 def update_einsatzort(einsatzort_id: int, data: dict):
-    conn = get_db()
-    conn.execute(
-        """
-        UPDATE einsatzorte
-        SET name = ?, gpsRechtswert = ?, gpsHochwert = ?,
-            anwendungsbereich = ?, geoTyp = ?, einheit = ?, flaecheVolumen = ?, ort_id = ?
-        WHERE id = ?
-        """,
-        (
-            data["name"],
-            data["gpsRechtswert"],
-            data["gpsHochwert"],
-            data["anwendungsbereich"],
-            data["geoTyp"],
-            data["einheit"],
-            data["flaecheVolumen"],
-            data["ort_id"],
-            einsatzort_id,
-        )
-    )
-    conn.commit()
-    conn.close()
+    db = get_db()
+    feld = db.session.get(Felder, einsatzort_id)
+    if not feld:
+        return {"ok": False, "error": "Not Found"}
+
+    feld.name = data["name"]
+    feld.gpsRechtswert = data["gpsRechtswert"]
+    feld.gpsHochwert = data["gpsHochwert"]
+    feld.anwendungsbereich = data["anwendungsbereich"]
+    feld.geoTyp = data["geoTyp"]
+    feld.einheit = data["einheit"]
+    feld.flaecheVolumen = data["flaecheVolumen"]
+    feld.ort_id = data["ort_id"]
+    
+    db.session.commit()
     return {"ok": True}
 
 
 def delete_einsatzort(einsatzort_id: int):
-    conn = get_db()
-    conn.execute(
-        "DELETE FROM einsatzorte WHERE id = ?",
-        (einsatzort_id,)
-    )
-    conn.commit()
-    conn.close()
+    db = get_db()
+    feld = db.session.get(Felder, einsatzort_id)
+    if not feld:
+        return {"ok": False, "error": "Not Found"}
+    db.session.delete(feld)
+    db.session.commit()
     return {"ok": True}

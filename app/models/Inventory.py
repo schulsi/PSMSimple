@@ -19,4 +19,19 @@ class Inventory(db.Model):
     applikation = db.relationship(
     "Applikation",
     back_populates="inventory_movements"
-)
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "psm_id": self.psm_id,
+            "applikations_Id": self.applikations_Id,
+            "typ": self.typ,
+            "menge": self.menge,
+            "einheit": self.einheit,
+            "datum": self.datum,
+            "notiz": self.notiz,
+            "quelle": self.quelle,
+            "updated_at": self.updated_at,
+            "created_at": self.created_at,
+        }

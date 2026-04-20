@@ -1,123 +1,89 @@
 from .sqlite import get_db
+from ..models.Pflanzenschutzmittel import Pflanzenschutzmittel
 
 
 def list_psm():
-    conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM pflanzenschutzmittel ORDER BY name"
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    db = get_db()
+    objs = db.session.query(Pflanzenschutzmittel).order_by(Pflanzenschutzmittel.name).all()
+    return [obj.to_dict() for obj in objs]
 
 
 def get_psm_by_id(psm_id: int):
-    conn = get_db()
-    row = conn.execute(
-        "SELECT * FROM pflanzenschutzmittel WHERE id = ?",
-        (psm_id,)
-    ).fetchone()
-    conn.close()
-    return dict(row) if row else None
+    db = get_db()
+    obj = db.session.get(Pflanzenschutzmittel, psm_id)
+    return obj.to_dict() if obj else None
 
 
 def get_psm_by_zulassungsnr(zulassungsnr: str):
-    conn = get_db()
-    row = conn.execute(
-        "SELECT * FROM pflanzenschutzmittel WHERE zulassungsnr = ?",
-        (zulassungsnr,)
-    ).fetchone()
-    conn.close()
-    return dict(row) if row else None
+    db = get_db()
+    obj = db.session.query(Pflanzenschutzmittel).filter_by(zulassungsnr=zulassungsnr).first()
+    return obj.to_dict() if obj else None
 
 
 def list_psm_by_ids(psm_ids: list[int]):
+    db = get_db()
     if not psm_ids:
         return []
 
-    placeholders = ",".join("?" for _ in psm_ids)
-    conn = get_db()
-    rows = conn.execute(
-        f"SELECT * FROM pflanzenschutzmittel WHERE id IN ({placeholders})",
-        psm_ids
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    objs = db.session.query(Pflanzenschutzmittel).filter(Pflanzenschutzmittel.id.in_(psm_ids)).all()
+    return [obj.to_dict() for obj in objs]
 
 
 def create_psm(data: dict):
-    conn = get_db()
-    cur = conn.cursor()
+    db = get_db()
 
-    cur.execute(
-        "SELECT id FROM pflanzenschutzmittel WHERE zulassungsnr = ?",
-        (data["zulassungsnr"],)
-    )
-    exists = cur.fetchone()
+    exists = db.session.query(Pflanzenschutzmittel.id).filter_by(
+        zulassungsnr=data["zulassungsnr"]
+    ).first()
 
     if exists:
-        conn.close()
         return {
             "ok": False,
             "error": "Mittel existiert bereits",
             "existing_id": exists[0],
         }
 
-    cur.execute(
-        """
-        INSERT INTO pflanzenschutzmittel
-            (name, zulassungsnr, wirkstoffe, aufwandEinheit, bienen, lager_einheit,
-            min_lager, warnung_lager)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            data["name"],
-            data["zulassungsnr"],
-            data["wirkstoffe"],
-            data["aufwandEinheit"],
-            data["bienen"],
-            data["lager_einheit"],
-            data["min_lager"],
-            data["warnung_lager"],
-        )
+    psm = Pflanzenschutzmittel(
+        name=data["name"],
+        zulassungsnr=data["zulassungsnr"],
+        wirkstoffe=data["wirkstoffe"],
+        aufwandEinheit=data["aufwandEinheit"],
+        bienen=data["bienen"],
+        lager_einheit=data["lager_einheit"],
+        min_lager=data["min_lager"],
+        warnung_lager=data["warnung_lager"],
     )
-    conn.commit()
-    new_id = cur.lastrowid
-    conn.close()
+    db.session.add(psm)
+    db.session.commit()
 
-    return {"ok": True, "id": new_id}
+    return {"ok": True, "id": psm.id}
 
 
 def update_psm(psm_id: int, data: dict):
-    conn = get_db()
-    conn.execute(
-        """
-        UPDATE pflanzenschutzmittel
-        SET name = ?, zulassungsnr = ?, wirkstoffe = ?, aufwandEinheit = ?, bienen = ?, lager_einheit = ?, min_lager = ?, warnung_lager = ?
-        WHERE id = ?
-        """,
-        (
-            data["name"],
-            data["zulassungsnr"],
-            data["wirkstoffe"],
-            data["aufwandEinheit"],
-            data["bienen"],
-            data["lager_einheit"],
-            data["min_lager"],
-            data["warnung_lager"],
-            psm_id,
-        )
-    )
-    conn.commit()
-    conn.close()
+    db = get_db()
+    psm = db.session.get(Pflanzenschutzmittel, psm_id)
+    if not psm:
+        return {"ok": False, "error": "Not Found"}
+
+    psm.name = data["name"]
+    psm.zulassungsnr = data["zulassungsnr"]
+    psm.wirkstoffe = data["wirkstoffe"]
+    psm.aufwandEinheit = data["aufwandEinheit"]
+    psm.bienen = data["bienen"]
+    psm.lager_einheit = data["lager_einheit"]
+    psm.min_lager = data["min_lager"]
+    psm.warnung_lager = data["warnung_lager"]
+
+    db.session.commit()
     return {"ok": True}
 
 
 def delete_psm(psm_id: int):
-    conn = get_db()
-    conn.execute(
-        "DELETE FROM pflanzenschutzmittel WHERE id = ?",
-        (psm_id,)
-    )
-    conn.commit()
-    conn.close()
+    db = get_db()
+    psm = db.session.get(Pflanzenschutzmittel, psm_id)
+    if not psm:
+        return {"ok": False, "error": "Not Found"}
+
+    db.session.delete(psm)
+    db.session.commit()
     return {"ok": True}

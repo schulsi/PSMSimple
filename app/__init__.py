@@ -5,7 +5,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import Config
 from .extensions import db, login_manager, csrf, limiter, swagger
-from .models import User
+from .models import User, ApplicationSetting, Applikationen, BBCH_Codes, Betrieb, Felder, Inventory, Kulturen, Orte, Pflanzenschutzmittel, UserRole, user
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
 from .services.permissions import seed_roles

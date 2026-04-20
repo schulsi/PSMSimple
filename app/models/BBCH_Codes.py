@@ -17,4 +17,14 @@ class BBCHCode(db.Model):
     sortierung = db.Column(db.Integer)
 
     # Beziehung
-    kultur = db.relationship("Kultur", back_populates="bbch_codes")
+    kultur = db.relationship("Kulturen", back_populates="bbch_codes")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "kultur_id": self.kultur_id,
+            "code": self.code,
+            "bezeichnung": self.bezeichnung,
+            "beschreibung": self.beschreibung,
+            "sortierung": self.sortierung,
+        }

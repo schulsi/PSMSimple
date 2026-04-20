@@ -13,3 +13,16 @@ class Betrieb(db.Model):
     ort = db.Column(db.Text)
     bundesland = db.Column(db.Text)
     guid = db.Column(db.Text)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "firma": self.firma,
+            "name": self.name,
+            "vorname": self.vorname,
+            "strHnr": self.strHnr,
+            "plz": self.plz,
+            "ort": self.ort,
+            "bundesland": self.bundesland,
+            "guid": self.guid,
+        }

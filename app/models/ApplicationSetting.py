@@ -6,3 +6,10 @@ class ApplicationSetting(db.Model):
 
     key = db.Column(db.Text, primary_key=True)
     value = db.Column(db.Text)
+    
+    def to_dict(self):
+        return {
+            "key": self.key,
+            "value": self.value,
+        }
+    

@@ -1,23 +1,15 @@
 from .sqlite import get_db
+from ..models import Ort
 
 
 def list_orte():
-    conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM orte ORDER BY name"
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    db = get_db()
+    return [ort.to_dict() for ort in db.session.query(Ort).order_by(Ort.name).all()]
 
 
 def get_ort_by_id(ort_id: int):
-    conn = get_db()
-    row = conn.execute(
-        "SELECT * FROM orte WHERE id = ?",
-        (ort_id,)
-    ).fetchone()
-    conn.close()
-    return dict(row) if row else None
+    db = get_db()
+    return db.session.get(Ort, ort_id).to_dict()
 
 
 def list_orte_by_ids(ort_ids: list[int]):
@@ -25,61 +17,43 @@ def list_orte_by_ids(ort_ids: list[int]):
         return []
 
     placeholders = ",".join("?" for _ in ort_ids)
-    conn = get_db()
-    rows = conn.execute(
-        f"SELECT * FROM orte WHERE id IN ({placeholders})",
-        ort_ids
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    db = get_db()
+    return [ort.to_dict() for ort in db.session.query(Ort).filter(Ort.id.in_(ort_ids)).all()]
 
 
 def create_ort(data: dict):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        INSERT INTO orte
-            (name, plz, ort_id)
-        VALUES (?, ?, ?)
-        """,
-        (
-            data["name"],
-            data["plz"],
-            data["ort_id"]
-        )
+    db = get_db()
+    ort = Ort(
+        name=data["name"],
+        plz=data["plz"],
+        ort_id=data["ort_id"]
     )
-    conn.commit()
-    new_id = cur.lastrowid
-    conn.close()
-    return {"ok": True, "id": new_id}
+    db.session.add(ort)
+    db.session.commit()
+    db.session.refresh()
+
+    return {"ok": True, "id": ort.id}
 
 
 def update_ort(ort_id: int, data: dict):
-    conn = get_db()
-    conn.execute(
-        """
-        UPDATE orte
-        SET name = ?, plz = ?
-        WHERE id = ?
-        """,
-        (
-            data["name"],
-            data["plz"],
-            ort_id,
-        )
-    )
-    conn.commit()
-    conn.close()
+    db = get_db()
+    ort = db.session.get(Ort, ort_id)
+    if not ort:
+        return {"ok": False, "error": "Not Found"}
+
+    ort.name = data["name"]
+    ort.plz = data["plz"]
+    db.session.commit()
     return {"ok": True}
 
 
 def delete_ort(ort_id: int):
-    conn = get_db()
-    conn.execute(
-        "DELETE FROM ort WHERE id = ?",
-        (ort_id,)
-    )
-    conn.commit()
-    conn.close()
+    db = get_db()
+    ort = db.session.get(Ort, ort_id)
+    if not ort:
+        return {"ok": False, "error": "Not found"}
+
+    db.session.delete(ort)
+    db.session.commit()
+
     return {"ok": True}

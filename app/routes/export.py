@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, send_file
 from flask_login import current_user, login_required
 
-from ..models.user import UserSettings
+from ..models.UserSettings import UserSettings
 from ..extensions import logger
 from ..services.permissions import require_write_access
 from ..services.export_service import (

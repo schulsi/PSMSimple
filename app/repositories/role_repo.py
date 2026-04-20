@@ -1,5 +1,6 @@
 from .sqlite import get_db
-from ..models.user import User, UserRole
+from ..models.user import User
+from ..models.UserRole import UserRole
 
 
 def get_role_id(role_name):

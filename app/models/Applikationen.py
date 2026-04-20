@@ -23,6 +23,20 @@ class Applikation(db.Model):
 
     # Beziehung zu Inventory
     inventory_movements = db.relationship(
-        "InventoryMovement",
+        "Inventory",
         back_populates="applikation"
     )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "datum": self.datum,
+            "uhrzeit": self.uhrzeit,
+            "artVerwendung": self.artVerwendung,
+            "anwender": self.anwender,
+            "einsatzorte": self.einsatzorte,
+            "psm_namen": self.psm_namen,
+            "kulturen": self.kulturen,
+            "json_data": self.json_data,
+        }
