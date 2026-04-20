@@ -13,6 +13,7 @@ from .bbch import bp as bbch_bp
 from .weather import bp as weather_bp
 from .orte import bp as orte_bp
 from .inventory import bp as inventory_bp
+from .beratung import bp as beratung_bp
 
 
 def register_blueprints(app):
@@ -31,3 +32,4 @@ def register_blueprints(app):
     app.register_blueprint(weather_bp)
     app.register_blueprint(orte_bp)
     app.register_blueprint(inventory_bp)
+    app.register_blueprint(beratung_bp)

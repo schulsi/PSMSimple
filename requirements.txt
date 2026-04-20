@@ -9,4 +9,6 @@ werkzeug
 reportlab
 requests
 gunicorn
-flasgger    
+flasgger  
+openai
+anthropic 
