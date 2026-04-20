@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+import os
 
 from ..services.psm_beratung_service import (
     PSMBeratungError,
@@ -152,3 +153,22 @@ def _format_historie(historie: list) -> str:
     for h in historie[:5]:
         lines.append(f"- {h.get('datum', '?')}: {h.get('mittel', '?')} auf {h.get('kultur', '?')}")
     return "\n".join(lines) or "Keine History vorhanden."
+
+@bp.get("/api/beratung/llm-status")
+@login_required
+def llm_status():
+    provider = os.environ.get("LLM_PROVIDER", "anthropic")
+    
+    key_map = {
+        "anthropic": "ANTHROPIC_API_KEY",
+        "openai": "OPENAI_API_KEY",
+    }
+    
+    key_name = key_map.get(provider)
+    configured = bool(key_name and os.environ.get(key_name))
+    
+    return jsonify({
+        "ok": True,
+        "configured": configured,
+        "provider": provider,
+    })

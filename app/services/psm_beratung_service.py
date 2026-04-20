@@ -91,7 +91,7 @@ def suche_schadorganismen(suchbegriff: str) -> list[dict]:
     data = _get("kode/", params={
         "q": json.dumps({
             "KODETEXT": {"$instr": suchbegriff},
-            "KODELISTE": {"$eq": "4"},   # Kodeliste 4 = Schadorganismen
+            "KODELISTE": {"$eq": "947"},   # Kodeliste 4 = Schadorganismen
             "SPRACHE": {"$eq": "DE"}
         })
     })

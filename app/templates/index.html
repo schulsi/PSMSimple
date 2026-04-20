@@ -281,75 +281,149 @@
 <div id="tab-forecast" class="tab">
   <h2>📈 Vorhersage <span class="badge" id="forecast-status-badge">Spritzfenster</span></h2>
 
-  <div class="forecast-layout">
+  <div class="sub-tabs">
+    <button class="sub-tab-btn active" data-action="showForecastSubTab" data-subtab="spritzfenster">
+      🌤 Spritzfenster
+    </button>
+    <button class="sub-tab-btn" data-action="showForecastSubTab" data-subtab="beratung">
+      🤖 PSM-Beratung
+    </button>
+  </div>
 
-    <div class="card forecast-settings-card">
-      <div class="forecast-settings-head">
-        <div>
-          <h3 class="section-title">⚙️ Einstellungen</h3>
-          <p class="text-muted-history">
-            Zeitraum und Thresholds für die Berechnung des besten Spritzfensters.
-          </p>
+  {# --- Spritzfenster --- #}
+  <div id="forecast-sub-spritzfenster" class="history-sub-tab active">
+    <div class="forecast-layout">
+
+      <div class="card forecast-settings-card">
+        <div class="forecast-settings-head">
+          <div>
+            <h3 class="section-title">⚙️ Einstellungen</h3>
+            <p class="text-muted-history">
+              Zeitraum und Thresholds für die Berechnung des besten Spritzfensters.
+            </p>
+          </div>
+        </div>
+
+        <div class="form-grid forecast-grid">
+          <div class="field forecast-orte-field">
+            <label>Orte auswählen</label>
+            <div class="forecast-checkbox-toolbar">
+              <button type="button" class="btn btn-sm btn-ghost" data-action="forecastSelectAllOrte">Alle</button>
+              <button type="button" class="btn btn-sm btn-ghost" data-action="forecastSelectNoOrte">Keine</button>
+            </div>
+            <div id="forecast-orte" class="forecast-checkbox-list"></div>
+          </div>
+
+          <div class="field">
+            <label>Zeitraum</label>
+            <select id="forecast-range">
+              <option value="today">Heute</option>
+              <option value="24">Bis Morgen</option>
+              <option value="48">Nächste 2 Tage</option>
+              <option value="72" selected>Nächste 3 Tage</option>
+              <option value="96">Nächste 4 Tage</option>
+              <option value="120">Nächste 5 Tage</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Min. Fensterdauer (h)</label>
+            <input id="forecast-min-window-hours" type="number" step="1" value="2">
+          </div>
+        </div>
+
+        <div class="forecast-actions">
+          <button type="button" class="btn btn-primary" id="btn-forecast-calc" data-action="calculateForecastWindow">
+            📈 Vorhersage berechnen
+          </button>
         </div>
       </div>
 
-      <div class="form-grid forecast-grid">
-
-        <div class="field forecast-orte-field">
-          <label>Orte auswählen</label>
-          <div class="forecast-checkbox-toolbar">
-            <button type="button" class="btn btn-sm btn-ghost" data-action="forecastSelectAllOrte">Alle</button>
-            <button type="button" class="btn btn-sm btn-ghost" data-action="forecastSelectNoOrte">Keine</button>
-          </div>
-          <div id="forecast-orte" class="forecast-checkbox-list"></div>
+      <div class="card forecast-result-card">
+        <h3 class="section-title">🌤 Bestes Zeitfenster</h3>
+        <div id="forecast-loading" class="forecast-info-box hidden">Vorhersage wird geladen...</div>
+        <div id="forecast-error" class="forecast-error-box hidden"></div>
+        <div id="forecast-best-window" class="forecast-best-window hidden"></div>
+        <div id="forecast-alt-wrap" class="hidden">
+          <h4 class="section-title mt-1">Weitere Zeitfenster</h4>
+          <div id="forecast-alt-list" class="forecast-alt-list"></div>
         </div>
+      </div>
+
+    </div>
+  </div>
+
+  {# --- PSM-Beratung --- #}
+  <div id="forecast-sub-beratung" class="history-sub-tab">
+
+    <div class="card mb-085">
+      <h3 class="section-title">🌾 Kultur &amp; Schadorganismus</h3>
+      <p class="text-muted-history">Wähle eine Kultur aus deiner Datenbank und suche nach dem Schadorganismus.</p>
+
+      <div class="form-grid">
 
         <div class="field">
-          <label>Zeitraum</label>
-          <select id="forecast-range">
-            <option value="today">Heute</option>
-            <option value="24">Bis Morgen</option>
-            <option value="48">Nächste 2 Tage</option>
-            <option value="72" selected>Nächste 3 Tage</option>
-            <option value="96">Nächste 4 Tage</option>
-            <option value="120">Nächste 5 Tage</option>
+          <label>Kultur</label>
+          <select id="beratung-kultur-select">
+            <option value="">— Kultur wählen —</option>
           </select>
         </div>
 
         <div class="field">
-          <label>Min. Fensterdauer (h)</label>
-          <input id="forecast-min-window-hours" type="number" step="1" value="2">
+          <label>Schadorganismus</label>
+          <div class="beratung-search-wrap">
+            <input
+              id="beratung-schad-input"
+              type="text"
+              placeholder="z.B. Blattläuse, Mehltau..."
+              autocomplete="off"
+              data-action="onBeratungSchadInput"
+            >
+            <div id="beratung-schad-dropdown" class="beratung-dropdown hidden"></div>
+          </div>
+          <input type="hidden" id="beratung-schad-kode">
+          <div id="beratung-schad-selected" class="beratung-bubble-wrap"></div>
         </div>
 
-      </div><!-- /.form-grid -->
+        <div class="field">
+          <label>Einsatzort (optional, für Wetterfenster)</label>
+          <select id="beratung-ort-select">
+            <option value="">— Kein Ort —</option>
+          </select>
+        </div>
 
-      <div class="forecast-actions">
-        <button type="button" class="btn btn-primary" id="btn-forecast-calc" data-action="calculateForecastWindow">
-          📈 Vorhersage berechnen
+      </div>
+
+      <div class="mt-1">
+        <button type="button" class="btn btn-primary" data-action="startBeratung">
+          🤖 Beratung starten
         </button>
       </div>
+    </div>
 
-    </div><!-- /.card forecast-settings-card -->
-
-    <div class="card forecast-result-card">
-      <h3 class="section-title">🌤 Bestes Zeitfenster</h3>
-
-      <div id="forecast-loading" class="forecast-info-box hidden">
-        Vorhersage wird geladen...
+    {# Ergebnisse: Mittel-Bubbles #}
+    <div id="beratung-mittel-wrap" class="hidden">
+      <div class="card mb-085">
+        <h3 class="section-title">🧪 Zugelassene Mittel <span class="badge" id="beratung-mittel-count">0</span></h3>
+        <p class="text-muted-history">Alle aktuell zugelassenen Mittel laut BVL für die gewählte Kombination.</p>
+        <div id="beratung-mittel-list" class="beratung-bubble-grid"></div>
       </div>
 
-      <div id="forecast-error" class="forecast-error-box hidden"></div>
-
-      <div id="forecast-best-window" class="forecast-best-window hidden"></div>
-
-      <div id="forecast-alt-wrap" class="hidden">
-        <h4 class="section-title mt-1">Weitere Zeitfenster</h4>
-        <div id="forecast-alt-list" class="forecast-alt-list"></div>
+      <div class="card">
+        <h3 class="section-title">🤖 Empfehlung</h3>
+        <div id="beratung-empfehlung-loading" class="forecast-info-box hidden">Empfehlung wird erstellt...</div>
+        <div id="beratung-empfehlung-error" class="forecast-error-box hidden"></div>
+        <div id="beratung-empfehlung-result" class="beratung-empfehlung-text hidden"></div>
+        <div id="beratung-empfehlung-meta" class="beratung-empfehlung-meta hidden"></div>
       </div>
-    </div><!-- /.card forecast-result-card -->
+    </div>
 
-  </div><!-- /.forecast-layout -->
-</div><!-- /#tab-forecast -->
+    <div id="beratung-loading" class="forecast-info-box hidden">Mittel werden geladen...</div>
+    <div id="beratung-error" class="forecast-error-box hidden"></div>
+
+  </div>
+
+</div>
  
   <div id="tab-inventory" class="tab">
     <h2>📦 Lagerbestand</h2>
@@ -788,6 +862,7 @@
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
 <script src="{{ url_for('static', filename='js/forecast.js') }}"></script>
 <script src="{{ url_for('static', filename='js/inventory.js') }}"></script>
+<script src="{{ url_for('static', filename='js/beratung.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-init.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-fields.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-list.js') }}"></script>

@@ -69,7 +69,6 @@ async function resetPSMForm() {
     const el = $(`psm-${field}`);
     if (el) el.value = '';
   });
-  console.log(payload.inventory_warn_default)
   if($('psm-warnung_lager')) {
     $('psm-warnung_lager').value = payload.inventory_warn_default ?? ''; 
   }
