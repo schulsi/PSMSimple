@@ -23,7 +23,7 @@ class Config:
  #   REMEMBER_COOKIE_SECURE = True
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = "Lax"
-    RATELIMIT_STORAGE_URL = os.environ.get(
+    RATELIMIT_STORAGE_URI = os.environ.get(
         "RATELIMIT_STORAGE_URI", "memory://")
     RATELIMIT_STRATEGY = "fixed-window"
     RATELIMIT_HEADER_ENABLED = True
