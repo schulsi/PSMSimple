@@ -24,8 +24,4 @@ ENV FLASK_APP=run:app
 
 EXPOSE 80
 
-COPY entrypoint.sh .
-
-RUN chmod +x entrypoint.sh
-
-CMD ["./entrypoint.sh"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "run:app"]
