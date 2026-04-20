@@ -22,4 +22,4 @@ ENV RATELIMIT_STORAGE_URI="redis://redis:6379/0"
 
 EXPOSE 80
 
-CMD ["sh", "-c", "flask", "db", "upgrade", "&&","gunicorn", "-b", "0.0.0.0:80", "run:app"]
+CMD ["sh", "-c", "flask db upgrade && exec gunicorn -b 0.0.0.0:80 run:app"]
