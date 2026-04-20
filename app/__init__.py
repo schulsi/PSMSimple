@@ -2,11 +2,11 @@ from flask import Flask, jsonify, request, render_template, flash, redirect, url
 from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_migrate import Migrate
 
 from .config import Config
 from .extensions import db, login_manager, csrf, limiter, swagger
-from .models import User, ApplicationSetting, Applikationen, BBCH_Codes, Betrieb, Felder, Inventory, Kulturen, Orte, Pflanzenschutzmittel, UserRole, user
-from .routes import register_blueprints
+from .models import User
 from .repositories.sqlite import init_appdata_db
 from .services.permissions import seed_roles
 
@@ -22,6 +22,7 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     swagger.init_app(app)
+    migrate = Migrate()
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -79,6 +80,7 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        migrate.init_app(app, db)
         seed_roles()
         init_appdata_db()
 
