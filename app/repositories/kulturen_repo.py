@@ -19,7 +19,7 @@ def list_kulturen_by_ids(kultur_ids: list[int]):
     if not kultur_ids:
         return []
 
-    objs = db.session.query(Kulturen).filter(Kulturen).all()
+    objs = db.session.query(Kulturen).filter(Kulturen.id.in_(kultur_ids)).all()
     return [obj.to_dict() for obj in objs]
 
 

@@ -4,7 +4,7 @@ class Pflanzenschutzmittel(db.Model):
     __bind_key__ = "app_db"
     __tablename__ = "pflanzenschutzmittel"
 
-    id = db.Column(db.Text, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     zulassungsnr = db.Column(db.Text)
     wirkstoffe = db.Column(db.Text)

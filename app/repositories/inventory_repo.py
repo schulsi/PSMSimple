@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import func, case
 
 from .sqlite import get_db
@@ -99,7 +99,7 @@ def get_inventory_overview_raw() -> list[dict]:
 def insert_inventory_movement(
     *,
     psm_id: int,
-    applikations_id: int | None,
+    applikations_Id: int | None,
     typ: str,
     menge: float,
     einheit: str,
@@ -108,11 +108,11 @@ def insert_inventory_movement(
     quelle: str | None,
 ) -> dict:
     db = get_db()
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc)
 
     movement = Inventory(
         psm_id=psm_id,
-        applikations_id=applikations_id,
+        applikations_Id=applikations_Id,
         typ=typ,
         menge=menge,
         einheit=einheit,
@@ -131,7 +131,7 @@ def insert_inventory_movement(
 def delete_auto_inventory_movements_by_application(applikations_id: int) -> None:
     db = get_db()
     db.session.query(Inventory).filter(
-        Inventory.applikations_id == applikations_id,
+        Inventory.applikations_Id == applikations_id,
         Inventory.typ == "application",
         Inventory.quelle == "auto_from_application",
     ).delete(synchronize_session=False)

@@ -119,7 +119,7 @@ def create_manual_stock_movement(
 
     return insert_inventory_movement(
         psm_id=psm_id,
-        applikations_id=None,
+        applikations_Id=None,
         typ=typ,
         menge=round(float(menge), 4),
         einheit=einheit,
@@ -163,7 +163,7 @@ def rebuild_inventory_for_application(applikations_id: int) -> list[dict]:
 
         insert_inventory_movement(
             psm_id=psm_id,
-            applikations_id=applikations_id,
+            applikations_Id=applikations_id,
             typ="application",
             menge=aufwand_menge,
             einheit=einheit,
