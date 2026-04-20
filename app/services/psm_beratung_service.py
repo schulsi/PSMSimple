@@ -8,7 +8,8 @@ import requests
 
 from ..config import Config
 
-PSM_API = Config.PSM_API  # bereits in deiner Config: "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
+# bereits in deiner Config: "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
+PSM_API = Config.PSM_API
 TIMEOUT = 10
 
 
@@ -36,7 +37,8 @@ def _get_all_items(path: str, params: dict | None = None) -> list[dict]:
             resp.raise_for_status()
             data = resp.json()
         except requests.RequestException as exc:
-            raise PSMBeratungError(f"BVL-API Fehler bei {path}: {exc}") from exc
+            raise PSMBeratungError(
+                f"BVL-API Fehler bei {path}: {exc}") from exc
 
         items.extend(data.get("items", []))
         params = None  # nur beim ersten Request, danach next-Link nutzen
@@ -83,27 +85,71 @@ def suche_kultur_by_eppo(eppo_code: str) -> list[str]:
     return []
 
 
-def suche_schadorganismen(suchbegriff: str) -> list[dict]:
-    """
-    Sucht Schadorganismen nach deutschem Namen.
-    Gibt Liste von {schadorg, bezeichnung} zurück für Dropdown.
-    """
-    data = _get("kode/", params={
-        "q": json.dumps({
-            "KODETEXT": {"$instr": suchbegriff},
-            "KODELISTE": {"$eq": "947"},   # Kodeliste 4 = Schadorganismen
-            "SPRACHE": {"$eq": "DE"}
+def suche_schadorganismen(suchbegriff: str, eppo_code: str | None = None) -> list[dict]:
+
+    if eppo_code:
+        # 1. AWG-IDs für die Kultur holen
+        kultur_data = _get_all_items("awg_kultur/", params={
+            "q": json.dumps({"KULTUR": {"$instr": eppo_code}})
         })
-    })
-    return [
-        {"kode": item["kode"], "bezeichnung": item["kodetext"]}
-        for item in data.get("items", [])
-    ]
+        kultur_awg_ids = {
+            item["awg_id"]
+            for item in kultur_data
+            if item.get("ausgenommen") != "J"
+        }
 
+        if not kultur_awg_ids:
+            return []
 
-# ---------------------------------------------------------------------------
-# Mittelsuche
-# ---------------------------------------------------------------------------
+        # 2. Schadorganismen nach Text suchen — NUR ein API-Call
+        schad_data = _get_all_items("kode/", params={
+            "q": json.dumps({
+                "KODETEXT": {"$instr": suchbegriff},
+                "KODELISTE": {"$eq": "947"},
+                "SPRACHE": {"$eq": "DE"}
+            })
+        })
+        treffer_kodes = {item["kode"] for item in schad_data}
+
+        if not treffer_kodes:
+            return []
+
+        # 3. awg_schadorg nach Schadorganismus-Text filtern — ein Call pro Treffer-Kode
+        # Das sind typisch 3-10 Kodes, nicht hunderte AWG-IDs
+        zugelassene = {}
+        for kode in treffer_kodes:
+            awg_schad = _get("awg_schadorg/", params={
+                "q": json.dumps({
+                    "SCHADORG": {"$eq": kode}
+                })
+            })
+            for item in awg_schad.get("items", []):
+                if item.get("ausgenommen") != "J" and item["awg_id"] in kultur_awg_ids:
+                    # Dieser Schadorganismus ist für die Kultur zugelassen
+                    zugelassene[kode] = next(
+                        i["kodetext"] for i in schad_data if i["kode"] == kode
+                    )
+                    break  # einmal gefunden reicht
+
+        return [
+            {"kode": kode, "bezeichnung": bez}
+            for kode, bez in sorted(zugelassene.items(), key=lambda x: x[1])
+        ]
+
+    else:
+        # Ohne Kultur — einfache Textsuche
+        data = _get("kode/", params={
+            "q": json.dumps({
+                "KODETEXT": {"$instr": suchbegriff},
+                "KODELISTE": {"$eq": "7"},
+                "SPRACHE": {"$eq": "DE"}
+            })
+        })
+        return [
+            {"kode": item["kode"], "bezeichnung": item["kodetext"]}
+            for item in data.get("items", [])
+        ]
+
 
 @dataclass
 class PSMMittelInfo:
@@ -217,7 +263,8 @@ def suche_mittel(
                 kennr=kennr,
                 mittelname=mittel.get("mittelname", kennr),
                 zul_ende=zul_ende,
-                geringes_risiko=mittel.get("mittel_mit_geringem_risiko") == "J",
+                geringes_risiko=mittel.get(
+                    "mittel_mit_geringem_risiko") == "J",
                 wirkstoffe=[ws for ws in wirkstoffe if ws],
                 wartezeit_tage=int(wartezeit) if wartezeit else None,
                 aufwand_info=aufwand_info,

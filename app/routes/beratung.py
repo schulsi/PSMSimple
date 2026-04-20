@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from ..config import Config
+from ..models import Kulturen
 
 from ..services.psm_beratung_service import (
     PSMBeratungError,
@@ -18,11 +19,19 @@ bp = Blueprint("beratung", __name__)
 def get_schadorganismen():
     """Schadorganismen-Suche für Dropdown."""
     q = request.args.get("q", "").strip()
+    kultur_id = request.args.get("kultur_id")
+
     if len(q) < 2:
         return jsonify({"ok": False, "message": "Mindestens 2 Zeichen eingeben"}), 400
 
+    eppo_code = None
+    if kultur_id:
+        kultur = Kulturen.query.get(int(kultur_id))
+        if kultur and kultur.eppoCode:
+            eppo_code = kultur.eppoCode
+
     try:
-        ergebnisse = suche_schadorganismen(q)
+        ergebnisse = suche_schadorganismen(q, eppo_code=eppo_code)
         return jsonify({"ok": True, "items": ergebnisse})
     except PSMBeratungError as e:
         return jsonify({"ok": False, "message": str(e)}), 502
@@ -161,7 +170,7 @@ def llm_status():
     
     is_ollama = "11434" in Config.OPENAI_BASE_URL or "ollama" in Config.OPENAI_BASE_URL.lower()
     configured = bool(Config.OPENAI_API_KEY) or bool(Config.ANTHROPIC_API_KEY) or (Config.LLM_PROVIDER=="openai" and is_ollama)
-    
+
     return jsonify({
         "ok": True,
         "configured": configured,

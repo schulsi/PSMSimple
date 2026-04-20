@@ -104,9 +104,20 @@ async function searchSchadorganismen(q) {
 
   dropdown.innerHTML = '<div class="beratung-dropdown-item beratung-dropdown-loading">Suche...</div>';
   dropdown.classList.remove('hidden');
+  const input = document.getElementById('beratung-schad-input');
+  const rect = input.getBoundingClientRect();
+  dropdown.style.top = `${rect.bottom + 4}px`;
+  dropdown.style.left = `${rect.left}px`;
+  dropdown.style.width = `${rect.width}px`;
+
+  const kulturId = document.getElementById('beratung-kultur-select')?.value;
+  const params = new URLSearchParams({ q });
+  if (kulturId) params.append('kultur_id', kulturId);
+
 
   try {
-    const result = await apiGet(`/api/beratung/schadorganismen?q=${encodeURIComponent(q)}`);
+    const result = await apiGet(`/api/beratung/schadorganismen?${params.toString()}`);
+    console.log(result)
     const items = result?.items || [];
 
     if (!items.length) {

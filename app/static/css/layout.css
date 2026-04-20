@@ -353,6 +353,22 @@ main {
   color: var(--text-muted);
 }
 
+#beratung-schad-input {
+  background-color: var(--surface, #fff);
+  color: var(--text, #000);
+}
+
+.beratung-dropdown {
+  position: fixed;  /* statt absolute */
+  background: #fff;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 9999;
+}
+
 .inventory-item { align-items: flex-start; }
 .inventory-bestand { font-size: 1.35rem; font-weight: 700; margin-top: .2rem; }
 .bestand-einheit { font-size: .85rem; font-weight: 400; color: var(--text-muted); margin-left: .25rem; }
