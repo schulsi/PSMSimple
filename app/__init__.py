@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 from .config import Config
 from .extensions import db, login_manager, csrf, limiter, swagger
 from .models import User
+from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
 from .services.permissions import seed_roles
 
