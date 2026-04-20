@@ -44,6 +44,11 @@ class Config:
                }
     OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
     OPEN_METEO_GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
+    LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "anthropic")
+    LLM_MODEL = os.environ.get("LLM_MODEL")
+    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+    ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+    OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL")
 
 
     if not SECRET_KEY:

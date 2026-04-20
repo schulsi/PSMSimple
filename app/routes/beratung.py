@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-import os
+from ..config import Config
 
 from ..services.psm_beratung_service import (
     PSMBeratungError,
@@ -157,15 +157,10 @@ def _format_historie(historie: list) -> str:
 @bp.get("/api/beratung/llm-status")
 @login_required
 def llm_status():
-    provider = os.environ.get("LLM_PROVIDER", "anthropic")
+    provider = Config.LLM_PROVIDER
     
-    key_map = {
-        "anthropic": "ANTHROPIC_API_KEY",
-        "openai": "OPENAI_API_KEY",
-    }
-    
-    key_name = key_map.get(provider)
-    configured = bool(key_name and os.environ.get(key_name))
+    is_ollama = "11434" in Config.OPENAI_BASE_URL or "ollama" in Config.OPENAI_BASE_URL.lower()
+    configured = bool(Config.OPENAI_API_KEY) or bool(Config.ANTHROPIC_API_KEY) or (Config.LLM_PROVIDER=="openai" and is_ollama)
     
     return jsonify({
         "ok": True,

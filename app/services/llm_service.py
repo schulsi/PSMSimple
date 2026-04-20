@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+from ..config import Config
 from dataclasses import dataclass
 from typing import Any
 import openai
@@ -20,8 +20,9 @@ class LLMResponse:
 
 def _call_anthropic(system: str, user: str, model: str, max_tokens: int) -> LLMResponse:
     try:
-        
-        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
+        client = anthropic.Anthropic(
+            api_key=Config.ANTHROPIC_API_KEY)
         msg = client.messages.create(
             model=model,
             max_tokens=max_tokens,
@@ -39,8 +40,8 @@ def _call_anthropic(system: str, user: str, model: str, max_tokens: int) -> LLMR
 
 def _call_openai(system: str, user: str, model: str, max_tokens: int) -> LLMResponse:
     try:
-        
-        client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+        client = openai.OpenAI(api_key=Config.OPENAI_API_KEY, base_url=Config.OPENAI_BASE_URL)
         msg = client.chat.completions.create(
             model=model,
             max_tokens=max_tokens,
@@ -84,10 +85,11 @@ def llm_query(
     Provider wird aus Umgebungsvariable LLM_PROVIDER gelesen (default: anthropic).
     Modell wird aus LLM_MODEL gelesen oder auf den Provider-Standard gesetzt.
     """
-    provider = provider or os.environ.get("LLM_PROVIDER", "anthropic")
-    model = model or os.environ.get("LLM_MODEL") or _DEFAULT_MODELS.get(provider, "")
+    provider = provider or Config.LLM_PROVIDER
+    model = model or Config.LLM_MODEL or _DEFAULT_MODELS.get(provider, "")
 
     if provider not in _PROVIDERS:
-        raise LLMError(f"Unbekannter Provider '{provider}'. Verfügbar: {list(_PROVIDERS)}")
+        raise LLMError(
+            f"Unbekannter Provider '{provider}'. Verfügbar: {list(_PROVIDERS)}")
 
     return _PROVIDERS[provider](system, user, model, max_tokens)
