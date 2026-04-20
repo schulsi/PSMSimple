@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install curl -y
 
 COPY app/ app/
 
+COPY migrations/ migrations/
+
 COPY run.py .
 
 VOLUME ["/data"]
