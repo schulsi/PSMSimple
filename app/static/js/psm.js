@@ -63,17 +63,22 @@ async function resetPSMForm() {
   currentPsmEditId = null;
   setPSMInfoLoading(false);
   const payload = await apiGet('/api/app/settings');
-
+  const getSettingValue = (key, fallback = '') => {
+    const entry = Array.isArray(payload)
+      ? payload.find(item => item.key === key)
+      : null;
+    return entry?.value ?? fallback;
+  };
   const fields = ['name', 'zulassungsnr', 'wirkstoffe', 'aufwandEinheit', 'bienen'];
   fields.forEach(field => {
     const el = $(`psm-${field}`);
     if (el) el.value = '';
   });
   if($('psm-warnung_lager')) {
-    $('psm-warnung_lager').value = payload.inventory_warn_default ?? ''; 
+    $('psm-warnung_lager').value = String(getSettingValue('inventory_warn_default') ?? ''); 
   }
   if($('psm-min_lager')) {
-    $('psm-min_lager').value = payload.inventory_min_default ?? ''; 
+    $('psm-min_lager').value = String(getSettingValue('inventory_min_default') ?? ''); 
   }
 
   const modalTitle = $('modal-psm-title');
@@ -93,8 +98,8 @@ function collectPSMForm() {
   };
 }
 
-function openPSMModal() {
-  resetPSMForm();
+async function openPSMModal() {
+  await resetPSMForm();
   openModal('modal-psm');
 }
 
@@ -108,9 +113,9 @@ async function editPSM(id) {
     if ($('psm-wirkstoffe')) $('psm-wirkstoffe').value = item.wirkstoffe || '';
     if ($('psm-aufwandEinheit')) $('psm-aufwandEinheit').value = item.aufwandEinheit || '';
     if ($('psm-bienen')) $('psm-bienen').value = item.bienen || '';
-    if ($('psm-lager_einheit')) $('psm-lager_einheit').value = item.lager_einheit || '';
-    if ($('psm-min_lager')) $('psm-min_lager').value = item.min_lager || '';
-    if ($('psm-warnung_lager')) $('psm-warnung_lager').value = item.warnung_lager || '';
+    if ($('psm-lager_einheit')) $('psm-lager_einheit').value = String(item.lager_einheit ?? '');
+    if ($('psm-min_lager')) $('psm-min_lager').value = String(item.min_lager ?? '');
+    if ($('psm-warnung_lager')) $('psm-warnung_lager').value = String(item.warnung_lager ?? '');
 
     const modalTitle = $('modal-psm-title');
     if (modalTitle) modalTitle.textContent = 'Pflanzenschutzmittel bearbeiten';
