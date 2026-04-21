@@ -104,6 +104,7 @@ async function searchSchadorganismen(q) {
 
   dropdown.innerHTML = '<div class="beratung-dropdown-item beratung-dropdown-loading">Suche...</div>';
   dropdown.classList.remove('hidden');
+
   const input = document.getElementById('beratung-schad-input');
   const rect = input.getBoundingClientRect();
   dropdown.style.top = `${rect.bottom + 4}px`;
@@ -114,37 +115,77 @@ async function searchSchadorganismen(q) {
   const params = new URLSearchParams({ q });
   if (kulturId) params.append('kultur_id', kulturId);
 
-
   try {
     const result = await apiGet(`/api/beratung/schadorganismen?${params.toString()}`);
-    console.log(result)
     const items = result?.items || [];
 
-    if (!items.length) {
+    if (!items.length && !result?.partial) {
       dropdown.innerHTML = '<div class="beratung-dropdown-item beratung-dropdown-empty">Keine Treffer</div>';
       return;
     }
 
-    dropdown.innerHTML = items.map(item => `
-      <div
-        class="beratung-dropdown-item"
-        data-kode="${escapeHtml(item.kode)}"
-        data-bezeichnung="${escapeHtml(item.bezeichnung)}"
-      >
-        <span class="beratung-dropdown-name">${escapeHtml(item.bezeichnung)}</span>
-        <span class="beratung-dropdown-kode">${escapeHtml(item.kode)}</span>
-      </div>
-    `).join('');
+    renderDropdownItems(dropdown, items, result?.partial);
 
-    // Event-Delegation statt onclick
-    dropdown.querySelectorAll('.beratung-dropdown-item[data-kode]').forEach(el => {
-      el.addEventListener('click', () => {
-        selectSchadorg(el.dataset.kode, el.dataset.bezeichnung);
-      });
-    });
+    // Nachladen falls partial
+    if (result?.partial && result?.pending_kodes?.length) {
+      ladeNachtraeglich(dropdown, result.pending_kodes, kulturId, items);
+    }
 
   } catch (err) {
     dropdown.innerHTML = '<div class="beratung-dropdown-item beratung-dropdown-empty">Fehler bei der Suche</div>';
+  }
+}
+
+function renderDropdownItems(dropdown, items, isPartial = false) {
+  const loadingHint = isPartial
+    ? '<div class="beratung-dropdown-item beratung-dropdown-loading">⏳ Weitere Ergebnisse werden geladen...</div>'
+    : '';
+
+  if (!items.length) {
+    dropdown.innerHTML = loadingHint || '<div class="beratung-dropdown-item beratung-dropdown-empty">Keine Treffer</div>';
+    return;
+  }
+
+  dropdown.innerHTML = items.map(item => `
+    <div class="beratung-dropdown-item" data-kode="${escapeHtml(item.kode)}" data-bezeichnung="${escapeHtml(item.bezeichnung)}">
+      <span class="beratung-dropdown-name">${escapeHtml(item.bezeichnung)}</span>
+      <span class="beratung-dropdown-kode">${escapeHtml(item.kode)}</span>
+    </div>
+  `).join('') + loadingHint;
+
+  dropdown.querySelectorAll('.beratung-dropdown-item[data-kode]').forEach(el => {
+    el.addEventListener('click', () => {
+      selectSchadorg(el.dataset.kode, el.dataset.bezeichnung);
+    });
+  });
+}
+
+async function ladeNachtraeglich(dropdown, pendingKodes, kulturId, existingItems) {
+  try {
+    const params = new URLSearchParams({ kodes: pendingKodes.join(',') });
+    if (kulturId) params.append('kultur_id', kulturId);
+
+    const result = await apiGet(`/api/beratung/schadorganismen/resolve?${params.toString()}`);
+    const neueItems = result?.items || [];
+
+    if (!neueItems.length) {
+      // Ladehinweis entfernen
+      dropdown.querySelector('.beratung-dropdown-loading')?.remove();
+      if (!dropdown.querySelectorAll('[data-kode]').length) {
+        dropdown.innerHTML = '<div class="beratung-dropdown-item beratung-dropdown-empty">Keine Treffer</div>';
+      }
+      return;
+    }
+
+    // Alle Items zusammenführen und neu sortieren
+    const alleItems = [...existingItems, ...neueItems]
+      .sort((a, b) => a.bezeichnung.localeCompare(b.bezeichnung));
+
+    renderDropdownItems(dropdown, alleItems, false);
+
+  } catch (err) {
+    // Ladehinweis einfach entfernen bei Fehler
+    dropdown.querySelector('.beratung-dropdown-loading')?.remove();
   }
 }
 

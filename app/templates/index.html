@@ -578,6 +578,23 @@
           </div>
           </div>
       </div>
+      {% if permissions.can_manage_users %}
+      <div class="card">
+        <h3 class="section-title">🌿 PSM-Beratung Cache</h3>
+        <p class="text-muted-history">
+          Schadorganismus-Kodes die beim App-Start vorgeladen werden (BVL-Kodes, kommagetrennt).
+          Änderungen werden beim nächsten Neustart aktiv.
+        </p>
+        <div class="field">
+          <label>Warmup Schadorganismen</label>
+          <input 
+            id="set-warmup-schadorg" 
+            placeholder="Mehltau, Blattlaus, Rost, Botrytis..."
+            style="font-family: monospace;"
+          >
+        </div>
+      </div>
+      {% endif %}
 
       <div class="rename-row">
         <button type="button" class="btn btn-primary" data-action="saveSettings">💾 Einstellungen speichern</button>

@@ -1,22 +1,39 @@
 from ..models import Kulturen
-from ..services.psm_beratung_service import _get_kultur_awg_ids, _get_schad_awg_ids
+from ..services.psm_beratung_service import (
+    _get_kultur_awg_ids,
+    _get_schad_awg_ids,
+    _suche_schadorg_kodes,
+)
+from ..repositories.settings_repo import get_setting
 
+import json
 import logging
 import threading
 import time
 
-WARMUP_SCHADORG = [
-    "ERYSSP",   # Echter Mehltau
-    "BOTRCI",   # Grauschimmel (Botrytis)
-    "PHYTIN",   # Kraut- und Knollenfäule
-    "APHISS",   # Blattläuse allgemein
-    "PUCCSF",   # Braunrost
-    "FUSASP",   # Fusarium
-    "SCLESP",   # Sklerotinia
-    "AGRRSP",   # Wurzelhalsfäule
-    "ALTESO",   # Alternaria
-    "VERCCI",   # Verticillium
+DEFAULT_WARMUP_SUCHWÖRTER = [
+    "Mehltau",
+    "Blattlaus",
+    "Rost",
+    "Botrytis",
+    "Fusarium",
+    "Alternaria",
+    "Sklerotinia",
 ]
+
+def get_warmup_suchwörter() -> list[str]:
+    """Lädt Suchwörter aus Settings, Fallback auf Default."""
+    try:
+        value = get_setting("beratung_warmup_suchwörter")
+        if value and value.get("value"):
+            parsed = json.loads(value["value"])
+            if isinstance(parsed, list) and parsed:
+                return parsed
+            
+    except Exception:
+        pass
+    return DEFAULT_WARMUP_SUCHWÖRTER
+
 
 def _start_warmup_cache(app):
 
@@ -27,6 +44,7 @@ def _start_warmup_cache(app):
             try:
                 logger = logging.getLogger(__name__)
 
+                # --- 1. Kulturen vorläden ---
                 kulturen = Kulturen.query.filter(
                     Kulturen.eppoCode.isnot(None)
                 ).all()
@@ -39,9 +57,23 @@ def _start_warmup_cache(app):
                     except Exception as e:
                         logger.warning(f"  ✗ {kultur.eppoCode}: {e}")
 
-                logger.info("Cache-Warmup abgeschlossen.")
+                # --- 2. Suchwörter → Kodes → awg_schadorg vorläden ---
+                suchwörter = get_warmup_suchwörter()
+                logger.info(f"Cache-Warmup: {len(suchwörter)} Suchwörter vorläden...")
 
-                for kode in WARMUP_SCHADORG:
+                alle_kodes = set()
+                for wort in suchwörter:
+                    try:
+                        treffer = _suche_schadorg_kodes(wort)
+                        kodes = {item["kode"] for item in treffer}
+                        alle_kodes |= kodes
+                        logger.info(f"  ✓ '{wort}' — {len(kodes)} Kodes gecacht")
+                    except Exception as e:
+                        logger.warning(f"  ✗ '{wort}': {e}")
+
+                # --- 3. awg_schadorg für alle gefundenen Kodes vorläden ---
+                logger.info(f"Cache-Warmup: {len(alle_kodes)} Schadorg-Kodes vorläden...")
+                for kode in alle_kodes:
                     try:
                         ids = _get_schad_awg_ids(kode)
                         logger.info(f"  ✓ {kode} — {len(ids)} AWG-IDs")

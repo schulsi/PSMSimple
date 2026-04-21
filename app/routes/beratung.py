@@ -31,11 +31,99 @@ def get_schadorganismen():
             eppo_code = kultur.eppoCode
 
     try:
-        ergebnisse = suche_schadorganismen(q, eppo_code=eppo_code)
-        return jsonify({"ok": True, "items": ergebnisse})
+        from ..services.psm_beratung_service import (
+            _suche_schadorg_kodes,
+            _get_kultur_awg_ids,
+            _get_schad_awg_ids,
+            _is_schad_cached,
+        )
+
+        schad_data = _suche_schadorg_kodes(q)
+
+        if not schad_data:
+            return jsonify({"ok": True, "items": [], "partial": False})
+
+        cached_items = []
+        pending_items = []
+
+        if eppo_code:
+            kultur_awg_ids = _get_kultur_awg_ids(eppo_code)
+            for item in schad_data:
+                if _is_schad_cached(item["kode"]):
+                    awg_ids = _get_schad_awg_ids(item["kode"])
+                    if awg_ids & kultur_awg_ids:
+                        cached_items.append({
+                            "kode": item["kode"],
+                            "bezeichnung": item["kodetext"]
+                        })
+                else:
+                    pending_items.append(item["kode"])
+        else:
+            cached_items = [
+                {"kode": i["kode"], "bezeichnung": i["kodetext"]}
+                for i in schad_data
+            ]
+
+        return jsonify({
+            "ok": True,
+            "items": sorted(cached_items, key=lambda x: x["bezeichnung"]),
+            "partial": len(pending_items) > 0,
+            "pending_kodes": pending_items,  # Frontend pollt diese nach
+        })
+
     except PSMBeratungError as e:
         return jsonify({"ok": False, "message": str(e)}), 502
 
+@bp.get("/api/beratung/schadorganismen/resolve")
+@login_required  
+def resolve_schadorganismen():
+    """Lädt ungecachte Kodes nach und gibt Ergebnisse zurück."""
+    kodes = request.args.get("kodes", "").split(",")
+    kultur_id = request.args.get("kultur_id")
+    kodes = [k.strip() for k in kodes if k.strip()]
+
+    if not kodes:
+        return jsonify({"ok": True, "items": []})
+
+    eppo_code = None
+    if kultur_id:
+        kultur = Kulturen.query.get(int(kultur_id))
+        if kultur and kultur.eppoCode:
+            eppo_code = kultur.eppoCode
+
+    try:
+        from ..services.psm_beratung_service import (
+            _get_schad_awg_ids,
+            _get_kultur_awg_ids,
+        )
+
+        items = []
+        kultur_awg_ids = _get_kultur_awg_ids(eppo_code) if eppo_code else None
+
+        for kode in kodes:
+            awg_ids = _get_schad_awg_ids(kode)  # lädt + cacht jetzt
+            if kultur_awg_ids is None or (awg_ids & kultur_awg_ids):
+                # Bezeichnung aus Kodeliste holen
+                from ..services.psm_beratung_service import _get
+                import json
+                data = _get("kode/", params={
+                    "q": json.dumps({
+                        "KODE": {"$eq": kode},
+                        "KODELISTE": {"$eq": "947"},
+                        "SPRACHE": {"$eq": "DE"}
+                    })
+                })
+                kode_items = data.get("items", [])
+                if kode_items:
+                    items.append({
+                        "kode": kode,
+                        "bezeichnung": kode_items[0]["kodetext"]
+                    })
+
+        return jsonify({"ok": True, "items": items})
+
+    except PSMBeratungError as e:
+        return jsonify({"ok": False, "message": str(e)}), 502
 
 @bp.post("/api/beratung/mittel")
 @login_required

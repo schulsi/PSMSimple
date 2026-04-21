@@ -16,6 +16,11 @@ def set_setting(key, value):
     db = get_db()
     setting = db.session.get(ApplicationSetting, key)
     if not setting:
-        return {"ok": False, "error": "Not Found"}
-    setting.value = value
+        sett = ApplicationSetting(
+            key=key,
+            value=value
+        )
+        db.session.add(sett)
+    else:
+        setting.value = value
     db.session.commit()

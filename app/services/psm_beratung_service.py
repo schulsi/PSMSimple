@@ -12,6 +12,7 @@ from ..extensions import cache
 # bereits in deiner Config: "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
 PSM_API = Config.PSM_API
 TIMEOUT = 10
+SCHAD_CACHE_PREFIX = "psm_schad_awg_"
 
 
 class PSMBeratungError(Exception):
@@ -87,58 +88,48 @@ def suche_kultur_by_eppo(eppo_code: str) -> list[str]:
 
 
 def suche_schadorganismen(suchbegriff: str, eppo_code: str | None = None) -> list[dict]:
-    suchbegriff = (suchbegriff or "").strip()
-    if not suchbegriff:
-        return []
+    """
+    Sucht Schadorganismen nach deutschem Namen.
+    Falls eppo_code angegeben, nur Schadorganismen die für diese Kultur zugelassen sind.
+    Alle Teilabfragen sind gecacht.
+    """
 
     if eppo_code:
+        # 1. AWG-IDs für die Kultur — gecacht
         kultur_awg_ids = _get_kultur_awg_ids(eppo_code)
+
         if not kultur_awg_ids:
             return []
 
-        # 1. Schadorganismen-Textsuche gecacht laden
-        schad_data = _suche_schad_kodes(suchbegriff)
-        if not schad_data:
+        # 2. Textsuche in Kodeliste — gecacht
+        schad_data = _suche_schadorg_kodes(suchbegriff)
+        treffer_kodes = {item["kode"] for item in schad_data}
+
+        if not treffer_kodes:
             return []
 
-        # 2. Kode -> Bezeichnung Map bauen
-        kode_to_text = {
-            item["kode"]: item["kodetext"]
-            for item in schad_data
-            if item.get("kode") and item.get("kodetext")
-        }
+        # 3. Pro Treffer-Kode prüfen ob er für die Kultur zugelassen ist — gecacht
+        zugelassene = {}
+        for kode in treffer_kodes:
+            awg_ids_fuer_kode = _get_schad_awg_ids(kode)
+            if awg_ids_fuer_kode & kultur_awg_ids:  # Schnittmenge nicht leer
+                zugelassene[kode] = next(
+                    i["kodetext"] for i in schad_data if i["kode"] == kode
+                )
 
-        if not kode_to_text:
-            return []
-
-        # 3. Pro Schadorganismus prüfen, ob es eine Überschneidung mit der Kultur gibt
-        zugelassene = []
-        for kode, bezeichnung in kode_to_text.items():
-            schad_awg_ids = _get_awg_ids_fuer_schadkode(kode)
-            if kultur_awg_ids & schad_awg_ids:
-                zugelassene.append({
-                    "kode": kode,
-                    "bezeichnung": bezeichnung
-                })
-
-        # 4. Stabil sortieren
-        zugelassene.sort(key=lambda x: x["bezeichnung"].lower())
-        return zugelassene
+        return [
+            {"kode": kode, "bezeichnung": bez}
+            for kode, bez in sorted(zugelassene.items(), key=lambda x: x[1])
+        ]
 
     else:
-        # Ohne Kulturfilter: nur die gecachte Textsuche zurückgeben
-        schad_data = _suche_schad_kodes(suchbegriff)
-        return sorted(
-            [
-                {
-                    "kode": item["kode"],
-                    "bezeichnung": item["kodetext"]
-                }
-                for item in schad_data
-                if item.get("kode") and item.get("kodetext")
-            ],
-            key=lambda x: x["bezeichnung"].lower()
-        )
+        # Ohne Kultur — nur Textsuche, gecacht
+        schad_data = _suche_schadorg_kodes(suchbegriff)
+        return [
+            {"kode": item["kode"], "bezeichnung": item["kodetext"]}
+            for item in schad_data
+        ]
+
 
 @dataclass
 class PSMMittelInfo:
@@ -198,7 +189,8 @@ def suche_mittel(eppo_code: str, schadorg_kode: str) -> list[PSMMittelInfo]:
                 kennr=kennr,
                 mittelname=mittel.get("mittelname", kennr),
                 zul_ende=zul_ende,
-                geringes_risiko=mittel.get("mittel_mit_geringem_risiko") == "J",
+                geringes_risiko=mittel.get(
+                    "mittel_mit_geringem_risiko") == "J",
                 wirkstoffe=[ws for ws in wirkstoffe if ws],
                 wartezeit_tage=wartezeit_tage,
                 aufwand_info=aufwand_info,
@@ -210,6 +202,7 @@ def suche_mittel(eppo_code: str, schadorg_kode: str) -> list[PSMMittelInfo]:
     ergebnisse.sort(key=lambda m: (not m.geringes_risiko, m.mittelname))
     return ergebnisse
 
+
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _suche_schad_kodes(suchbegriff: str) -> list[dict]:
     return _get_all_items("kode/", params={
@@ -219,6 +212,7 @@ def _suche_schad_kodes(suchbegriff: str) -> list[dict]:
             "SPRACHE": {"$eq": "DE"}
         })
     })
+
 
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_awg_ids_fuer_schadkode(kode: str) -> set[str]:
@@ -231,12 +225,14 @@ def _get_awg_ids_fuer_schadkode(kode: str) -> set[str]:
         if item.get("ausgenommen") != "J"
     }
 
+
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_mittel_info(kennr: str) -> dict:
     """Gecachte Mittel-Stammdaten."""
     mittel_data = _get(f"mittel/{kennr}")
     mittel_items = mittel_data.get("items", [mittel_data])
     return mittel_items[0] if mittel_items else mittel_data
+
 
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_wirkstoffe(kennr: str) -> list[str]:
@@ -247,6 +243,7 @@ def _get_wirkstoffe(kennr: str) -> list[str]:
         for item in ws_data.get("items", [])
     ]
 
+
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_wartezeit(awg_id: str) -> int | None:
     """Gecachte Wartezeit für eine Anwendung."""
@@ -254,6 +251,7 @@ def _get_wartezeit(awg_id: str) -> int | None:
     wz_items = wz_data.get("items", [])
     wartezeit = wz_items[0].get("wartezeit") if wz_items else None
     return int(wartezeit) if wartezeit else None
+
 
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_aufwand(awg_id: str) -> str | None:
@@ -267,6 +265,7 @@ def _get_aufwand(awg_id: str) -> str | None:
     einheit = aw.get("aufwandeinheit", "")
     return f"{menge} {einheit}".strip() if menge else None
 
+
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_awg_kennr(awg_id: str) -> str | None:
     """Gecachte kennr für eine AWG-ID."""
@@ -275,17 +274,30 @@ def _get_awg_kennr(awg_id: str) -> str | None:
     awg = items[0] if items else awg_data
     return awg.get("kennr")
 
+
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_schad_awg_ids(schadorg_kode: str) -> set[str]:
     """Gecachte AWG-IDs für einen Schadorganismus."""
+    explicit_key = f"psm_schad_{schadorg_kode}"
+    cached = cache.get(explicit_key)
+    if cached is not None:
+        return cached
+
+    result = set()
     schad_data = _get_all_items("awg_schadorg/", params={
         "q": json.dumps({"SCHADORG": {"$eq": schadorg_kode}})
     })
-    return {
+    result = {
         item["awg_id"]
         for item in schad_data
         if item.get("ausgenommen") != "J"
     }
+    cache.set(explicit_key, result, timeout=Config.CACHE_DEFAULT_TIMEOUT)
+    return result
+
+def _is_schad_cached(schadorg_kode: str) -> bool:
+    """Prüft ob ein Schadorganismus-Kode im Cache ist."""
+    return cache.get(f"psm_schad_{schadorg_kode}") is not None
 
 @cache.memoize(Config.CACHE_DEFAULT_TIMEOUT)
 def _get_kultur_awg_ids(eppo_code: str) -> set[str]:
@@ -298,3 +310,61 @@ def _get_kultur_awg_ids(eppo_code: str) -> set[str]:
         for item in kultur_data
         if item.get("ausgenommen") != "J"
     }
+
+
+@cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
+def _suche_schadorg_kodes(suchbegriff: str) -> list[dict]:
+    """Gecachte Kodelisten-Suche nach Schadorganismus-Text."""
+    data = _get_all_items("kode/", params={
+        "q": json.dumps({
+            "KODETEXT": {"$instr": suchbegriff},
+            "KODELISTE": {"$eq": "947"},
+            "SPRACHE": {"$eq": "DE"}
+        })
+    })
+    return [{"kode": item["kode"], "kodetext": item["kodetext"]} for item in data]
+
+def suche_schadorganismen_partial(suchbegriff: str, eppo_code: str | None = None) -> tuple[list[dict], bool]:
+    """
+    Gibt gecachte Treffer sofort zurück + Flag ob noch mehr nachgeladen wird.
+    Returns: (treffer, has_more_loading)
+    """
+    # Zuerst prüfen was bereits gecacht ist
+    cached_results = []
+    uncached_kodes = []
+
+    schad_data = _suche_schadorg_kodes(suchbegriff)
+    treffer_kodes = {item["kode"] for item in schad_data}
+
+    if not treffer_kodes:
+        return [], False
+
+    if eppo_code:
+        kultur_awg_ids = _get_kultur_awg_ids(eppo_code)
+        if not kultur_awg_ids:
+            return [], False
+
+        for item in schad_data:
+            kode = item["kode"]
+            cache_key = f"flask_cache_suche_schadorg_{kode}"
+
+            # Prüfen ob dieser Kode bereits im Cache ist
+            cached = cache.get(f"_get_schad_awg_ids_{kode}")
+            if cached is not None:
+                # Gecacht — sofort prüfen
+                if cached & kultur_awg_ids:
+                    cached_results.append({
+                        "kode": kode,
+                        "bezeichnung": item["kodetext"]
+                    })
+            else:
+                uncached_kodes.append(item)
+
+        has_more = len(uncached_kodes) > 0
+        return sorted(cached_results, key=lambda x: x["bezeichnung"]), has_more
+
+    else:
+        return [
+            {"kode": item["kode"], "bezeichnung": item["kodetext"]}
+            for item in schad_data
+        ], False
