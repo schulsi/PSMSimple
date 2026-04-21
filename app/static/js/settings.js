@@ -107,6 +107,7 @@ async function loadSettings() {
     const forecastRangeHours     = $('set-forecast-range-hours');
     const lagerwarndefault       = $('set-lager-warn');
     const lagermindefault       = $('set-lager-min');    
+    const warmupSchadorg = $('set-warmup-schadorg');
 
     const localSave = settings.local_save !== undefined ? !!settings.local_save : true;
 
@@ -142,7 +143,15 @@ async function loadSettings() {
     if (forecastRangeHours)     forecastRangeHours.value     = settings.forecast_default_range_hours ?? 72;
     if (lagermindefault)        lagermindefault.value        = settings.inventory_min_default ?? 2;
     if (lagerwarndefault)       lagerwarndefault.value       = settings.inventory_warn_default ?? 2;
-    
+    if (warmupSchadorg) {
+      const raw = appSettings.beratung_warmup_suchwörter;
+      try {
+          const list = raw ? JSON.parse(raw) : [];
+          warmupSchadorg.value = Array.isArray(list) ? list.join(', ') : '';
+      } catch {
+          warmupSchadorg.value = '';
+      }
+    }
     if (APP_PERMISSIONS?.can_manage_users) {
       await loadUserRoles();
     }
@@ -216,6 +225,15 @@ function collectAppSettings() {
     inventory_min_default: $('set-lager-min')
       ? parseInt($('set-lager-min').value || '2', 10)
       : 2,
+    beratung_warmup_suchwörter: (() => {
+      const el = $('set-warmup-schadorg');
+      if (!el) return '[]';
+      const wörter = el.value
+          .split(',')
+          .map(w => w.trim())
+          .filter(Boolean);
+      return JSON.stringify(wörter);
+    })(),
   };
 }
 

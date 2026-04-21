@@ -20,14 +20,17 @@ A web app for creating and managing plant protection application records in JSON
 
 ## Features
 
-| Module | Description |
-|---|---|
-| **Farm** | Master data for your farm – automatically embedded in every JSON export |
-| **Plant Protection Products** | Reusable library of PPP master data |
-| **Application Sites** | Manage GPS coordinates and field areas |
-| **Crops** | Maintain and assign BBCH codes |
-| **JSON Export** | Document applications and download them as JSON |
-| **History** | View all previously logged applications |
+| Module                        | Description                                                                                     |
+| ----------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Farm**                      | Master data for your farm – automatically embedded in every JSON export                         |
+| **Plant Protection Products** | Reusable library of PPP master data                                                             |
+| **Application Sites**         | Manage GPS coordinates and field areas                                                          |
+| **Crops**                     | Maintain and assign BBCH codes                                                                  |
+| **JSON Export**               | Document applications and download them as JSON                                                 |
+| **History**                   | View all previously logged applications                                                         |
+| **Spray Window Forecast**     | Calculate optimal spray windows based on weather data (Open-Meteo)                              |
+| **PSM Advisory**              | AI-powered product recommendations based on BVL approval data, weather, and application history |
+| **Inventory**                 | Track stock levels of plant protection products with movement history                           |
 
 ---
 
@@ -141,11 +144,17 @@ The app runs at **`http://localhost:5001`**.
 
 The app is configured entirely via environment variables:
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `SECRET_KEY` | ✅ | – | Cryptographic key for sessions and CSRF protection |
-| `DATA_DIR` | ❌ | `./data` | Directory for databases, exports, and logs |
-| `RATELIMIT_STORAGE_URI` | ❌ | `memory://` | Redis URL for rate limiting, e.g. `redis://redis:6379/0` |
+| Variable                | Required | Default          | Description                                                                                          |
+| ----------------------- | -------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
+| `SECRET_KEY`            | ✅       | –                | Cryptographic key for sessions and CSRF protection                                                   |
+| `DATA_DIR`              | ❌       | `./data`         | Directory for databases, exports, and logs                                                           |
+| `RATELIMIT_STORAGE_URI` | ❌       | `memory://`      | Redis URL for rate limiting, e.g. `redis://redis:6379/0`                                             |
+| `LLM_PROVIDER`          | ❌       | `anthropic`      | LLM provider for PSM advisory (`anthropic` or `openai`)                                              |
+| `LLM_MODEL`             | ❌       | provider default | Model name to use, e.g. `claude-sonnet-4-20250514`. Falls back to the provider's default if not set. |
+| `ANTHROPIC_API_KEY`     | ❌       | –                | API key for Anthropic. Required if `LLM_PROVIDER=anthropic`.                                         |
+| `OPENAI_API_KEY`        | ❌       | –                | API key for OpenAI. Required if `LLM_PROVIDER=openai`.                                               |
+
+> ℹ️ The PSM advisory feature (AI recommendations) is optional. If no API key is configured, the advisory button is disabled in the UI. All other features work without an LLM key.
 
 ---
 
@@ -186,3 +195,4 @@ http://localhost:8080/apidocs
 - `SESSION_COOKIE_SECURE` and `REMEMBER_COOKIE_SECURE` are currently commented out in `config.py`. For production deployments behind HTTPS (recommended), these should be enabled.
 - The `SECRET_KEY` should be at least 32 random bytes long — use `openssl rand -hex 32` to generate one.
 - For production, the app should be run behind a reverse proxy (e.g. nginx or Traefik) with TLS termination.
+- API keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) should be stored in the `.env` file and never committed to version control.

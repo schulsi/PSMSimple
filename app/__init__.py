@@ -5,7 +5,8 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_migrate import Migrate, upgrade
 
 from .config import Config
-from .extensions import db, login_manager, csrf, limiter, swagger
+from .utils.warmup import _start_warmup_cache
+from .extensions import db, login_manager, csrf, limiter, swagger, cache
 from .models import User
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
@@ -25,6 +26,7 @@ def create_app():
     swagger.init_app(app)
     migrate = Migrate()
     migrate.init_app(app, db)
+    cache.init_app(app)
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -85,6 +87,10 @@ def create_app():
         seed_roles()
         init_appdata_db()
         upgrade()
+        
+        
+        
 
     register_blueprints(app)
+    _start_warmup_cache(app)
     return app

@@ -57,7 +57,7 @@ function logout() {
     'resetHistoryFilter', 'resetPSMHistoryFilter', 'resetFieldsHistoryFilter',
     'saveSettings', 'renameUser', 'saveBetriebWizard',
     'closeModal', 'logout',  'calculateForecastWindow', 'forecastSelectAllOrte', 'forecastSelectNoOrte',
-    'loadInventoryMovements', 'loadInventoryMovements', 'saveInventoryMovement'
+    'loadInventoryMovements', 'loadInventoryMovements', 'saveInventoryMovement', 'startBeratung' 
   ]);
 
   // Aktionen mit einem Argument aus data-tab, data-period, data-subtab oder data-panel
@@ -83,6 +83,7 @@ function logout() {
     ['showPanelAuth',        el => [el.dataset.panel]],
     ['openInventoryMovementModal', el => [el.dataset.id, el.dataset.name, el.dataset.einheit]],
     ['showInventorySubTab', el => [el.dataset.subtab, el]],
+    ['showForecastSubTab', el => [el.dataset.subtab, el]],
   ]);
 
   // Aktionen, die nach showTab zusätzlich aufgerufen werden (data-also)
@@ -93,6 +94,7 @@ function logout() {
     'updateArtSubkategorie', 'syncArtVerwendungField',
     'loadHistory', 'loadPSMUsage', 'loadFieldsUsage',
     'onSaveModeToggle', 'onWizSaveModeToggle', 'loadInventoryMovements',
+    'onBeratungSchadInput'
   ]);
 
   // change-Aktionen mit type und id Parameter
@@ -119,7 +121,7 @@ function logout() {
     if (!el) return;
 
     const action = el.dataset.action;
-
+   
     // Nav-Links: Standard-Navigation verhindern
     if (el.tagName === 'A' && el.href) {
       e.preventDefault();
