@@ -369,6 +369,10 @@ main {
   z-index: 9999;
 }
 
+#set-warmup-schadorg {
+  font-family: monospace;
+}
+
 .inventory-item { align-items: flex-start; }
 .inventory-bestand { font-size: 1.35rem; font-weight: 700; margin-top: .2rem; }
 .bestand-einheit { font-size: .85rem; font-weight: 400; color: var(--text-muted); margin-left: .25rem; }
