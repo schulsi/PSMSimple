@@ -106,8 +106,9 @@ async function loadSettings() {
     const forecastMaxHour        = $('set-forecast-max-hour');
     const forecastRangeHours     = $('set-forecast-range-hours');
     const lagerwarndefault       = $('set-lager-warn');
-    const lagermindefault       = $('set-lager-min');    
-    const warmupSchadorg = $('set-warmup-schadorg');
+    const lagermindefault        = $('set-lager-min');    
+    const warmupSchadorg         = $('set-warmup-schadorg');
+    const aiEnabled              = $('set-ai-advice-enabled')
 
     const localSave = settings.local_save !== undefined ? !!settings.local_save : true;
 
@@ -143,6 +144,7 @@ async function loadSettings() {
     if (forecastRangeHours)     forecastRangeHours.value     = settings.forecast_default_range_hours ?? 72;
     if (lagermindefault)        lagermindefault.value        = settings.inventory_min_default ?? 2;
     if (lagerwarndefault)       lagerwarndefault.value       = settings.inventory_warn_default ?? 2;
+    if (aiEnabled)              aiEnabled.value              = settings.aiEnabled ?? 0;
     if (warmupSchadorg) {
       const raw = appSettings.beratung_warmup_suchwörter;
       try {
@@ -225,6 +227,9 @@ function collectAppSettings() {
     inventory_min_default: $('set-lager-min')
       ? parseInt($('set-lager-min').value || '2', 10)
       : 2,
+    aiEnabled: $('set-ai-advice-enabled')
+      ? parseInt($('set-ai-advice-enabled').value || '0', 10)
+      : 0,
     beratung_warmup_suchwörter: (() => {
       const el = $('set-warmup-schadorg');
       if (!el) return '[]';
