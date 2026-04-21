@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+import json
 from ..config import Config
 from ..models import Kulturen
 
@@ -6,7 +7,16 @@ from ..services.psm_beratung_service import (
     PSMBeratungError,
     suche_mittel,
     suche_schadorganismen,
-)
+    _get,
+    _suche_schadorg_kodes,
+    _get_kultur_awg_ids,
+    _get_schad_awg_ids,
+    _is_schad_cached,
+    )
+from .einsatzorte import cord2plz
+from ..repositories.orte_repo import get_ort_by_id
+from ..services.weather_service import fetch_forecast
+from ..utils.weather_utils import build_windows, SprayThresholds       
 from ..services.llm_service import llm_query, LLMError
 from ..services.permissions import login_required
 from ..models import Kulturen
@@ -17,7 +27,30 @@ bp = Blueprint("beratung", __name__)
 @bp.get("/api/beratung/schadorganismen")
 @login_required
 def get_schadorganismen():
-    """Schadorganismen-Suche für Dropdown."""
+    """
+    Schadorganismen abrufen
+    ---
+    tags:
+      - Beratung
+    parameters:
+      - in: kultur_id
+        name: kid
+        type: integer
+        required: true
+        description: Kultur-ID
+      - in: search_term
+        name: search_term
+        type: string
+        required: true
+        description: Suchbegiff
+    responses:
+      200:
+        description: Erfolgreich abgerufen
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Keine Schreibberechtigung
+    """
     q = request.args.get("q", "").strip()
     kultur_id = request.args.get("kultur_id")
 
@@ -31,12 +64,6 @@ def get_schadorganismen():
             eppo_code = kultur.eppoCode
 
     try:
-        from ..services.psm_beratung_service import (
-            _suche_schadorg_kodes,
-            _get_kultur_awg_ids,
-            _get_schad_awg_ids,
-            _is_schad_cached,
-        )
 
         schad_data = _suche_schadorg_kodes(q)
 
@@ -77,7 +104,30 @@ def get_schadorganismen():
 @bp.get("/api/beratung/schadorganismen/resolve")
 @login_required  
 def resolve_schadorganismen():
-    """Lädt ungecachte Kodes nach und gibt Ergebnisse zurück."""
+    """
+    Lädt ungecachte Kodes nach
+    ---
+    tags:
+      - Beratung
+    parameters:
+      - in: kodes
+        name: kodes
+        type: List
+        required: true
+        description: List of Kodes
+      - in: kultur_id
+        name: kid
+        type: integer
+        required: true
+        description: Kultur ID
+    responses:
+      200:
+        description: Erfolgreich abgerufen
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Keine Schreibberechtigung
+    """
     kodes = request.args.get("kodes", "").split(",")
     kultur_id = request.args.get("kultur_id")
     kodes = [k.strip() for k in kodes if k.strip()]
@@ -92,11 +142,6 @@ def resolve_schadorganismen():
             eppo_code = kultur.eppoCode
 
     try:
-        from ..services.psm_beratung_service import (
-            _get_schad_awg_ids,
-            _get_kultur_awg_ids,
-        )
-
         items = []
         kultur_awg_ids = _get_kultur_awg_ids(eppo_code) if eppo_code else None
 
@@ -104,8 +149,7 @@ def resolve_schadorganismen():
             awg_ids = _get_schad_awg_ids(kode)  # lädt + cacht jetzt
             if kultur_awg_ids is None or (awg_ids & kultur_awg_ids):
                 # Bezeichnung aus Kodeliste holen
-                from ..services.psm_beratung_service import _get
-                import json
+
                 data = _get("kode/", params={
                     "q": json.dumps({
                         "KODE": {"$eq": kode},
@@ -130,7 +174,27 @@ def resolve_schadorganismen():
 def get_mittel_empfehlung():
     """
     Gibt zugelassene Mittel für Kultur + Schadorganismus zurück.
-    Body: { "kultur_id": 1, "schadorg_kode": "APHISS" }
+    ---
+    tags:
+      - Beratung
+    parameters:
+      - in: schadorg_kode
+        name: code
+        type: string
+        required: true
+        description: Schadorganismus Code
+      - in: kultur_id
+        name: kid
+        type: integer
+        required: true
+        description: Kultur ID
+    responses:
+      200:
+        description: Erfolgreich abgerufen
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Keine Schreibberechtigung
     """
     data = request.get_json(silent=True)
     if not data:
@@ -167,6 +231,30 @@ def get_mittel_empfehlung():
 @bp.post("/api/beratung/empfehlung")
 @login_required
 def get_empfehlung():
+    """
+    Gibt AI Empfehlung für PSM zurück.
+    ---
+    tags:
+      - Beratung
+    parameters:
+      - in: schadorg_kode
+        name: code
+        type: string
+        required: true
+        description: Schadorganismus Code
+      - in: kultur_id
+        name: kid
+        type: integer
+        required: true
+        description: Kultur ID
+    responses:
+      200:
+        description: Erfolgreich abgerufen
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Keine Schreibberechtigung
+    """
     data = request.get_json(silent=True)
     kultur_id = data.get("kultur_id")
     schadorg_kode = data.get("schadorg_kode")
@@ -181,10 +269,6 @@ def get_empfehlung():
     wetter_kontext = ""
     if ort_id:
         try:
-            from .einsatzorte import cord2plz
-            from ..repositories.orte_repo import get_ort_by_id
-            from ..services.weather_service import fetch_forecast
-            from ..utils.weather_utils import build_windows, SprayThresholds
             ort = get_ort_by_id(ort_id)
             gps = cord2plz(ort.get("plz")).get_json()
             forecast = fetch_forecast(float(gps["lat"]), float(gps["lon"]))
@@ -254,6 +338,19 @@ def _format_historie(historie: list) -> str:
 @bp.get("/api/beratung/llm-status")
 @login_required
 def llm_status():
+    """
+    Gibt Status der LLM Integration zurück.
+    ---
+    tags:
+      - Beratung
+    responses:
+      200:
+        description: Erfolgreich abgerufen
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Keine Schreibberechtigung
+    """
     provider = Config.LLM_PROVIDER
     
     is_ollama = "11434" in Config.OPENAI_BASE_URL or "ollama" in Config.OPENAI_BASE_URL.lower()
