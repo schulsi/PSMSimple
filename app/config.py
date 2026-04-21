@@ -51,7 +51,7 @@ class Config:
     OPENAI_BASE_URL = os.environ.get(
         "OPENAI_BASE_URL", "https://api.openai.com/v1")
     CACHE_REDIS_URL = os.environ.get("RATELIMIT_STORAGE_URI")
-    CACHE_TYPE = "RedisCache" if CACHE_REDIS_URL != "" else "SimpleCache"
+    CACHE_TYPE = "RedisCache" if CACHE_REDIS_URL else "SimpleCache"
     CACHE_DEFAULT_TIMEOUT = 60 * 60 * 24 * 20  # 20d — BVL aktualisiert monatlich
 
     if not SECRET_KEY:

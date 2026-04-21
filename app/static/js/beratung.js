@@ -149,6 +149,7 @@ async function searchSchadorganismen(q) {
 }
 
 function selectSchadorg(kode, bezeichnung) {
+  clearTimeout(_schadDebounceTimer);
   _selectedSchadorg = { kode, bezeichnung };
 
   const input = document.getElementById('beratung-schad-input');
@@ -164,9 +165,11 @@ function selectSchadorg(kode, bezeichnung) {
     selected.innerHTML = `
       <span class="beratung-bubble beratung-bubble-schad">
         ${escapeHtml(bezeichnung)}
-        <button type="button" class="beratung-bubble-remove" onclick="clearSchadorg()">✕</button>
+        <button type="button" class="beratung-bubble-remove">✕</button>
       </span>
     `;
+    selected.querySelector('.beratung-bubble-remove')
+      .addEventListener('click', clearSchadorg);
   }
 }
 
@@ -338,26 +341,6 @@ function clearBeratungResult() {
   document.getElementById('beratung-empfehlung-result')?.classList.add('hidden');
   document.getElementById('beratung-empfehlung-meta')?.classList.add('hidden');
   document.getElementById('beratung-empfehlung-error')?.classList.add('hidden');
-}
-
-// --- Sub-Tab Switching (Forecast) ---
-
-function showForecastSubTab(btn) {
-  const subtab = btn?.dataset?.subtab;
-  if (!subtab) return;
-
-  document.querySelectorAll('#tab-forecast .sub-tab-btn')
-    .forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  document.querySelectorAll('#tab-forecast .history-sub-tab')
-    .forEach(el => el.classList.remove('active'));
-
-  const target = document.getElementById(`forecast-sub-${subtab}`);
-  if (target) target.classList.add('active');
-
-  // Beratungs-Tab lazy initialisieren
-  if (subtab === 'beratung') initBeratungTab();
 }
 
 function showForecastSubTab(subtab, btn = null) {

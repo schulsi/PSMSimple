@@ -5,6 +5,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_migrate import Migrate, upgrade
 
 from .config import Config
+from .utils.warmup import _start_warmup_cache
 from .extensions import db, login_manager, csrf, limiter, swagger, cache
 from .models import User
 from .routes import register_blueprints
@@ -86,6 +87,10 @@ def create_app():
         seed_roles()
         init_appdata_db()
         upgrade()
+        
+        
+        
 
     register_blueprints(app)
+    _start_warmup_cache(app)
     return app
