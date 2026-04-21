@@ -29,7 +29,7 @@ class Config:
     RATELIMIT_HEADER_ENABLED = True
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
     SESSION_REFRESH_EACH_REQUEST = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR+ "/users.db")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR + "/users.db")
     SQLALCHEMY_BINDS = {
         "app_db": f"sqlite:///{DB_DIR}/app.db",
         "user_db": f"sqlite:///{DB_DIR}/users.db",
@@ -48,9 +48,10 @@ class Config:
     LLM_MODEL = os.environ.get("LLM_MODEL")
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
     ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-    OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-    CACHE_TYPE = "RedisCache"
+    OPENAI_BASE_URL = os.environ.get(
+        "OPENAI_BASE_URL", "https://api.openai.com/v1")
     CACHE_REDIS_URL = os.environ.get("RATELIMIT_STORAGE_URI")
+    CACHE_TYPE = "RedisCache" if CACHE_REDIS_URL != "" else "SimpleCache"
     CACHE_DEFAULT_TIMEOUT = 60 * 60 * 24 * 20  # 20d — BVL aktualisiert monatlich
 
     if not SECRET_KEY:

@@ -270,7 +270,7 @@ def suche_mittel(
     ergebnisse.sort(key=lambda m: (not m.geringes_risiko, m.mittelname))
     return ergebnisse
 
-@cache.memoize(timeout=60 * 60 * 24)
+@cache.memoize(Config.CACHE_DEFAULT_TIMEOUT)
 def _get_kultur_awg_ids(eppo_code: str) -> set[str]:
     """Gecachte AWG-IDs für eine Kultur — 24h TTL."""
     kultur_data = _get_all_items("awg_kultur/", params={
