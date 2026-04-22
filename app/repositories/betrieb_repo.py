@@ -5,7 +5,8 @@ import uuid
 
 def get_betrieb():
     db = get_db()
-    return db.session.query(Betrieb).first().to_dict()
+    betrieb = Betrieb.query.first()
+    return betrieb.to_dict() if betrieb else {}
 
 
 def save_betrieb(data):

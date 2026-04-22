@@ -12,12 +12,53 @@ ALLOWED_SETTINGS = {"registration_allowed", "forecast_default_max_wind_ms", "for
                     "beratung_warmup_suchwörter", "aiEnabled"}
 
 
-@settings_bp.route("/api/app/settings", methods=["GET", "POST"])
+@settings_bp.route("/api/app/settings", methods=["GET"])
 @login_required
 @require_admin
-def settings():
+def get_app_setting():
     """
-    Anwendungseinstellungen abrufen/aktualisieren
+    Anwendungseinstellungen abrufen
+    ---
+    tags:
+      - Einstellungen
+    responses:
+      200:
+        description: Einstellungen
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Admin-Berechtigung erforderlich
+    """
+    setting = get_settings()
+    return jsonify(setting)
+
+@settings_bp.route("/api/app/settings/<term>", methods=["GET"])
+@login_required
+@require_admin
+def get_app_settings(term):
+    """
+    Spezifische Anwendungseinstellungen abrufen
+    ---
+    tags:
+      - Einstellungen
+    responses:
+      200:
+        description: Einstellungen
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Admin-Berechtigung erforderlich
+    """
+    setting = get_setting(term)
+    return jsonify(setting)
+
+
+@settings_bp.route("/api/app/settings", methods=["POST"])
+@login_required
+@require_admin
+def update_app_settings():
+    """
+    Anwendungseinstellungen aktualisieren
     ---
     tags:
       - Einstellungen
@@ -32,22 +73,23 @@ def settings():
               description: Registrierung von neuen Benutzern erlauben
     responses:
       200:
-        description: Einstellungen
+        description: Einstellungen erfolgreich aktualisiert
+      400:
+        description: Ungültige Einstellung
       401:
         description: Nicht authentifiziert
       403:
         description: Admin-Berechtigung erforderlich
     """
-    if request.method == "POST":
-        data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True) or {}
 
-        for key, value in data.items():
-            if key not in ALLOWED_SETTINGS:
-                return jsonify({"ok": False, "error": f"Setting '{key}' is not allowed."}), 400
-            set_setting(key, value)
-            logger.info(
-                f"Setting '{key}' updated to '{value}' by user: {current_user.username} from IP: {request.remote_addr}")
-        return jsonify({"ok": True})
+    for key, value in data.items():
+        if key not in ALLOWED_SETTINGS:
+            return jsonify({"ok": False, "error": f"Setting '{key}' is not allowed."}), 400
 
-    setting = get_settings()
-    return jsonify(setting)
+        set_setting(key, value)
+        logger.info(
+            f"Setting '{key}' updated to '{value}' by user: {current_user.username} from IP: {request.remote_addr}"
+        )
+
+    return jsonify({"ok": True})

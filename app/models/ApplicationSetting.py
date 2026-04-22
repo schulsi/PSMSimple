@@ -9,7 +9,8 @@ class ApplicationSetting(db.Model):
     
     def to_dict(self):
         return {
-            "key": self.key,
-            "value": self.value,
+            self.key: self.value,
         }
+    def get_value(self):
+        return self.value
     
