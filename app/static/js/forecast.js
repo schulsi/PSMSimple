@@ -126,7 +126,6 @@ async function calculateForecastWindow() {
 
   try {
     const payload = getForecastPayload();
-    console.log(payload)
     const results = await Promise.all(
       ortIds.map(async (ortId) => {
         try {

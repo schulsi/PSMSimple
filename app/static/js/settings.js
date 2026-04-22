@@ -86,9 +86,13 @@ async function loadSettings() {
     if (APP_PERMISSIONS?.can_manage_users) {
       try {
         appSettings = await apiGet('/api/app/settings');
+        if (Array.isArray(appSettings)) {
+          appSettings = Object.fromEntries(appSettings.map(s => [s.key, s.value]));
+          }
       } catch (err) {
         console.warn('[loadSettings] Fehler beim Laden von App-Settings:', err);
         appSettings = {};
+        
       }
     }
 
@@ -133,18 +137,18 @@ async function loadSettings() {
 
     if (defaultAnwender)       defaultAnwender.value       = settings.default_anwender       || '';
     if (defaultVerantwortlich) defaultVerantwortlich.value = settings.default_verantwortlich || '';
-    if (forecastMaxWind)        forecastMaxWind.value        = settings.forecast_default_max_wind_ms ?? 3.5;
-    if (forecastMaxPrecip)      forecastMaxPrecip.value      = settings.forecast_default_max_precip_mm ?? 0.0;
-    if (forecastMinTemp)        forecastMinTemp.value        = settings.forecast_default_min_temp_c ?? 8.0;
-    if (forecastMaxTemp)        forecastMaxTemp.value        = settings.forecast_default_max_temp_c ?? 25.0;
-    if (forecastMinHumidity)    forecastMinHumidity.value    = settings.forecast_default_min_humidity_pct ?? 50;
-    if (forecastDryHoursAfter)  forecastDryHoursAfter.value  = settings.forecast_default_dry_hours_after ?? 3;
-    if (forecastMinHour)        forecastMinHour.value        = settings.forecast_default_min_hour ?? 6;
-    if (forecastMaxHour)        forecastMaxHour.value        = settings.forecast_default_max_hour ?? 23;
-    if (forecastRangeHours)     forecastRangeHours.value     = settings.forecast_default_range_hours ?? 72;
-    if (lagermindefault)        lagermindefault.value        = settings.inventory_min_default ?? 2;
-    if (lagerwarndefault)       lagerwarndefault.value       = settings.inventory_warn_default ?? 2;
-    if (aiEnabled)              aiEnabled.value              = settings.aiEnabled ?? 0;
+    if (forecastMaxWind)        forecastMaxWind.value        = appSettings.forecast_default_max_wind_ms ?? 3.5;
+    if (forecastMaxPrecip)      forecastMaxPrecip.value      = appSettings.forecast_default_max_precip_mm ?? 0.0;
+    if (forecastMinTemp)        forecastMinTemp.value        = appSettings.forecast_default_min_temp_c ?? 8.0;
+    if (forecastMaxTemp)        forecastMaxTemp.value        = appSettings.forecast_default_max_temp_c ?? 25.0;
+    if (forecastMinHumidity)    forecastMinHumidity.value    = appSettings.forecast_default_min_humidity_pct ?? 50;
+    if (forecastDryHoursAfter)  forecastDryHoursAfter.value  = appSettings.forecast_default_dry_hours_after ?? 3;
+    if (forecastMinHour)        forecastMinHour.value        = appSettings.forecast_default_min_hour ?? 6;
+    if (forecastMaxHour)        forecastMaxHour.value        = appSettings.forecast_default_max_hour ?? 23;
+    if (forecastRangeHours)     forecastRangeHours.value     = appSettings.forecast_default_range_hours ?? 72;
+    if (lagermindefault)        lagermindefault.value        = appSettings.inventory_min_default ?? 2;
+    if (lagerwarndefault)       lagerwarndefault.value       = appSettings.inventory_warn_default ?? 2;
+    if (aiEnabled)              aiEnabled.checked            = appSettings.aiEnabled === '1';
     if (warmupSchadorg) {
       const raw = appSettings.beratung_warmup_suchwörter;
       try {
@@ -228,8 +232,8 @@ function collectAppSettings() {
       ? parseInt($('set-lager-min').value || '2', 10)
       : 2,
     aiEnabled: $('set-ai-advice-enabled')
-      ? parseInt($('set-ai-advice-enabled').value || '0', 10)
-      : 0,
+      ? ($('set-ai-advice-enabled').checked ? '1': '0')
+      : '0',
     beratung_warmup_suchwörter: (() => {
       const el = $('set-warmup-schadorg');
       if (!el) return '[]';
@@ -260,9 +264,11 @@ async function saveSettings() {
       return;
     }
 
+    
     applyDefaultSettingsToExport(resultUser.settings || payloadUser);
     applyDefaultSettingsToForecast(resultApp.settings || payloadApp);
     updateExportButtons(payloadUser.local_save);
+    applyBeratungVisibility(payloadApp)
 
     toast('✅ Einstellungen gespeichert');
   } catch (err) {
@@ -435,6 +441,30 @@ function applyDefaultAppSettingsToForecast(appSettings) {
   if (rangeEl && !rangeEl.value) {
     rangeEl.value = String(appSettings.forecast_default_range_hours ?? 72);
   }
+}
+
+function applyBeratungVisibility(appSettings) {
+    const enabled = appSettings.aiEnabled === '1';
+
+    const subTabBtn = document.querySelector(
+        '[data-action="showForecastSubTab"][data-subtab="beratung"]'
+    );
+    const subTabPanel = document.getElementById('forecast-sub-beratung');
+
+    if (subTabBtn) {
+        subTabBtn.classList.toggle('hidden', !enabled);
+        subTabBtn.style.setProperty('display', enabled ? '' : 'none', 'important');
+    }
+    if (subTabPanel) {
+        subTabPanel.classList.toggle('hidden', !enabled);
+        subTabPanel.style.setProperty('display', enabled ? '' : 'none', 'important');
+    }
+
+    if (!enabled && subTabPanel?.classList.contains('active')) {
+        showForecastSubTab('spritzfenster',
+            document.querySelector('[data-action="showForecastSubTab"][data-subtab="spritzfenster"]')
+        );
+    }
 }
 
 function escapeJs(value) {
