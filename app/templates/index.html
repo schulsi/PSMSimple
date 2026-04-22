@@ -581,6 +581,13 @@
       {% if permissions.can_manage_users %}
       <div class="card">
         <h3 class="section-title">🌿 PSM-Beratung Cache</h3>
+        <label class="settings-row-wrap">
+            <input type="checkbox" id="set-ai-advice-enabled" class="inline-accent-checkbox">
+            <div>
+              <div class="settings-info-title">PSM Beratung anzeigen</div>
+              <div class="settings-info-sub">Zeigt den Tab für die PSM Beratung an</div>
+            </div>
+          </label>
         <p class="text-muted-history">
           Schadorganismus-Kodes die beim App-Start vorgeladen werden (BVL-Kodes, kommagetrennt).
           Änderungen werden beim nächsten Neustart aktiv.

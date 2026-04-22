@@ -94,19 +94,20 @@ function getForecastRangeHours() {
   return parseInt(value, 10) || 72;
 }
 
-function getForecastPayload() {
+async function getForecastPayload() {
+  settings = await apiGet('api/app/settings')
   return {
     hours: getForecastRangeHours(),
     thresholds: {
-      max_wind_ms: parseFloat(document.getElementById('forecast-max-wind')?.value || '3.5'),
-      max_precip_mm: parseFloat(document.getElementById('forecast-max-precip')?.value || '0.0'),
-      min_temp_c: parseFloat(document.getElementById('forecast-min-temp')?.value || '8'),
-      max_temp_c: parseFloat(document.getElementById('forecast-max-temp')?.value || '25'),
-      min_humidity_pct: parseFloat(document.getElementById('forecast-min-humidity')?.value || '50'),
+      max_wind_ms: settings.find(item => item.key === 'forecast_default_max_wind_ms')?.value,
+      max_precip_mm: settings.find(item => item.key === 'forecast_default_max_precip_mm')?.value,
+      min_temp_c: settings.find(item => item.key === 'forecast_default_min_temp_c')?.value,
+      max_temp_c: settings.find(item => item.key === 'forecast_default_max_temp_c')?.value,
+      min_humidity_pct: settings.find(item => item.key === 'forecast_default_min_humidity_pct')?.value,
       min_window_hours: parseInt(document.getElementById('forecast-min-window-hours')?.value || '2', 10),
-      dry_hours_after: parseInt(document.getElementById('forecast-dry-hours-after')?.value || '3', 10),
-      min_hour: parseInt(document.getElementById('forecast-min-hour')?.value || '6', 10),
-      max_hour: parseInt(document.getElementById('forecast-max-hour')?.value || '23', 10),
+      dry_hours_after: settings.find(item => item.key === 'forecast_default_dry_hours_after')?.value,
+      min_hour: settings.find(item => item.key === 'forecast_default_min_hour')?.value,
+      max_hour: settings.find(item => item.key === 'forecast_default_max_hour')?.value,
     }
   };
 }
@@ -125,7 +126,6 @@ async function calculateForecastWindow() {
 
   try {
     const payload = getForecastPayload();
-
     const results = await Promise.all(
       ortIds.map(async (ortId) => {
         try {
