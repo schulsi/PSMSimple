@@ -246,6 +246,7 @@ async function startBeratung() {
   document.getElementById('beratung-mittel-wrap')?.classList.add('hidden');
 
   try {
+    const aiEnabled = await apiGet('/api/app/settings/aiEnabled')
     const result = await apiPost('/api/beratung/mittel', {
       kultur_id: parseInt(kulturId),
       schadorg_kode: _selectedSchadorg.kode,
@@ -261,8 +262,7 @@ async function startBeratung() {
     renderBeratungMittel(result.mittel || []);
     document.getElementById('beratung-mittel-wrap')?.classList.remove('hidden');
 
-    const aiEnabled = await apiGet('/api/app/settings/aiEnabled')
-    if (aiEnabled){
+    if (aiEnabled != 0){
       // Direkt Empfehlung holen
       await ladeEmpfehlung(kulturId, ortId, result.mittel);
     }
@@ -306,7 +306,7 @@ function renderBeratungMittel(mittel) {
     const zulEnde = m.zul_ende
       ? `<span class="beratung-bubble-tag beratung-tag-muted">bis ${m.zul_ende.slice(0,10)}</span>`
       : '';
-    console.log(m.wirkstoffe)
+      
     return `
       <div class="beratung-bubble-card ${risikoClass}">
         <div class="beratung-bubble-name">${escapeHtml(m.mittelname)}</div>
