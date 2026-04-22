@@ -86,7 +86,10 @@ def llm_query(
     Modell wird aus LLM_MODEL gelesen oder auf den Provider-Standard gesetzt.
     """
     provider = provider or Config.LLM_PROVIDER
-    model = model or Config.LLM_MODEL or _DEFAULT_MODELS.get(provider, "")
+    model = model or Config.LLM_MODEL or _DEFAULT_MODELS.get(provider)
+
+    if not model:
+        raise LLMError(f"Kein Modell für Provider '{provider}' konfiguriert")
 
     if provider not in _PROVIDERS:
         raise LLMError(
