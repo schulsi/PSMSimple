@@ -12,7 +12,7 @@ function initBeratungTab() {
   loadBeratungKulturen();
   loadBeratungOrte();
   bindBeratungUI();
-  checkLLMStatus();
+  //checkLLMStatus();
 }
 
 async function checkLLMStatus() {
@@ -302,7 +302,7 @@ function renderBeratungMittel(mittel) {
     const zulEnde = m.zul_ende
       ? `<span class="beratung-bubble-tag beratung-tag-muted">bis ${m.zul_ende.slice(0,10)}</span>`
       : '';
-
+    console.log(m.wirkstoffe)
     return `
       <div class="beratung-bubble-card ${risikoClass}">
         <div class="beratung-bubble-name">${escapeHtml(m.mittelname)}</div>

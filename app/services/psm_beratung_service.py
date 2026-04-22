@@ -11,7 +11,7 @@ from ..extensions import cache
 
 # bereits in deiner Config: "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
 PSM_API = Config.PSM_API
-TIMEOUT = 10
+TIMEOUT = 20
 SCHAD_CACHE_PREFIX = "psm_schad_awg_"
 
 
@@ -175,14 +175,16 @@ def suche_mittel(eppo_code: str, schadorg_kode: str) -> list[PSMMittelInfo]:
         try:
             kennr = _get_awg_kennr(awg_id)
             if not kennr or kennr in gesehene_kennr:
+                print(f"Skippt Nr {kennr}")
                 continue
-            gesehene_kennr.add(kennr)
 
             mittel = _get_mittel_info(kennr)
             zul_ende = mittel.get("zul_ende", "")
             wirkstoffe = _get_wirkstoffe(kennr)
             wartezeit_tage = _get_wartezeit(awg_id)
             aufwand_info = _get_aufwand(awg_id)
+
+            gesehene_kennr.add(kennr)
 
             ergebnisse.append(PSMMittelInfo(
                 awg_id=awg_id,
@@ -229,7 +231,7 @@ def _get_awg_ids_fuer_schadkode(kode: str) -> set[str]:
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_mittel_info(kennr: str) -> dict:
     """Gecachte Mittel-Stammdaten."""
-    mittel_data = _get(f"mittel/{kennr}")
+    mittel_data = _get(f"mittel/?kennr={kennr}")
     mittel_items = mittel_data.get("items", [mittel_data])
     return mittel_items[0] if mittel_items else mittel_data
 
@@ -237,10 +239,14 @@ def _get_mittel_info(kennr: str) -> dict:
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_wirkstoffe(kennr: str) -> list[str]:
     """Gecachte Wirkstoffe für ein Mittel."""
-    ws_data = _get("wirkstoff_gehalt/", params={"kennr": kennr})
+    wsg_data = _get("wirkstoff_gehalt/", params={"kennr": kennr})
+    
+    for item in wsg_data.get("items", []):
+        wirkstoffnr = item.get("wirknr") 
+
+    ws_data = _get("wirkstoff/", params={"wirknr": wirkstoffnr})
     return [
-        item.get("wirkstoff_name", item.get("wirknr", ""))
-        for item in ws_data.get("items", [])
+        item.get("wirkstoffname") for item in ws_data.get("items", [])
     ]
 
 
@@ -269,7 +275,7 @@ def _get_aufwand(awg_id: str) -> str | None:
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_awg_kennr(awg_id: str) -> str | None:
     """Gecachte kennr für eine AWG-ID."""
-    awg_data = _get(f"awg/{awg_id}")
+    awg_data = _get(f"awg/?awg_id={awg_id}")
     items = awg_data.get("items", [awg_data])
     awg = items[0] if items else awg_data
     return awg.get("kennr")
