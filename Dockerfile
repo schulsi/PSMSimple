@@ -30,4 +30,4 @@ ENV FLASK_APP=run:app
 
 EXPOSE 80
 
-CMD ["gunicorn", "-b", "0.0.0.0:80", "run:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "run:app", "--timeout", "130"]
