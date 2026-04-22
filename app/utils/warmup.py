@@ -90,34 +90,6 @@ def _start_warmup_cache(app):
                     except Exception as e:
                         logger.warning(f"  ✗ Schadorg-Kode {kode}: {e}")
 
-                # --- 4. AWG-IDs -> Kennnummern + AWG-Details ---
-                logger.info(f"Cache-Warmup: {len(alle_awg_ids)} AWG-IDs vollständig vorläden...")
-
-                for awg_id in alle_awg_ids:
-                    try:
-                        kennr = _get_awg_kennr(awg_id)
-                        if kennr:
-                            alle_kennrn.add(str(kennr).strip())
-
-                        # AWG-bezogene Details cachen
-                        _get_wartezeit(awg_id)
-                        _get_aufwand(awg_id)
-
-                        logger.info(f"  ✓ AWG {awg_id} vorbereitet")
-                    except Exception as e:
-                        logger.warning(f"  ✗ AWG {awg_id}: {e}")
-
-                # --- 5. Kennnummern -> Mittelinfos + Wirkstoffe ---
-                logger.info(f"Cache-Warmup: {len(alle_kennrn)} Kennnummern vorläden...")
-
-                for kennr in alle_kennrn:
-                    try:
-                        _get_mittel_info(kennr)
-                        _get_wirkstoffe(kennr)
-                        logger.info(f"  ✓ Kennnr {kennr} vorbereitet")
-                    except Exception as e:
-                        logger.warning(f"  ✗ Kennnr {kennr}: {e}")
-
                 logger.info("Cache-Warmup abgeschlossen.")
 
             except Exception as e:
