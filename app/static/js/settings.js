@@ -268,7 +268,6 @@ async function saveSettings() {
     applyDefaultSettingsToExport(resultUser.settings || payloadUser);
     applyDefaultSettingsToForecast(resultApp.settings || payloadApp);
     updateExportButtons(payloadUser.local_save);
-    applyBeratungVisibility(payloadApp)
 
     toast('✅ Einstellungen gespeichert');
   } catch (err) {
@@ -443,29 +442,6 @@ function applyDefaultAppSettingsToForecast(appSettings) {
   }
 }
 
-function applyBeratungVisibility(appSettings) {
-    const enabled = appSettings.aiEnabled === '1';
-
-    const subTabBtn = document.querySelector(
-        '[data-action="showForecastSubTab"][data-subtab="beratung"]'
-    );
-    const subTabPanel = document.getElementById('forecast-sub-beratung');
-
-    if (subTabBtn) {
-        subTabBtn.classList.toggle('hidden', !enabled);
-        subTabBtn.style.setProperty('display', enabled ? '' : 'none', 'important');
-    }
-    if (subTabPanel) {
-        subTabPanel.classList.toggle('hidden', !enabled);
-        subTabPanel.style.setProperty('display', enabled ? '' : 'none', 'important');
-    }
-
-    if (!enabled && subTabPanel?.classList.contains('active')) {
-        showForecastSubTab('spritzfenster',
-            document.querySelector('[data-action="showForecastSubTab"][data-subtab="spritzfenster"]')
-        );
-    }
-}
 
 function escapeJs(value) {
   return String(value)

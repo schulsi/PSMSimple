@@ -261,8 +261,12 @@ async function startBeratung() {
     renderBeratungMittel(result.mittel || []);
     document.getElementById('beratung-mittel-wrap')?.classList.remove('hidden');
 
-    // Direkt Empfehlung holen
-    await ladeEmpfehlung(kulturId, ortId, result.mittel);
+    const aiEnabled = await apiGet('/api/app/settings/aiEnabled')
+    if (aiEnabled){
+      // Direkt Empfehlung holen
+      await ladeEmpfehlung(kulturId, ortId, result.mittel);
+    }
+    
 
   } catch (err) {
     document.getElementById('beratung-loading')?.classList.add('hidden');
@@ -326,7 +330,7 @@ async function ladeEmpfehlung(kulturId, ortId, mittel) {
   loadingEl?.classList.remove('hidden');
   resultEl?.classList.add('hidden');
   metaEl?.classList.add('hidden');
-
+  
   try {
     const result = await apiPost('/api/beratung/empfehlung', {
       kultur_id: parseInt(kulturId),
