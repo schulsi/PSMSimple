@@ -370,3 +370,22 @@ def suche_schadorganismen_partial(suchbegriff: str, eppo_code: str | None = None
             {"kode": item["kode"], "bezeichnung": item["kodetext"]}
             for item in schad_data
         ], False
+
+def _format_mittel(mittel: list) -> str:
+    if not mittel:
+        return "Keine Mittel gefunden."
+    lines = []
+    for m in mittel[:20]:  # max 20 damit der Kontext nicht zu groß wird
+        riziko = " [geringes Risiko]" if m.geringes_risiko else ""
+        wz = f", Wartezeit: {m.wartezeit_tage}d" if m.wartezeit_tage else ""
+        ws = f", Wirkstoffe: {', '.join(m.wirkstoffe)}" if m.wirkstoffe else ""
+        aufwand = f", Aufwand: {m.aufwand_info}" if m.aufwand_info else ""
+        lines.append(f"- {m.mittelname} (Zul. bis {m.zul_ende[:10]}){riziko}{wz}{ws}{aufwand}")
+    return "\n".join(lines)
+
+
+def _format_historie(historie: list) -> str:
+    lines = []
+    for h in historie[:5]:
+        lines.append(f"- {h.get('datum', '?')}: {h.get('mittel', '?')} auf {h.get('kultur', '?')}")
+    return "\n".join(lines) or "Keine History vorhanden."

@@ -12,6 +12,8 @@ from ..services.psm_beratung_service import (
     _get_kultur_awg_ids,
     _get_schad_awg_ids,
     _is_schad_cached,
+    _format_historie,
+    _format_mittel,
     )
 from .einsatzorte import cord2plz
 from ..repositories.orte_repo import get_ort_by_id
@@ -316,25 +318,6 @@ Bitte empfehle die 2-3 geeignetsten Mittel mit Begründung. Berücksichtige:
     except LLMError as e:
         return jsonify({"ok": False, "message": str(e)}), 502
 
-
-def _format_mittel(mittel: list) -> str:
-    if not mittel:
-        return "Keine Mittel gefunden."
-    lines = []
-    for m in mittel[:20]:  # max 20 damit der Kontext nicht zu groß wird
-        riziko = " [geringes Risiko]" if m.geringes_risiko else ""
-        wz = f", Wartezeit: {m.wartezeit_tage}d" if m.wartezeit_tage else ""
-        ws = f", Wirkstoffe: {', '.join(m.wirkstoffe)}" if m.wirkstoffe else ""
-        aufwand = f", Aufwand: {m.aufwand_info}" if m.aufwand_info else ""
-        lines.append(f"- {m.mittelname} (Zul. bis {m.zul_ende[:10]}){riziko}{wz}{ws}{aufwand}")
-    return "\n".join(lines)
-
-
-def _format_historie(historie: list) -> str:
-    lines = []
-    for h in historie[:5]:
-        lines.append(f"- {h.get('datum', '?')}: {h.get('mittel', '?')} auf {h.get('kultur', '?')}")
-    return "\n".join(lines) or "Keine History vorhanden."
 
 @bp.get("/api/beratung/llm-status")
 @login_required

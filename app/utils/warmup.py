@@ -10,6 +10,7 @@ from ..services.psm_beratung_service import (
     _get_aufwand,
 )
 from ..repositories.settings_repo import get_setting
+from ..extensions import logger
 
 import json
 import logging
@@ -47,7 +48,7 @@ def _start_warmup_cache(app):
 
         with app.app_context():
             try:
-                logger = logging.getLogger(__name__)
+                # logger = logging.getLogger(__name__)
                 alle_awg_ids: set[str] = set()
                 alle_kodes: set[str] = set()
                 alle_kennrn: set[str] = set()
