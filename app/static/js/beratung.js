@@ -252,14 +252,12 @@ async function startBeratung() {
     // Mittel progressiv per SSE laden
     const mittel = await ladeMittelStream(kulturId, _selectedSchadorg.kode);
 
-    document.getElementById('beratung-loading')?.classList.add('hidden');
-    document.getElementById('beratung-mittel-wrap')?.classList.remove('hidden');
-
+    const empfehlungCard = document.getElementById('beratung-empfehlung-card');
     if (aiEnabled != 0) {
+      empfehlungCard?.classList.remove('hidden');
       await ladeEmpfehlung(kulturId, ortId, mittel);
     } else {
-      document.getElementById('beratung-empfehlung-result')?.classList.add('hidden');
-      document.getElementById('beratung-empfehlung-meta')?.classList.add('hidden');
+      empfehlungCard?.classList.add('hidden');
     }
 
   } catch (err) {
