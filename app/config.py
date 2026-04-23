@@ -51,7 +51,8 @@ class Config:
     OPENAI_BASE_URL = os.environ.get(
         "OPENAI_BASE_URL", "https://api.openai.com/v1")
     CACHE_REDIS_URL = os.environ.get("RATELIMIT_STORAGE_URI")
-    CACHE_TYPE = "RedisCache" if CACHE_REDIS_URL else "SimpleCache"
+    CACHE_TYPE = "RedisCache" if CACHE_REDIS_URL else "FileSystemCache"
+    CACHE_DIR = os.path.join(DATA_DIR, "cache") if CACHE_TYPE == "FileSystemCache" else None
     CACHE_DEFAULT_TIMEOUT = 60 * 60 * 24 * 20  # 20d — BVL aktualisiert monatlich
     CACHE_THRESHOLD = 10000  # Maximal 10.000 Einträge im Cache (je nach Größe der Einträge anpassen)
 
