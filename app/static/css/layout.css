@@ -253,6 +253,7 @@ main {
   border-radius: 99px;
   overflow: hidden;
   margin-bottom: 8px;
+  --pct: 0%;  /* Default hier setzen */
 }
 
 .beratung-progress-bar-fill {
@@ -260,7 +261,7 @@ main {
   background: var(--color-primary, #3b82f6);
   border-radius: 99px;
   transition: width 0.3s ease;
-  min-width: 4px; /* damit man es auch bei 0% sieht */
+  width: var(--pct, 0%);
 }
 
 .beratung-progress-label {

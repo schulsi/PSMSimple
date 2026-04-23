@@ -252,6 +252,8 @@ async function startBeratung() {
     // Mittel progressiv per SSE laden
     const mittel = await ladeMittelStream(kulturId, _selectedSchadorg.kode);
 
+    document.getElementById('beratung-mittel-wrap')?.classList.remove('hidden');
+
     const empfehlungCard = document.getElementById('beratung-empfehlung-card');
     if (aiEnabled != 0) {
       empfehlungCard?.classList.remove('hidden');
@@ -303,20 +305,23 @@ function ladeMittelStream(kulturId, schadorgKode) {
 
       if (msg.type === 'progress') {
         total = msg.total;
+        // Gesamtzahl sofort im Badge oben eintragen, Haupt-Spinner ausblenden
+        if (countEl) countEl.textContent = total ? `0 / ${total}` : '…';
+        document.getElementById('beratung-loading')?.classList.add('hidden');
         _updateMittelProgress(container, msg.loaded, msg.total, geladene.length);
 
       } else if (msg.type === 'mittel') {
         geladene.push(msg.mittel);
-        // Karte sofort einfügen
         _appendMittelCard(container, msg.mittel);
-        if (countEl) countEl.textContent = geladene.length;
-        // Fortschrittszeile aktualisieren
+        // Badge: x / gesamt während geladen wird
+        if (countEl) countEl.textContent = total ? `${geladene.length} / ${total}` : geladene.length;
         _updateMittelProgressCount(geladene.length, total);
 
       } else if (msg.type === 'done') {
         es.close();
         _mittelStream = null;
         _removeMittelProgress(container);
+        // Badge: nur Endanzahl
         if (countEl) countEl.textContent = geladene.length;
         if (!geladene.length) {
           container.innerHTML = '<div class="empty">Keine zugelassenen Mittel gefunden.</div>';
@@ -363,31 +368,29 @@ function _renderMittelProgress(container, loaded, total) {
   el.id = PROGRESS_ID;
   el.className = 'beratung-progress-wrap';
   el.innerHTML = `
-    <div class="beratung-progress-bar-track">
-      <div class="beratung-progress-bar-fill" style="width: ${pct}%"></div>
+    <div class="beratung-progress-bar-track" id="${PROGRESS_ID}-track">
+      <div class="beratung-progress-bar-fill"></div>
     </div>
     <div class="beratung-progress-label" id="${PROGRESS_ID}-label">
       Lade Mittel… ${total ? `0 / ${total}` : ''}
     </div>
   `;
   container.prepend(el);
+  el.querySelector('.beratung-progress-bar-track').style.setProperty('--pct', `${pct}%`);
 }
 
 function _updateMittelProgress(container, loaded, total, found) {
   const pct = total ? Math.round((loaded / total) * 100) : 0;
-  const fill = container.querySelector(`#${PROGRESS_ID} .beratung-progress-bar-fill`);
-  if (fill) fill.style.width = `${pct}%`;
+  document.getElementById(`${PROGRESS_ID}-track`)?.style.setProperty('--pct', `${pct}%`);
   _updateMittelProgressCount(found, total);
 }
 
 function _updateMittelProgressCount(found, total) {
   const label = document.getElementById(`${PROGRESS_ID}-label`);
   if (!label) return;
-  if (total) {
-    label.textContent = `${found} Mittel gefunden – wird geladen…`;
-  } else {
-    label.textContent = `${found} Mittel gefunden…`;
-  }
+  label.textContent = total
+    ? `${found} / ${total} geladen`
+    : `${found} geladen…`;
 }
 
 function _removeMittelProgress(container) {
@@ -504,6 +507,7 @@ function clearBeratungResult() {
   const list = document.getElementById('beratung-mittel-list');
   if (list) list.innerHTML = '';
   _cancelMittelStream();
+  document.getElementById('beratung-empfehlung-card')?.classList.add('hidden');
   document.getElementById('beratung-empfehlung-result')?.classList.add('hidden');
   document.getElementById('beratung-empfehlung-meta')?.classList.add('hidden');
   document.getElementById('beratung-empfehlung-error')?.classList.add('hidden');
@@ -520,6 +524,13 @@ function showForecastSubTab(subtab, btn = null) {
 
   const target = document.getElementById(`forecast-sub-${subtab}`);
   if (target) target.classList.add('active');
-
-  if (subtab === 'beratung') initBeratungTab();
+  const badge = document.getElementById('forecast-status-badge');
+  
+  if (subtab === 'beratung') {
+    if (badge) badge.textContent = 'PSM';
+    initBeratungTab();
+  }
+  else if (subtab === 'spritzfenster') {
+    if (badge) badge.textContent = 'Spritzfenster';
+  }
 }
