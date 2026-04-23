@@ -207,7 +207,7 @@ function renderEinsatzorteList(items = einsatzorteItems) {
   if (!list) return;
 
   if (!items.length) {
-    list.innerHTML = `<div class="empty">Noch keine Einsatzorte vorhanden.</div>`;
+    list.innerHTML = `<div class="empty">Noch keine Felder vorhanden.</div>`;
     return;
   }
 
@@ -252,7 +252,7 @@ async function loadEinsatzorte() {
     }
   } catch (err) {
     console.error(err);
-    toast("❌ Einsatzorte konnten nicht geladen werden");
+    toast("❌ Felder konnten nicht geladen werden");
   }
 }
 
@@ -277,7 +277,7 @@ async function resetEinsatzortForm() {
   await loadOrte("");
 
   const modalTitle = $("modal-einsatzort-title");
-  if (modalTitle) modalTitle.textContent = "Einsatzort hinzufügen";
+  if (modalTitle) modalTitle.textContent = "Feld hinzufügen";
 
   _eoResetMap();
 }
@@ -332,7 +332,7 @@ async function editEinsatzort(id) {
     await loadOrte(item.ort_id);
 
     const modalTitle = $("modal-einsatzort-title");
-    if (modalTitle) modalTitle.textContent = "Einsatzort bearbeiten";
+    if (modalTitle) modalTitle.textContent = "Feld bearbeiten";
 
     openModal("modal-einsatzort");
 
@@ -362,10 +362,10 @@ async function saveEinsatzort() {
 
     if (currentEinsatzortEditId) {
       await apiPut(`/api/einsatzorte/${currentEinsatzortEditId}`, payload);
-      toast("✅ Einsatzort gespeichert");
+      toast("✅ Feld gespeichert");
     } else {
       await apiPost("/api/einsatzorte", payload);
-      toast("✅ Einsatzort hinzugefügt");
+      toast("✅ Feld hinzugefügt");
     }
 
     closeModal("modal-einsatzort");
@@ -378,11 +378,11 @@ async function saveEinsatzort() {
 }
 
 async function removeEinsatzort(id) {
-  if (!confirm("Diesen Einsatzort wirklich löschen?")) return;
+  if (!confirm("Dieses Feld wirklich löschen?")) return;
 
   try {
     await apiDelete(`/api/einsatzorte/${id}`);
-    toast("✅ Einsatzort gelöscht");
+    toast("✅ Feld gelöscht");
     await loadEinsatzorte();
   } catch (err) {
     console.error(err);

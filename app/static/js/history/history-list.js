@@ -21,7 +21,7 @@ function renderHistoryListItem(item) {
           ${item.uhrzeit ? '· ' + escapeHtml(item.uhrzeit) : ''}
         </div>
         <div class="meta">${escapeHtml(item.artVerwendung || '—')}</div>
-        <div class="meta"><strong>Einsatzorte:</strong> ${escapeHtml(item.einsatzorte || '—')}</div>
+        <div class="meta"><strong>Felder:</strong> ${escapeHtml(item.einsatzorte || '—')}</div>
         <div class="meta"><strong>PSM:</strong> ${escapeHtml(item.psm_namen || '—')}</div>
         <div class="meta"><strong>Kulturen:</strong> ${escapeHtml(item.kulturen || '—')}</div>
       </div>
@@ -92,7 +92,7 @@ function renderHistoryDetailHTML(item) {
     </div>
 
     <div class="history-section">
-      <h4>Einsatzorte</h4>
+      <h4>Felder</h4>
       ${renderEinsatzorteHistory(einsatzorte)}
     </div>
 
