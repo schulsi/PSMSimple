@@ -112,8 +112,8 @@
     </div>
 
     <div id="tab-einsatzorte" class="tab">
-      <h2>📍 Einsatzorte <span class="badge" id="eo-count">0</span></h2>
-      <button type="button" class="btn btn-primary mb-1" data-action="openEinsatzortModal">+ Neuer Einsatzort</button>
+      <h2>📍 Felder <span class="badge" id="eo-count">0</span></h2>
+      <button type="button" class="btn btn-primary mb-1" data-action="openEinsatzortModal">+ Neues Feld</button>
       <button type="button" class="btn btn-primary mb-1" data-action="openOrtModal">+ Neuer Ort</button>
       <div class="item-list" id="einsatzorte-list"></div>
     </div>
@@ -134,7 +134,7 @@
       </div>
 
       <div class="card export-section">
-        <h3>📍 Einsatzorte auswählen</h3>
+        <h3>📍 Felder auswählen</h3>
         <div id="exp-einsatzorte-list"></div>
       </div>
 
@@ -262,7 +262,7 @@
 
         <div class="card">
           <p class="text-muted-history">
-            Übersicht über die Verwendung von Einsatzorten (Feldern).
+            Übersicht über die Verwendung von Feldern.
           </p>
           <div class="history-chart-wrap">
             <canvas id="fields-usage-chart" class="chart-canvas"></canvas>
@@ -387,9 +387,9 @@
         </div>
 
         <div class="field">
-          <label>Einsatzort (optional, für Wetterfenster)</label>
+          <label>Felder (optional, für Wetterfenster)</label>
           <select id="beratung-ort-select">
-            <option value="">— Kein Ort —</option>
+            <option value="">— Kein Feld —</option>
           </select>
         </div>
 
@@ -655,7 +655,7 @@
 
 <div class="modal-overlay" id="modal-einsatzort">
   <div class="modal">
-    <h3 id="modal-einsatzort-title">Einsatzort</h3>
+    <h3 id="modal-einsatzort-title">Feld</h3>
     <div class="form-grid">
       <div class="field span-2"><label>Name / Bezeichnung <span class="danger-text">*</span></label><input id="eo-name"></div>
       <div class="field span-2">
@@ -895,7 +895,7 @@
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 <script src="{{ url_for('static', filename='js/betrieb.js') }}"></script>
 <script src="{{ url_for('static', filename='js/psm.js') }}"></script>
-<script src="{{ url_for('static', filename='js/einsatzorte.js') }}"></script>
+<script src="{{ url_for('static', filename='js/felder.js') }}"></script>
 <script src="{{ url_for('static', filename='js/kulturen.js') }}"></script>
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
 <script src="{{ url_for('static', filename='js/forecast.js') }}"></script>
