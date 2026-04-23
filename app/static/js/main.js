@@ -57,7 +57,8 @@ function logout() {
     'resetHistoryFilter', 'resetPSMHistoryFilter', 'resetFieldsHistoryFilter',
     'saveSettings', 'renameUser', 'saveBetriebWizard',
     'closeModal', 'logout',  'calculateForecastWindow', 'forecastSelectAllOrte', 'forecastSelectNoOrte',
-    'loadInventoryMovements', 'loadInventoryMovements', 'saveInventoryMovement', 'startBeratung' 
+    'loadInventoryMovements', 'loadInventoryMovements', 'saveInventoryMovement', 'startBeratung',
+    'openOrtModal', 'saveOrt',
   ]);
 
   // Aktionen mit einem Argument aus data-tab, data-period, data-subtab oder data-panel

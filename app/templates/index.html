@@ -114,6 +114,7 @@
     <div id="tab-einsatzorte" class="tab">
       <h2>📍 Einsatzorte <span class="badge" id="eo-count">0</span></h2>
       <button type="button" class="btn btn-primary mb-1" data-action="openEinsatzortModal">+ Neuer Einsatzort</button>
+      <button type="button" class="btn btn-primary mb-1" data-action="openOrtModal">+ Neuer Ort</button>
       <div class="item-list" id="einsatzorte-list"></div>
     </div>
 
@@ -679,6 +680,20 @@
     <div class="modal-footer">
       <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-einsatzort">Abbrechen</button>
       <button type="button" class="btn btn-primary" data-action="saveEinsatzort">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-ort">
+  <div class="modal">
+    <h3 id="modal-ort-title">Ort</h3>
+    <div class="form-grid">
+      <div class="field span-2"><label>Name<span class="danger-text">*</span></label><input id="o-name"></div>
+      <div class="field"><label>PLZ <span class="danger-text">*</span></label><input type="number" id="o-plz" step="1"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-ort">Abbrechen</button>
+      <button type="button" class="btn btn-primary" data-action="saveOrt">Speichern</button>
     </div>
   </div>
 </div>
