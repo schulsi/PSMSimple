@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, Response
 import json
 from ..config import Config
 from ..models import Kulturen
@@ -14,6 +14,7 @@ from ..services.psm_beratung_service import (
     _is_schad_cached,
     _format_historie,
     _format_mittel,
+    suche_mittel_stream,
     )
 from .einsatzorte import cord2plz
 from ..repositories.orte_repo import get_ort_by_id
@@ -345,3 +346,66 @@ def llm_status():
         "configured": configured,
         "provider": provider,
     })
+
+@bp.get("/api/beratung/mittel/stream")
+@login_required
+def stream_mittel_empfehlung():
+    """
+    Streamt zugelassene Mittel per Server-Sent Events.
+    Schickt jedes Mittel einzeln sobald es geladen ist.
+    ---
+    tags:
+      - Beratung
+    parameters:
+      - in: query
+        name: kultur_id
+        type: integer
+        required: true
+      - in: query
+        name: schadorg_kode
+        type: string
+        required: true
+    responses:
+      200:
+        description: SSE-Stream mit Mittel-Daten
+      400:
+        description: Fehlende Parameter
+      404:
+        description: Kultur nicht gefunden
+    """
+    kultur_id = request.args.get("kultur_id")
+    schadorg_kode = request.args.get("schadorg_kode")
+
+    if not kultur_id or not schadorg_kode:
+        return jsonify({"ok": False, "message": "kultur_id und schadorg_kode erforderlich"}), 400
+
+    kultur = Kulturen.query.get(int(kultur_id))
+    if not kultur:
+        return jsonify({"ok": False, "message": "Kultur nicht gefunden"}), 404
+
+    if not kultur.eppoCode:
+        return jsonify({"ok": False, "message": f"Kultur '{kultur.name}' hat keinen EPPO-Code"}), 400
+
+    def generate():
+        try:
+            for event_type, payload in suche_mittel_stream(kultur.eppoCode, schadorg_kode):
+                if event_type == "mittel":
+                    data = json.dumps({"type": "mittel", "mittel": payload.to_dict()})
+                elif event_type == "progress":
+                    data = json.dumps({"type": "progress", **payload})
+                elif event_type == "total":
+                    data = json.dumps({"type": "done", "anzahl": payload})
+                else:
+                    continue
+                yield f"data: {data}\n\n"
+        except PSMBeratungError as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",   # nginx: Buffering deaktivieren
+        }
+    )

@@ -236,6 +236,48 @@ main {
   display: block;
 }
 
+/* -----------------------------------------------------------------------
+   PSM-Beratung: Progressives Laden – CSS-Ergänzungen
+   In deine bestehende Stylesheet-Datei einfügen
+   ----------------------------------------------------------------------- */
+
+/* Fortschrittsbalken-Wrapper */
+.beratung-progress-wrap {
+  padding: 12px 0 16px;
+  width: 100%;
+}
+
+.beratung-progress-bar-track {
+  height: 6px;
+  background: var(--color-border, #e2e8f0);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.beratung-progress-bar-fill {
+  height: 100%;
+  background: var(--color-primary, #3b82f6);
+  border-radius: 99px;
+  transition: width 0.3s ease;
+  min-width: 4px; /* damit man es auch bei 0% sieht */
+}
+
+.beratung-progress-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+/* Einblend-Animation für neue Karten */
+.beratung-bubble-card {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.beratung-card-enter {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
 /* Beratung Bubbles */
 .beratung-bubble-grid {
   display: flex;

@@ -389,3 +389,61 @@ def _format_historie(historie: list) -> str:
     for h in historie[:5]:
         lines.append(f"- {h.get('datum', '?')}: {h.get('mittel', '?')} auf {h.get('kultur', '?')}")
     return "\n".join(lines) or "Keine History vorhanden."
+
+def suche_mittel_stream(eppo_code: str, schadorg_kode: str):
+    """
+    Generator-Version von suche_mittel().
+    Yields PSMMittelInfo-Objekte einzeln sobald sie geladen sind,
+    plus ein abschließendes 'done'-Event mit Gesamtanzahl.
+    
+    Yields tuples: ("mittel", PSMMittelInfo) | ("total", int) | ("progress", dict)
+    """
+    kultur_awg_ids = _get_kultur_awg_ids(eppo_code)
+    if not kultur_awg_ids:
+        yield ("total", 0)
+        return
+
+    schad_awg_ids = _get_schad_awg_ids(schadorg_kode)
+    treffer_ids = kultur_awg_ids & schad_awg_ids
+    if not treffer_ids:
+        yield ("total", 0)
+        return
+
+    total = len(treffer_ids)
+    yield ("progress", {"loaded": 0, "total": total})
+
+    gesehene_kennr: set[str] = set()
+    ergebnisse: list[PSMMittelInfo] = []
+    loaded = 0
+
+    for awg_id in treffer_ids:
+        loaded += 1
+        try:
+            kennr = _get_awg_kennr(awg_id)
+            if not kennr or kennr in gesehene_kennr:
+                yield ("progress", {"loaded": loaded, "total": total})
+                continue
+
+            mittel = _get_mittel_info(kennr)
+            zul_ende = mittel.get("zul_ende", "")
+            wirkstoffe = _get_wirkstoffe(kennr)
+
+            gesehene_kennr.add(kennr)
+
+            info = PSMMittelInfo(
+                awg_id=awg_id,
+                kennr=kennr,
+                mittelname=mittel.get("mittelname", kennr),
+                zul_ende=zul_ende,
+                geringes_risiko=mittel.get("mittel_mit_geringem_risiko") == "J",
+                wirkstoffe=[ws for ws in wirkstoffe if ws],
+            )
+            ergebnisse.append(info)
+            yield ("mittel", info)
+
+        except PSMBeratungError:
+            pass
+
+        yield ("progress", {"loaded": loaded, "total": total})
+
+    yield ("total", len(ergebnisse))

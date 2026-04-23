@@ -5,6 +5,7 @@
 let _beratungInitialized = false;
 let _schadDebounceTimer = null;
 let _selectedSchadorg = null;   // { kode, bezeichnung }
+let _mittelStream = null;       // aktiver EventSource
 
 function initBeratungTab() {
   if (_beratungInitialized) return;
@@ -169,7 +170,6 @@ async function ladeNachtraeglich(dropdown, pendingKodes, kulturId, existingItems
     const neueItems = result?.items || [];
 
     if (!neueItems.length) {
-      // Ladehinweis entfernen
       dropdown.querySelector('.beratung-dropdown-loading')?.remove();
       if (!dropdown.querySelectorAll('[data-kode]').length) {
         dropdown.innerHTML = '<div class="beratung-dropdown-item beratung-dropdown-empty">Keine Treffer</div>';
@@ -177,14 +177,12 @@ async function ladeNachtraeglich(dropdown, pendingKodes, kulturId, existingItems
       return;
     }
 
-    // Alle Items zusammenführen und neu sortieren
     const alleItems = [...existingItems, ...neueItems]
       .sort((a, b) => a.bezeichnung.localeCompare(b.bezeichnung));
 
     renderDropdownItems(dropdown, alleItems, false);
 
   } catch (err) {
-    // Ladehinweis einfach entfernen bei Fehler
     dropdown.querySelector('.beratung-dropdown-loading')?.remove();
   }
 }
@@ -245,32 +243,23 @@ async function startBeratung() {
   document.getElementById('beratung-loading')?.classList.remove('hidden');
   document.getElementById('beratung-mittel-wrap')?.classList.add('hidden');
 
+  // Laufenden Stream ggfs. abbrechen
+  _cancelMittelStream();
+
   try {
-    const aiEnabled = await apiGet('/api/app/settings/aiEnabled')
-    const result = await apiPost('/api/beratung/mittel', {
-      kultur_id: parseInt(kulturId),
-      schadorg_kode: _selectedSchadorg.kode,
-    });
+    const aiEnabled = await apiGet('/api/app/settings/aiEnabled');
+
+    // Mittel progressiv per SSE laden
+    const mittel = await ladeMittelStream(kulturId, _selectedSchadorg.kode);
 
     document.getElementById('beratung-loading')?.classList.add('hidden');
-
-    if (!result?.ok) {
-      showBeratungError(result?.message || 'Fehler beim Laden der Mittel.');
-      return;
-    }
-
-    renderBeratungMittel(result.mittel || []);
     document.getElementById('beratung-mittel-wrap')?.classList.remove('hidden');
 
-    if (aiEnabled != 0){
-      // Direkt Empfehlung holen
-      await ladeEmpfehlung(kulturId, ortId, result.mittel);
+    if (aiEnabled != 0) {
+      await ladeEmpfehlung(kulturId, ortId, mittel);
     } else {
-      const resultEl = document.getElementById('beratung-empfehlung-result');
-      const metaEl = document.getElementById('beratung-empfehlung-meta');
-
-      resultEl?.classList.add('hidden');
-      metaEl?.classList.add('hidden');
+      document.getElementById('beratung-empfehlung-result')?.classList.add('hidden');
+      document.getElementById('beratung-empfehlung-meta')?.classList.add('hidden');
     }
 
   } catch (err) {
@@ -279,64 +268,190 @@ async function startBeratung() {
   }
 }
 
-// --- Mittel als Bubbles rendern ---
+// -----------------------------------------------------------------------
+// Progressives Laden der Mittel via Server-Sent Events
+// -----------------------------------------------------------------------
 
-function renderBeratungMittel(mittel) {
-  const container = document.getElementById('beratung-mittel-list');
-  const countEl = document.getElementById('beratung-mittel-count');
+/**
+ * Öffnet einen SSE-Stream zu /api/beratung/mittel/stream.
+ * Rendert Mittel sofort wenn sie ankommen.
+ * Gibt Promise<PSMMittelInfo[]> zurück wenn der Stream abgeschlossen ist.
+ */
+function ladeMittelStream(kulturId, schadorgKode) {
+  return new Promise((resolve, reject) => {
+    const container = document.getElementById('beratung-mittel-list');
+    const countEl   = document.getElementById('beratung-mittel-count');
+    const wrapEl    = document.getElementById('beratung-mittel-wrap');
 
-  if (countEl) countEl.textContent = mittel.length;
+    // Fortschritts-UI aufbauen
+    _renderMittelProgress(container, 0, null);
+    wrapEl?.classList.remove('hidden');
 
-  if (!container) return;
+    const params = new URLSearchParams({
+      kultur_id: kulturId,
+      schadorg_kode: schadorgKode,
+    });
 
-  if (!mittel.length) {
-    container.innerHTML = '<div class="empty">Keine zugelassenen Mittel gefunden.</div>';
-    return;
+    const es = new EventSource(`/api/beratung/mittel/stream?${params.toString()}`);
+    _mittelStream = es;
+
+    const geladene = [];
+    let total = null;
+
+    es.onmessage = (event) => {
+      let msg;
+      try { msg = JSON.parse(event.data); }
+      catch { return; }
+
+      if (msg.type === 'progress') {
+        total = msg.total;
+        _updateMittelProgress(container, msg.loaded, msg.total, geladene.length);
+
+      } else if (msg.type === 'mittel') {
+        geladene.push(msg.mittel);
+        // Karte sofort einfügen
+        _appendMittelCard(container, msg.mittel);
+        if (countEl) countEl.textContent = geladene.length;
+        // Fortschrittszeile aktualisieren
+        _updateMittelProgressCount(geladene.length, total);
+
+      } else if (msg.type === 'done') {
+        es.close();
+        _mittelStream = null;
+        _removeMittelProgress(container);
+        if (countEl) countEl.textContent = geladene.length;
+        if (!geladene.length) {
+          container.innerHTML = '<div class="empty">Keine zugelassenen Mittel gefunden.</div>';
+        }
+        resolve(geladene);
+
+      } else if (msg.type === 'error') {
+        es.close();
+        _mittelStream = null;
+        _removeMittelProgress(container);
+        reject(new Error(msg.message || 'Stream-Fehler'));
+      }
+    };
+
+    es.onerror = () => {
+      es.close();
+      _mittelStream = null;
+      _removeMittelProgress(container);
+      if (geladene.length) {
+        // Partial-Ergebnis trotzdem liefern
+        resolve(geladene);
+      } else {
+        reject(new Error('Verbindung zum Server unterbrochen.'));
+      }
+    };
+  });
+}
+
+function _cancelMittelStream() {
+  if (_mittelStream) {
+    _mittelStream.close();
+    _mittelStream = null;
+  }
+}
+
+// --- Fortschritts-UI ---
+
+const PROGRESS_ID = 'beratung-mittel-progress';
+
+function _renderMittelProgress(container, loaded, total) {
+  container.innerHTML = '';
+  const pct = total ? Math.round((loaded / total) * 100) : 0;
+  const el = document.createElement('div');
+  el.id = PROGRESS_ID;
+  el.className = 'beratung-progress-wrap';
+  el.innerHTML = `
+    <div class="beratung-progress-bar-track">
+      <div class="beratung-progress-bar-fill" style="width: ${pct}%"></div>
+    </div>
+    <div class="beratung-progress-label" id="${PROGRESS_ID}-label">
+      Lade Mittel… ${total ? `0 / ${total}` : ''}
+    </div>
+  `;
+  container.prepend(el);
+}
+
+function _updateMittelProgress(container, loaded, total, found) {
+  const pct = total ? Math.round((loaded / total) * 100) : 0;
+  const fill = container.querySelector(`#${PROGRESS_ID} .beratung-progress-bar-fill`);
+  if (fill) fill.style.width = `${pct}%`;
+  _updateMittelProgressCount(found, total);
+}
+
+function _updateMittelProgressCount(found, total) {
+  const label = document.getElementById(`${PROGRESS_ID}-label`);
+  if (!label) return;
+  if (total) {
+    label.textContent = `${found} Mittel gefunden – wird geladen…`;
+  } else {
+    label.textContent = `${found} Mittel gefunden…`;
+  }
+}
+
+function _removeMittelProgress(container) {
+  document.getElementById(PROGRESS_ID)?.remove();
+}
+
+// --- Einzelne Mittel-Karte anhängen ---
+
+function _appendMittelCard(container, m) {
+  // Fortschrittsleiste ans Ende verschieben damit neue Karten davor erscheinen
+  const progressEl = document.getElementById(PROGRESS_ID);
+
+  const risikoClass = m.geringes_risiko ? 'beratung-bubble-low-risk' : '';
+  const risikoLabel = m.geringes_risiko
+    ? '<span class="beratung-bubble-tag beratung-tag-green">geringes Risiko</span>'
+    : '';
+  const wartezeit = m.wartezeit_tage
+    ? `<span class="beratung-bubble-tag">⏱ ${m.wartezeit_tage}d</span>`
+    : '';
+  const wirkstoffe = m.wirkstoffe?.length
+    ? `<div class="beratung-bubble-sub">${m.wirkstoffe.slice(0, 2).map(w => escapeHtml(w)).join(', ')}</div>`
+    : '';
+  const aufwand = m.aufwand_info
+    ? `<span class="beratung-bubble-tag">📏 ${escapeHtml(m.aufwand_info)}</span>`
+    : '';
+  const zulEnde = m.zul_ende
+    ? `<span class="beratung-bubble-tag beratung-tag-muted">bis ${m.zul_ende.slice(0, 10)}</span>`
+    : '';
+
+  const card = document.createElement('div');
+  card.className = `beratung-bubble-card ${risikoClass} beratung-card-enter`;
+  card.innerHTML = `
+    <div class="beratung-bubble-name">${escapeHtml(m.mittelname)}</div>
+    ${wirkstoffe}
+    <div class="beratung-bubble-tags">
+      ${risikoLabel}${wartezeit}${aufwand}${zulEnde}
+    </div>
+  `;
+
+  // Karte vor dem Fortschrittsbalken einfügen (oder ans Ende falls kein Balken mehr)
+  if (progressEl && progressEl.parentNode === container) {
+    container.insertBefore(card, progressEl);
+  } else {
+    container.appendChild(card);
   }
 
-  container.innerHTML = mittel.map(m => {
-    const risikoClass = m.geringes_risiko ? 'beratung-bubble-low-risk' : '';
-    const risikoLabel = m.geringes_risiko
-      ? '<span class="beratung-bubble-tag beratung-tag-green">geringes Risiko</span>'
-      : '';
-    const wartezeit = m.wartezeit_tage
-      ? `<span class="beratung-bubble-tag">⏱ ${m.wartezeit_tage}d</span>`
-      : '';
-    const wirkstoffe = m.wirkstoffe?.length
-      ? `<div class="beratung-bubble-sub">${m.wirkstoffe.slice(0, 2).map(w => escapeHtml(w)).join(', ')}</div>`
-      : '';
-    const aufwand = m.aufwand_info
-      ? `<span class="beratung-bubble-tag">📏 ${escapeHtml(m.aufwand_info)}</span>`
-      : '';
-    const zulEnde = m.zul_ende
-      ? `<span class="beratung-bubble-tag beratung-tag-muted">bis ${m.zul_ende.slice(0,10)}</span>`
-      : '';
-      
-    return `
-      <div class="beratung-bubble-card ${risikoClass}">
-        <div class="beratung-bubble-name">${escapeHtml(m.mittelname)}</div>
-        ${wirkstoffe}
-        <div class="beratung-bubble-tags">
-          ${risikoLabel}${wartezeit}${aufwand}${zulEnde}
-        </div>
-      </div>
-    `;
-  }).join('');
+  // Einblend-Animation triggern (nächster Frame)
+  requestAnimationFrame(() => card.classList.remove('beratung-card-enter'));
 }
 
 // --- LLM-Empfehlung laden ---
 
 async function ladeEmpfehlung(kulturId, ortId, mittel) {
-  console.log("Dont do it")
   const loadingEl = document.getElementById('beratung-empfehlung-loading');
-  const errorEl = document.getElementById('beratung-empfehlung-error');
-  const resultEl = document.getElementById('beratung-empfehlung-result');
-  const metaEl = document.getElementById('beratung-empfehlung-meta');
+  const errorEl   = document.getElementById('beratung-empfehlung-error');
+  const resultEl  = document.getElementById('beratung-empfehlung-result');
+  const metaEl    = document.getElementById('beratung-empfehlung-meta');
 
   loadingEl?.classList.remove('hidden');
   resultEl?.classList.add('hidden');
   metaEl?.classList.add('hidden');
-  
+
   try {
     const result = await apiPost('/api/beratung/empfehlung', {
       kultur_id: parseInt(kulturId),
@@ -388,7 +503,9 @@ function showBeratungError(msg) {
 }
 
 function clearBeratungResult() {
-  document.getElementById('beratung-mittel-list') && (document.getElementById('beratung-mittel-list').innerHTML = '');
+  const list = document.getElementById('beratung-mittel-list');
+  if (list) list.innerHTML = '';
+  _cancelMittelStream();
   document.getElementById('beratung-empfehlung-result')?.classList.add('hidden');
   document.getElementById('beratung-empfehlung-meta')?.classList.add('hidden');
   document.getElementById('beratung-empfehlung-error')?.classList.add('hidden');
