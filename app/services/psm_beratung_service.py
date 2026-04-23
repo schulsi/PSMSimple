@@ -181,8 +181,6 @@ def suche_mittel(eppo_code: str, schadorg_kode: str) -> list[PSMMittelInfo]:
             mittel = _get_mittel_info(kennr)
             zul_ende = mittel.get("zul_ende", "")
             wirkstoffe = _get_wirkstoffe(kennr)
-            wartezeit_tage = _get_wartezeit(awg_id)
-            aufwand_info = _get_aufwand(awg_id)
 
             gesehene_kennr.add(kennr)
 
@@ -194,8 +192,6 @@ def suche_mittel(eppo_code: str, schadorg_kode: str) -> list[PSMMittelInfo]:
                 geringes_risiko=mittel.get(
                     "mittel_mit_geringem_risiko") == "J",
                 wirkstoffe=[ws for ws in wirkstoffe if ws],
-                wartezeit_tage=wartezeit_tage,
-                aufwand_info=aufwand_info,
             ))
 
         except PSMBeratungError:

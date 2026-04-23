@@ -265,8 +265,13 @@ async function startBeratung() {
     if (aiEnabled != 0){
       // Direkt Empfehlung holen
       await ladeEmpfehlung(kulturId, ortId, result.mittel);
+    } else {
+      const resultEl = document.getElementById('beratung-empfehlung-result');
+      const metaEl = document.getElementById('beratung-empfehlung-meta');
+
+      resultEl?.classList.add('hidden');
+      metaEl?.classList.add('hidden');
     }
-    
 
   } catch (err) {
     document.getElementById('beratung-loading')?.classList.add('hidden');
@@ -322,6 +327,7 @@ function renderBeratungMittel(mittel) {
 // --- LLM-Empfehlung laden ---
 
 async function ladeEmpfehlung(kulturId, ortId, mittel) {
+  console.log("Dont do it")
   const loadingEl = document.getElementById('beratung-empfehlung-loading');
   const errorEl = document.getElementById('beratung-empfehlung-error');
   const resultEl = document.getElementById('beratung-empfehlung-result');

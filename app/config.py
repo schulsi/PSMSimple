@@ -53,6 +53,7 @@ class Config:
     CACHE_REDIS_URL = os.environ.get("RATELIMIT_STORAGE_URI")
     CACHE_TYPE = "RedisCache" if CACHE_REDIS_URL else "SimpleCache"
     CACHE_DEFAULT_TIMEOUT = 60 * 60 * 24 * 20  # 20d — BVL aktualisiert monatlich
+    CACHE_THRESHOLD = 10000  # Maximal 10.000 Einträge im Cache (je nach Größe der Einträge anpassen)
 
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY environment variable is not set.")
