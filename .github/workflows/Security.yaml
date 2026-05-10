@@ -183,7 +183,7 @@ jobs:
         run: |
           docker run -d \
             --name myapp \
-            -p 8000:8000 \
+            -p 80:80 \
             myapp:dast
 
       - name: Wait for application startup
