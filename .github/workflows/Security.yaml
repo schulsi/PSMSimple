@@ -175,6 +175,9 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t myapp:dast .
+          
+      - name: Fix workspace permissions
+        run: chmod -R 777 .
 
       - name: Run application container
         run: |
