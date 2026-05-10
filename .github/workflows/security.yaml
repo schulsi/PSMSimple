@@ -14,7 +14,6 @@ permissions:
   security-events: write
   actions: read
   pull-requests: read
-  issues: write
 
 jobs:
   security-scanning:
@@ -207,12 +206,16 @@ jobs:
           cmd_options: "-a"
           fail_action: false
           artifact_name: "zap-scan"
+          allow_issue_writing: false
+          
       - name: Run OWASP ZAP API Scan
         uses: zaproxy/action-api-scan@v0.8.0
         with:
           target: "http://localhost:80/api/openapi.json"
           format: openapi
           fail_action: false
+          artifact_name: "zap-api-scan"
+          allow_issue_writing: false
 
       - name: Stop application container
         if: always()
