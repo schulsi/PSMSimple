@@ -189,8 +189,12 @@ jobs:
       - name: Wait for application startup
         run: |
           sleep 20
-          curl -f http://localhost:8000 || true
-
+          curl -f http://localhost:80 || true
+      - name: Show container logs
+        run: |
+          docker logs myapp
+      - name: Show running containers
+        run: docker ps -a
       # -----------------------------
       # OWASP ZAP Baseline Scan
       # -----------------------------
