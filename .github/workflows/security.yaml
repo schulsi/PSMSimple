@@ -207,6 +207,12 @@ jobs:
           cmd_options: "-a"
           fail_action: false
           artifact_name: "zap-scan"
+      - name: Run OWASP ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.8.0
+        with:
+          target: "http://localhost:80/api/openapi.json"
+          format: openapi
+          fail_action: false
 
       - name: Stop application container
         if: always()
