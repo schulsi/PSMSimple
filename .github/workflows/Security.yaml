@@ -184,6 +184,7 @@ jobs:
           docker run -d \
             --name myapp \
             -p 80:80 \
+            -e SECRET_KEY="f83j2k29skd9sl2k2ls0s9s2lsk2" \
             myapp:dast
 
       - name: Wait for application startup
