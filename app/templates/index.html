@@ -138,14 +138,16 @@
       </div>
 
       <div class="card export-section">
-        <h3>📍 Felder auswählen</h3>
-        <div id="exp-einsatzorte-list"></div>
-      </div>
-
-      <div class="card export-section">
         <h3>🌾 Kulturen &amp; BBCH-Code</h3>
         <p class="export-help-text">Kultur auswählen und BBCH-Code für diese Anwendung eingeben.</p>
         <div id="exp-kulturen-list"></div>
+      </div>
+
+      <div class="card export-section">
+        <h3>📍 Felder auswählen</h3>
+        <p class="export-help-text">Es werden nur Felder der ausgewählten Kultur angezeigt.</p>
+        <div id="exp-einsatzorte-quick-select" class="quick-select-row"></div>
+        <div id="exp-einsatzorte-list"></div>
       </div>
 
       <div class="card export-section">
@@ -678,6 +680,12 @@
         <label for="eo-ort_id">Ort</label>
         <select id="eo-ort_id" class="input">
           <option value="">Bitte Ort wählen</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="eo-kultur_id">Kultur</label>
+        <select id="eo-kultur_id" class="input">
+          <option value="">Keine Kultur</option>
         </select>
       </div>
     </div>

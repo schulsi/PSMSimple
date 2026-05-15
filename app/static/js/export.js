@@ -22,12 +22,12 @@ async function getBBCHOptionsForKultur(kulturId) {
   return normalized;
 }
 
-function renderExportSelectionList(containerId, items, type) {
+function renderExportSelectionList(containerId, items, type, emptyMessage = 'Keine Einträge vorhanden.') {
   const container = $(containerId);
   if (!container) return;
 
   if (!items.length) {
-    container.innerHTML = `<div class="empty">Keine Einträge vorhanden.</div>`;
+    container.innerHTML = `<div class="empty">${escapeHtml(emptyMessage)}</div>`;
     return;
   }
 
@@ -54,7 +54,7 @@ function renderExportSelectionList(containerId, items, type) {
       return `
         <div class="exp-item" id="exp-einsatzort-${item.id}">
           <label class="exp-item-header">
-            <input type="checkbox" class="exp-einsatzort-check" data-id="${item.id}" data-action="toggleExpItem" data-type="einsatzort">
+            <input type="checkbox" class="exp-einsatzort-check" data-id="${item.id}" data-ort-id="${item.ort_id || ''}" data-action="toggleExpItem" data-type="einsatzort">
             <div>
               <div class="ci-name">${escapeHtml(item.name || '—')}</div>
               <div class="ci-meta">${escapeHtml(item.anwendungsbereich || '—')} · ${escapeHtml(item.flaecheVolumen || '—')} ${escapeHtml(item.einheit || '')}</div>
@@ -97,6 +97,113 @@ function renderExportSelectionList(containerId, items, type) {
   }).join('');
 }
 
+function getSelectedExportKulturIds() {
+  return [...document.querySelectorAll('.exp-kultur-check:checked')]
+    .map(check => Number(check.dataset.id))
+    .filter(Boolean);
+}
+
+function getFilteredExportEinsatzorte() {
+  const selectedKulturIds = getSelectedExportKulturIds();
+  if (!selectedKulturIds.length) return [];
+
+  const selected = new Set(selectedKulturIds.map(String));
+  return (einsatzorteItems || []).filter(item => selected.has(String(item.kultur_id || '')));
+}
+
+function getExportOrtNameById(ortId) {
+  const ort = (typeof orteItems !== 'undefined' ? orteItems : [])
+    .find(item => String(item.id) === String(ortId));
+  return ort?.name || ort?.bezeichnung || `Ort #${ortId}`;
+}
+
+function renderExportFieldQuickSelect(filteredItems, hasSelectedKultur) {
+  const container = $('exp-einsatzorte-quick-select');
+  if (!container) return;
+
+  if (!hasSelectedKultur || !filteredItems.length) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const ortIds = [...new Set(
+    filteredItems
+      .map(item => item.ort_id)
+      .filter(id => id !== null && id !== undefined && id !== '')
+      .map(String)
+  )];
+
+  container.innerHTML = `
+    <button type="button" class="btn btn-sm btn-outline" data-export-field-select="all">Alle</button>
+    <button type="button" class="btn btn-sm btn-ghost" data-export-field-select="none">Keine</button>
+    ${ortIds.map(ortId => `
+      <button type="button" class="btn btn-sm btn-outline" data-export-field-select="ort" data-ort-id="${escapeHtml(ortId)}">
+        ${escapeHtml(getExportOrtNameById(ortId))}
+      </button>
+    `).join('')}
+  `;
+}
+
+function applyExportFieldQuickSelect(mode, ortId = '') {
+  const checks = [...document.querySelectorAll('.exp-einsatzort-check')];
+
+  checks.forEach(check => {
+    if (mode === 'all') {
+      check.checked = true;
+    } else if (mode === 'none') {
+      check.checked = false;
+    } else if (mode === 'ort') {
+      check.checked = String(check.dataset.ortId || '') === String(ortId);
+    }
+
+    const wrap = $(`exp-einsatzort-${check.dataset.id}`);
+    if (wrap) wrap.classList.toggle('selected', check.checked);
+  });
+
+  if (typeof syncLegacyExportUI === 'function') {
+    syncLegacyExportUI();
+  }
+}
+
+function renderFilteredExportEinsatzorte() {
+  const selectedFieldIds = new Set(
+    [...document.querySelectorAll('.exp-einsatzort-check:checked')]
+      .map(check => String(check.dataset.id))
+  );
+  const filteredItems = getFilteredExportEinsatzorte();
+  const hasSelectedKultur = getSelectedExportKulturIds().length > 0;
+
+  renderExportFieldQuickSelect(filteredItems, hasSelectedKultur);
+
+  renderExportSelectionList(
+    'exp-einsatzorte-list',
+    filteredItems,
+    'einsatzort',
+    hasSelectedKultur
+      ? 'Keine Felder für die ausgewählte Kultur vorhanden.'
+      : 'Bitte zuerst eine Kultur auswählen.'
+  );
+
+  filteredItems.forEach(item => {
+    if (!selectedFieldIds.has(String(item.id))) return;
+
+    const wrap = $(`exp-einsatzort-${item.id}`);
+    const checkbox = wrap?.querySelector('.exp-einsatzort-check');
+    if (checkbox) {
+      checkbox.checked = true;
+      wrap.classList.add('selected');
+    }
+  });
+}
+
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-export-field-select]');
+  if (!button) return;
+
+  event.preventDefault();
+  applyExportFieldQuickSelect(button.dataset.exportFieldSelect, button.dataset.ortId || '');
+});
+
 async function toggleExpItem(type, id) {
   let wrap = null;
   if (type === 'psm')        wrap = $(`exp-psm-${id}`);
@@ -114,12 +221,19 @@ async function toggleExpItem(type, id) {
       toast('❌ BBCH-Codes konnten nicht geladen werden');
     }
   }
+
+  if (type === 'kultur') {
+    renderFilteredExportEinsatzorte();
+    if (typeof syncLegacyExportUI === 'function') {
+      syncLegacyExportUI();
+    }
+  }
 }
 
 function loadExportSelections() {
   renderExportSelectionList('exp-psm-list',       psmItems        || [], 'psm');
-  renderExportSelectionList('exp-einsatzorte-list', einsatzorteItems || [], 'einsatzort');
   renderExportSelectionList('exp-kulturen-list',   kulturenItems   || [], 'kultur');
+  renderFilteredExportEinsatzorte();
 }
 
 function getExportPayload() {

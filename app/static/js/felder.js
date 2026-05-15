@@ -23,10 +23,17 @@ let currentEinsatzortEditId = null;
 
 /* NEU */
 let orteItems = [];
+let fieldKulturenItems = [];
 
 function getOrtNameById(ortId) {
   const ort = orteItems.find((o) => String(o.id) === String(ortId));
   return ort?.name || ort?.bezeichnung || `Ort #${ortId}`;
+}
+
+function getFieldKulturNameById(kulturId) {
+  if (!kulturId) return "";
+  const kultur = fieldKulturenItems.find((k) => String(k.id) === String(kulturId));
+  return kultur?.name || `Kultur #${kulturId}`;
 }
 
 /* NEU */
@@ -61,6 +68,40 @@ async function loadOrte(selectedOrtId = "") {
     console.error(err);
     select.innerHTML = `<option value="">Orte konnten nicht geladen werden</option>`;
     toast("❌ Orte konnten nicht geladen werden");
+  }
+}
+
+async function loadFieldKulturen(selectedKulturId = "") {
+  const select = $("eo-kultur_id");
+  if (!select) return;
+
+  try {
+    fieldKulturenItems = await apiGet("/api/kulturen");
+
+    select.innerHTML = `
+      <option value="">Keine Kultur</option>
+      ${fieldKulturenItems
+        .map(
+          (kultur) => `
+        <option value="${kultur.id}">
+          ${escapeHtml(kultur.name || `Kultur ${kultur.id}`)}
+        </option>
+      `,
+        )
+        .join("")}
+    `;
+
+    if (
+      selectedKulturId !== "" &&
+      selectedKulturId !== null &&
+      selectedKulturId !== undefined
+    ) {
+      select.value = String(selectedKulturId);
+    }
+  } catch (err) {
+    console.error(err);
+    select.innerHTML = `<option value="">Kulturen konnten nicht geladen werden</option>`;
+    toast("❌ Kulturen konnten nicht geladen werden");
   }
 }
 
@@ -219,6 +260,7 @@ function renderEinsatzorteList(items = einsatzorteItems) {
         <div class="name">${escapeHtml(item.name || "—")}</div>
         <div class="meta">
           ${escapeHtml(getOrtNameById(item.ort_id))} ·
+          ${item.kultur_id ? `${escapeHtml(getFieldKulturNameById(item.kultur_id))} ·` : ""}
           ${escapeHtml(item.anwendungsbereich || "—")} ·
           ${escapeHtml(item.geoTyp || "—")}
         </div>
@@ -238,8 +280,8 @@ function renderEinsatzorteList(items = einsatzorteItems) {
 
 async function loadEinsatzorte() {
   try {
-    /* wichtig: zuerst Orte laden, dann Einsatzorte rendern */
-    await loadOrte();
+    /* wichtig: zuerst Stammdaten laden, dann Einsatzorte rendern */
+    await Promise.all([loadOrte(), loadFieldKulturen()]);
 
     einsatzorteItems = await apiGet("/api/einsatzorte");
 
@@ -275,6 +317,7 @@ async function resetEinsatzortForm() {
   });
 
   await loadOrte("");
+  await loadFieldKulturen("");
 
   const modalTitle = $("modal-einsatzort-title");
   if (modalTitle) modalTitle.textContent = "Feld hinzufügen";
@@ -298,6 +341,7 @@ function collectEinsatzortForm() {
       ? $("eo-flaecheVolumen").value.trim()
       : "",
     ort_id: $("eo-ort_id") ? $("eo-ort_id").value : "",
+    kultur_id: $("eo-kultur_id") ? $("eo-kultur_id").value : "",
   };
 }
 
@@ -330,6 +374,7 @@ async function editEinsatzort(id) {
     });
 
     await loadOrte(item.ort_id);
+    await loadFieldKulturen(item.kultur_id);
 
     const modalTitle = $("modal-einsatzort-title");
     if (modalTitle) modalTitle.textContent = "Feld bearbeiten";

@@ -26,6 +26,32 @@ def api_get_einsatzorte():
     responses:
       200:
         description: Liste aller Einsatzorte (Felder)
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              gpsRechtswert:
+                type: number
+              gpsHochwert:
+                type: number
+              anwendungsbereich:
+                type: string
+              geoTyp:
+                type: string
+              flaecheVolumen:
+                type: number
+              einheit:
+                type: string
+              ort_id:
+                type: integer
+              kultur_id:
+                type: integer
+                nullable: true
       401:
         description: Nicht eingeloggt
     """
@@ -65,6 +91,13 @@ def api_add_einsatzort():
             einheit:
               type: string
               description: Einheit (m2, ha, ar)
+            ort_id:
+              type: integer
+              description: ID des zugeordneten Ortes
+            kultur_id:
+              type: integer
+              nullable: true
+              description: Optionale ID der Kultur auf diesem Feld
     responses:
       201:
         description: Einsatzort erfolgreich erstellt
@@ -97,6 +130,30 @@ def api_get_einsatzort_by_id(eid):
     responses:
       200:
         description: Einsatzort-Details
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            gpsRechtswert:
+              type: number
+            gpsHochwert:
+              type: number
+            anwendungsbereich:
+              type: string
+            geoTyp:
+              type: string
+            flaecheVolumen:
+              type: number
+            einheit:
+              type: string
+            ort_id:
+              type: integer
+            kultur_id:
+              type: integer
+              nullable: true
       401:
         description: Nicht eingeloggt
       404:
@@ -128,6 +185,26 @@ def api_update_einsatzort(eid):
         name: body
         schema:
           type: object
+          properties:
+            name:
+              type: string
+            gpsRechtswert:
+              type: number
+            gpsHochwert:
+              type: number
+            anwendungsbereich:
+              type: string
+            geoTyp:
+              type: string
+            flaecheVolumen:
+              type: number
+            einheit:
+              type: string
+            ort_id:
+              type: integer
+            kultur_id:
+              type: integer
+              nullable: true
     responses:
       200:
         description: Erfolgreich aktualisiert

@@ -35,7 +35,8 @@ def create_einsatzort(data: dict):
             geoTyp = data["geoTyp"],
             einheit = data["einheit"],
             flaecheVolumen = data["flaecheVolumen"],
-            ort_id = data["ort_id"]
+            ort_id = data["ort_id"],
+            kultur_id = data.get("kultur_id") or None,
     )
     db.session.add(feld)
     db.session.commit()
@@ -56,6 +57,7 @@ def update_einsatzort(einsatzort_id: int, data: dict):
     feld.einheit = data["einheit"]
     feld.flaecheVolumen = data["flaecheVolumen"]
     feld.ort_id = data["ort_id"]
+    feld.kultur_id = data.get("kultur_id") or None
     
     db.session.commit()
     return {"ok": True}
