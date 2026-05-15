@@ -29,6 +29,48 @@ header .sub {
   opacity: .7;
 }
 
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 28px;
+  padding: .2rem .55rem;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, .82);
+  background: rgba(255, 255, 255, .08);
+  font-size: .76rem;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.version-badge.hidden,
+.version-update.hidden {
+  display: none;
+}
+
+.version-badge:not([href]) {
+  cursor: default;
+}
+
+.version-badge.has-update {
+  border-color: rgba(255, 209, 102, .5);
+  color: #fff;
+}
+
+.version-update {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: .16rem .4rem;
+  border-radius: 999px;
+  background: var(--color-warning, #e6a817);
+  color: #1b1604;
+  font-size: .68rem;
+  font-weight: 700;
+}
+
 .app {
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -744,6 +786,17 @@ main {
   }
 
   header .sub {
+    display: none;
+  }
+
+  .version-badge {
+    max-width: 42vw;
+    overflow: hidden;
+    padding-inline: .45rem;
+    font-size: .68rem;
+  }
+
+  .version-update {
     display: none;
   }
 

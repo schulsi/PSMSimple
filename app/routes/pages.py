@@ -39,7 +39,3 @@ def favicon():
         "favicon.ico",
         mimetype="image/vnd.microsoft.icon",
     )
-
-@bp.route("/version")
-def version():
-    return {"name": APP_NAME, "version": APP_VERSION}
