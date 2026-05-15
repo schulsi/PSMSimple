@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, send_from_directory, current_app
 from flask_login import login_required, current_user
 
 from ..services.permissions import build_permissions
+from ..version import APP_NAME, APP_VERSION
 
 bp = Blueprint("pages", __name__)
 
@@ -38,3 +39,7 @@ def favicon():
         "favicon.ico",
         mimetype="image/vnd.microsoft.icon",
     )
+
+@bp.route("/version")
+def version():
+    return {"name": APP_NAME, "version": APP_VERSION}
