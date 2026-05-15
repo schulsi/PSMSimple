@@ -1,3 +1,5 @@
+import os
+
 from app.extensions import logger
 
 from flask import current_app
@@ -14,13 +16,24 @@ config = context.config
 # logger = logging.getLogger('alembic.env')
 
 
+MIGRATION_BIND = os.environ.get("ALEMBIC_BIND", "app_db")
+
+
 def get_engine():
+    db = current_app.extensions['migrate'].db
+
+    if MIGRATION_BIND:
+        try:
+            return db.engines[MIGRATION_BIND]
+        except (AttributeError, KeyError):
+            return db.get_engine(bind=MIGRATION_BIND)
+
     try:
         # this works with Flask-SQLAlchemy<3 and Alchemical
-        return current_app.extensions['migrate'].db.get_engine()
+        return db.get_engine()
     except (TypeError, AttributeError):
         # this works with Flask-SQLAlchemy>=3
-        return current_app.extensions['migrate'].db.engine
+        return db.engine
 
 
 def get_engine_url():
@@ -45,6 +58,9 @@ target_db = current_app.extensions['migrate'].db
 
 
 def get_metadata():
+    if MIGRATION_BIND and hasattr(target_db, 'metadatas'):
+        return target_db.metadatas[MIGRATION_BIND]
+
     if hasattr(target_db, 'metadatas'):
         return target_db.metadatas[None]
     return target_db.metadata

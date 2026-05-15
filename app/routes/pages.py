@@ -31,10 +31,10 @@ def media(filename):
     return send_from_directory(media_dir, filename)
 
 
-@bp.route("/favicon.ico")
+@bp.route("/favicon.png")
 def favicon():
     return send_from_directory(
         os.path.join(current_app.root_path, "static"),
-        "favicon.ico",
-        mimetype="image/vnd.microsoft.icon",
+        "favicon.png",
+        mimetype="image/png",
     )

@@ -102,7 +102,6 @@ def get_schadorganismen():
         })
 
     except PSMBeratungError as e:
-        print(e)
         return jsonify({"ok": False, "message": str(e)}), 502
 
 @bp.get("/api/beratung/schadorganismen/resolve")
