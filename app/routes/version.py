@@ -50,7 +50,6 @@ def check_updates():
         })
 
     except Exception as e:
-        print(f"Error occurred while checking for updates: {e}")
         return jsonify({
             "app_name": APP_NAME,
             "current_version": APP_VERSION,
