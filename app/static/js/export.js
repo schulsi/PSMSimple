@@ -22,12 +22,12 @@ async function getBBCHOptionsForKultur(kulturId) {
   return normalized;
 }
 
-function renderExportSelectionList(containerId, items, type) {
+function renderExportSelectionList(containerId, items, type, emptyMessage = 'Keine Einträge vorhanden.') {
   const container = $(containerId);
   if (!container) return;
 
   if (!items.length) {
-    container.innerHTML = `<div class="empty">Keine Einträge vorhanden.</div>`;
+    container.innerHTML = `<div class="empty">${escapeHtml(emptyMessage)}</div>`;
     return;
   }
 
@@ -97,6 +97,49 @@ function renderExportSelectionList(containerId, items, type) {
   }).join('');
 }
 
+function getSelectedExportKulturIds() {
+  return [...document.querySelectorAll('.exp-kultur-check:checked')]
+    .map(check => Number(check.dataset.id))
+    .filter(Boolean);
+}
+
+function getFilteredExportEinsatzorte() {
+  const selectedKulturIds = getSelectedExportKulturIds();
+  if (!selectedKulturIds.length) return [];
+
+  const selected = new Set(selectedKulturIds.map(String));
+  return (einsatzorteItems || []).filter(item => selected.has(String(item.kultur_id || '')));
+}
+
+function renderFilteredExportEinsatzorte() {
+  const selectedFieldIds = new Set(
+    [...document.querySelectorAll('.exp-einsatzort-check:checked')]
+      .map(check => String(check.dataset.id))
+  );
+  const filteredItems = getFilteredExportEinsatzorte();
+  const hasSelectedKultur = getSelectedExportKulturIds().length > 0;
+
+  renderExportSelectionList(
+    'exp-einsatzorte-list',
+    filteredItems,
+    'einsatzort',
+    hasSelectedKultur
+      ? 'Keine Felder für die ausgewählte Kultur vorhanden.'
+      : 'Bitte zuerst eine Kultur auswählen.'
+  );
+
+  filteredItems.forEach(item => {
+    if (!selectedFieldIds.has(String(item.id))) return;
+
+    const wrap = $(`exp-einsatzort-${item.id}`);
+    const checkbox = wrap?.querySelector('.exp-einsatzort-check');
+    if (checkbox) {
+      checkbox.checked = true;
+      wrap.classList.add('selected');
+    }
+  });
+}
+
 async function toggleExpItem(type, id) {
   let wrap = null;
   if (type === 'psm')        wrap = $(`exp-psm-${id}`);
@@ -114,12 +157,19 @@ async function toggleExpItem(type, id) {
       toast('❌ BBCH-Codes konnten nicht geladen werden');
     }
   }
+
+  if (type === 'kultur') {
+    renderFilteredExportEinsatzorte();
+    if (typeof syncLegacyExportUI === 'function') {
+      syncLegacyExportUI();
+    }
+  }
 }
 
 function loadExportSelections() {
   renderExportSelectionList('exp-psm-list',       psmItems        || [], 'psm');
-  renderExportSelectionList('exp-einsatzorte-list', einsatzorteItems || [], 'einsatzort');
   renderExportSelectionList('exp-kulturen-list',   kulturenItems   || [], 'kultur');
+  renderFilteredExportEinsatzorte();
 }
 
 function getExportPayload() {
