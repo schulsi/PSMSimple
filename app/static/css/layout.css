@@ -33,6 +33,7 @@ header .sub {
   display: inline-flex;
   align-items: center;
   gap: .45rem;
+  margin-left: auto;
   min-height: 28px;
   padding: .2rem .55rem;
   border: 1px solid rgba(255, 255, 255, .22);

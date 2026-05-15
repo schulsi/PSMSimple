@@ -25,7 +25,6 @@ def check_updates():
                 "Accept": "application/vnd.github+json",
                 "X-GitHub-Api-Version": "2026-03-10",
                 "User-Agent": APP_NAME,
-                "Authorization": "Bearer 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"
             },
             timeout=5,
         )
