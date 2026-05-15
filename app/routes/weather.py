@@ -363,7 +363,7 @@ def geocode():
         return jsonify({"error": True, "message": str(exc)}), 502
 
 
-@bp.get("/api/orte/<int:ort_id>/spray-window")
+@bp.route("/api/orte/<int:ort_id>/spray-window", methods=["GET", "POST"])
 @login_required
 def spray_window_for_ort(ort_id: int):
     """

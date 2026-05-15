@@ -95,19 +95,26 @@ function getForecastRangeHours() {
 }
 
 async function getForecastPayload() {
-  settings = await apiGet('api/app/settings')
+  const settings = await apiGet('/api/app/settings');
+  const getSettingValue = (key, fallback) => {
+    const value = Array.isArray(settings)
+      ? settings.find(item => item.key === key)?.value
+      : settings?.[key];
+    return value ?? fallback;
+  };
+
   return {
     hours: getForecastRangeHours(),
     thresholds: {
-      max_wind_ms: settings.find(item => item.key === 'forecast_default_max_wind_ms')?.value,
-      max_precip_mm: settings.find(item => item.key === 'forecast_default_max_precip_mm')?.value,
-      min_temp_c: settings.find(item => item.key === 'forecast_default_min_temp_c')?.value,
-      max_temp_c: settings.find(item => item.key === 'forecast_default_max_temp_c')?.value,
-      min_humidity_pct: settings.find(item => item.key === 'forecast_default_min_humidity_pct')?.value,
+      max_wind_ms: parseFloat(getSettingValue('forecast_default_max_wind_ms', 3.5)),
+      max_precip_mm: parseFloat(getSettingValue('forecast_default_max_precip_mm', 0.0)),
+      min_temp_c: parseFloat(getSettingValue('forecast_default_min_temp_c', 8.0)),
+      max_temp_c: parseFloat(getSettingValue('forecast_default_max_temp_c', 25.0)),
+      min_humidity_pct: parseFloat(getSettingValue('forecast_default_min_humidity_pct', 50.0)),
       min_window_hours: parseInt(document.getElementById('forecast-min-window-hours')?.value || '2', 10),
-      dry_hours_after: settings.find(item => item.key === 'forecast_default_dry_hours_after')?.value,
-      min_hour: settings.find(item => item.key === 'forecast_default_min_hour')?.value,
-      max_hour: settings.find(item => item.key === 'forecast_default_max_hour')?.value,
+      dry_hours_after: parseInt(getSettingValue('forecast_default_dry_hours_after', 3), 10),
+      min_hour: parseInt(getSettingValue('forecast_default_min_hour', 6), 10),
+      max_hour: parseInt(getSettingValue('forecast_default_max_hour', 23), 10),
     }
   };
 }
@@ -125,11 +132,11 @@ async function calculateForecastWindow() {
   clearForecastResult();
 
   try {
-    const payload = getForecastPayload();
+    const payload = await getForecastPayload();
     const results = await Promise.all(
       ortIds.map(async (ortId) => {
         try {
-          const result = await apiGet(`/api/orte/${ortId}/spray-window`, payload);
+          const result = await apiPost(`/api/orte/${ortId}/spray-window`, payload);
           return {
             ort_id: ortId,
             ort_name: getForecastOrtNameById(ortId),
