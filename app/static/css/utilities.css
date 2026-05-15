@@ -123,6 +123,11 @@
   align-items: center;
 }
 
+.quick-select-row + .item-list,
+.quick-select-row + [id$="-list"] {
+  margin-top: .75rem;
+}
+
 .export-help-text {
   font-size: .82rem;
   color: var(--text-muted);
