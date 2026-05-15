@@ -12,4 +12,5 @@ requests
 gunicorn
 flasgger  
 openai
-anthropic 
+anthropic
+packaging

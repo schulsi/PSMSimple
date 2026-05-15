@@ -13,6 +13,10 @@
   <button class="nav-toggle" id="nav-toggle" data-action="toggleMobileNav" aria-label="Menü öffnen">☰</button>
   <div class="logo">🌿 Pflanzen<span>schutz</span></div>
   <div class="sub">Dokumentation & JSON-Export</div>
+  <a class="version-badge hidden" id="app-version-badge" href="#" target="_blank" rel="noopener">
+    <span id="app-version-label"></span>
+    <span class="version-update hidden" id="app-version-update"></span>
+  </a>
 </header>
 <div class="nav-overlay" id="nav-overlay" data-action="closeMobileNav"></div>
 
@@ -906,6 +910,7 @@
 <script src="{{ url_for('static', filename='js/history/history-list.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-psm.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/version.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 

@@ -1,0 +1,4 @@
+APP_VERSION = "0.0.5"
+APP_NAME = "PSMSimple"
+GITHUB_OWNER = "schulsi"
+GITHUB_REPO = "PSMSimple"
