@@ -11,7 +11,7 @@ from ..extensions import cache
 
 # bereits in deiner Config: "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
 PSM_API = Config.PSM_API
-TIMEOUT = 10
+TIMEOUT = 20
 SCHAD_CACHE_PREFIX = "psm_schad_awg_"
 
 
@@ -175,14 +175,14 @@ def suche_mittel(eppo_code: str, schadorg_kode: str) -> list[PSMMittelInfo]:
         try:
             kennr = _get_awg_kennr(awg_id)
             if not kennr or kennr in gesehene_kennr:
+                print(f"Skippt Nr {kennr}")
                 continue
-            gesehene_kennr.add(kennr)
 
             mittel = _get_mittel_info(kennr)
             zul_ende = mittel.get("zul_ende", "")
             wirkstoffe = _get_wirkstoffe(kennr)
-            wartezeit_tage = _get_wartezeit(awg_id)
-            aufwand_info = _get_aufwand(awg_id)
+
+            gesehene_kennr.add(kennr)
 
             ergebnisse.append(PSMMittelInfo(
                 awg_id=awg_id,
@@ -192,8 +192,6 @@ def suche_mittel(eppo_code: str, schadorg_kode: str) -> list[PSMMittelInfo]:
                 geringes_risiko=mittel.get(
                     "mittel_mit_geringem_risiko") == "J",
                 wirkstoffe=[ws for ws in wirkstoffe if ws],
-                wartezeit_tage=wartezeit_tage,
-                aufwand_info=aufwand_info,
             ))
 
         except PSMBeratungError:
@@ -229,7 +227,7 @@ def _get_awg_ids_fuer_schadkode(kode: str) -> set[str]:
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_mittel_info(kennr: str) -> dict:
     """Gecachte Mittel-Stammdaten."""
-    mittel_data = _get(f"mittel/{kennr}")
+    mittel_data = _get(f"mittel/?kennr={kennr}")
     mittel_items = mittel_data.get("items", [mittel_data])
     return mittel_items[0] if mittel_items else mittel_data
 
@@ -237,10 +235,14 @@ def _get_mittel_info(kennr: str) -> dict:
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_wirkstoffe(kennr: str) -> list[str]:
     """Gecachte Wirkstoffe für ein Mittel."""
-    ws_data = _get("wirkstoff_gehalt/", params={"kennr": kennr})
+    wsg_data = _get("wirkstoff_gehalt/", params={"kennr": kennr})
+    
+    for item in wsg_data.get("items", []):
+        wirkstoffnr = item.get("wirknr") 
+
+    ws_data = _get("wirkstoff/", params={"wirknr": wirkstoffnr})
     return [
-        item.get("wirkstoff_name", item.get("wirknr", ""))
-        for item in ws_data.get("items", [])
+        item.get("wirkstoffname") for item in ws_data.get("items", [])
     ]
 
 
@@ -269,7 +271,7 @@ def _get_aufwand(awg_id: str) -> str | None:
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
 def _get_awg_kennr(awg_id: str) -> str | None:
     """Gecachte kennr für eine AWG-ID."""
-    awg_data = _get(f"awg/{awg_id}")
+    awg_data = _get(f"awg/?awg_id={awg_id}")
     items = awg_data.get("items", [awg_data])
     awg = items[0] if items else awg_data
     return awg.get("kennr")
@@ -368,3 +370,80 @@ def suche_schadorganismen_partial(suchbegriff: str, eppo_code: str | None = None
             {"kode": item["kode"], "bezeichnung": item["kodetext"]}
             for item in schad_data
         ], False
+
+def _format_mittel(mittel: list) -> str:
+    if not mittel:
+        return "Keine Mittel gefunden."
+    lines = []
+    for m in mittel[:20]:  # max 20 damit der Kontext nicht zu groß wird
+        riziko = " [geringes Risiko]" if m.geringes_risiko else ""
+        wz = f", Wartezeit: {m.wartezeit_tage}d" if m.wartezeit_tage else ""
+        ws = f", Wirkstoffe: {', '.join(m.wirkstoffe)}" if m.wirkstoffe else ""
+        aufwand = f", Aufwand: {m.aufwand_info}" if m.aufwand_info else ""
+        lines.append(f"- {m.mittelname} (Zul. bis {m.zul_ende[:10]}){riziko}{wz}{ws}{aufwand}")
+    return "\n".join(lines)
+
+
+def _format_historie(historie: list) -> str:
+    lines = []
+    for h in historie[:5]:
+        lines.append(f"- {h.get('datum', '?')}: {h.get('mittel', '?')} auf {h.get('kultur', '?')}")
+    return "\n".join(lines) or "Keine History vorhanden."
+
+def suche_mittel_stream(eppo_code: str, schadorg_kode: str):
+    """
+    Generator-Version von suche_mittel().
+    Yields PSMMittelInfo-Objekte einzeln sobald sie geladen sind,
+    plus ein abschließendes 'done'-Event mit Gesamtanzahl.
+    
+    Yields tuples: ("mittel", PSMMittelInfo) | ("total", int) | ("progress", dict)
+    """
+    kultur_awg_ids = _get_kultur_awg_ids(eppo_code)
+    if not kultur_awg_ids:
+        yield ("total", 0)
+        return
+
+    schad_awg_ids = _get_schad_awg_ids(schadorg_kode)
+    treffer_ids = kultur_awg_ids & schad_awg_ids
+    if not treffer_ids:
+        yield ("total", 0)
+        return
+
+    total = len(treffer_ids)
+    yield ("progress", {"loaded": 0, "total": total})
+
+    gesehene_kennr: set[str] = set()
+    ergebnisse: list[PSMMittelInfo] = []
+    loaded = 0
+
+    for awg_id in treffer_ids:
+        loaded += 1
+        try:
+            kennr = _get_awg_kennr(awg_id)
+            if not kennr or kennr in gesehene_kennr:
+                yield ("progress", {"loaded": loaded, "total": total})
+                continue
+
+            mittel = _get_mittel_info(kennr)
+            zul_ende = mittel.get("zul_ende", "")
+            wirkstoffe = _get_wirkstoffe(kennr)
+
+            gesehene_kennr.add(kennr)
+
+            info = PSMMittelInfo(
+                awg_id=awg_id,
+                kennr=kennr,
+                mittelname=mittel.get("mittelname", kennr),
+                zul_ende=zul_ende,
+                geringes_risiko=mittel.get("mittel_mit_geringem_risiko") == "J",
+                wirkstoffe=[ws for ws in wirkstoffe if ws],
+            )
+            ergebnisse.append(info)
+            yield ("mittel", info)
+
+        except PSMBeratungError:
+            pass
+
+        yield ("progress", {"loaded": loaded, "total": total})
+
+    yield ("total", len(ergebnisse))

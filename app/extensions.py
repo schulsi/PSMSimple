@@ -12,9 +12,9 @@ import os
 
 from .config import Config
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=os.path.join(Config.LOG_DIR, "psm.log"), filemode="a")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", filename=os.path.join(Config.LOG_DIR, "psm.log"), filemode="a", encoding="utf-8")
 logger = logging.getLogger(__name__)
-logger.addHandler(default_handler)
+logger.removeHandler(default_handler)
 logging.info("Starting application...")
 
 swagger = Swagger()

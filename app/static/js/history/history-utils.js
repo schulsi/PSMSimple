@@ -65,13 +65,13 @@ function renderPSMHistory(items) {
 
 function renderEinsatzorteHistory(items) {
   if (!items || !items.length) {
-    return `<div class="empty-text empty">Keine Einsatzorte vorhanden.</div>`;
+    return `<div class="empty-text empty">Keine Felder vorhanden.</div>`;
   }
   return `
     <div class="history-list-block">
       ${items.map(ort => `
         <div class="history-subitem">
-          <div class="history-subitem-title">${escapeHtml(ort.name || 'Unbenannter Einsatzort')}</div>
+          <div class="history-subitem-title">${escapeHtml(ort.name || 'Unbenanntes Feld')}</div>
           <div class="history-subitem-meta">Bereich: ${escapeHtml(ort.anwendungsbereich || '—')}</div>
           <div class="history-subitem-meta">Fläche: ${escapeHtml(ort.flaecheVolumen || '—')} ${escapeHtml(ort.einheit || '')}</div>
         </div>

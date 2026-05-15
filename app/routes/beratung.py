@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, Response
 import json
 from ..config import Config
 from ..models import Kulturen
@@ -12,6 +12,9 @@ from ..services.psm_beratung_service import (
     _get_kultur_awg_ids,
     _get_schad_awg_ids,
     _is_schad_cached,
+    _format_historie,
+    _format_mittel,
+    suche_mittel_stream,
     )
 from .einsatzorte import cord2plz
 from ..repositories.orte_repo import get_ort_by_id
@@ -99,6 +102,7 @@ def get_schadorganismen():
         })
 
     except PSMBeratungError as e:
+        print(e)
         return jsonify({"ok": False, "message": str(e)}), 502
 
 @bp.get("/api/beratung/schadorganismen/resolve")
@@ -316,25 +320,6 @@ Bitte empfehle die 2-3 geeignetsten Mittel mit Begründung. Berücksichtige:
         return jsonify({"ok": False, "message": str(e)}), 502
 
 
-def _format_mittel(mittel: list) -> str:
-    if not mittel:
-        return "Keine Mittel gefunden."
-    lines = []
-    for m in mittel[:20]:  # max 20 damit der Kontext nicht zu groß wird
-        riziko = " [geringes Risiko]" if m.geringes_risiko else ""
-        wz = f", Wartezeit: {m.wartezeit_tage}d" if m.wartezeit_tage else ""
-        ws = f", Wirkstoffe: {', '.join(m.wirkstoffe)}" if m.wirkstoffe else ""
-        aufwand = f", Aufwand: {m.aufwand_info}" if m.aufwand_info else ""
-        lines.append(f"- {m.mittelname} (Zul. bis {m.zul_ende[:10]}){riziko}{wz}{ws}{aufwand}")
-    return "\n".join(lines)
-
-
-def _format_historie(historie: list) -> str:
-    lines = []
-    for h in historie[:5]:
-        lines.append(f"- {h.get('datum', '?')}: {h.get('mittel', '?')} auf {h.get('kultur', '?')}")
-    return "\n".join(lines) or "Keine History vorhanden."
-
 @bp.get("/api/beratung/llm-status")
 @login_required
 def llm_status():
@@ -361,3 +346,66 @@ def llm_status():
         "configured": configured,
         "provider": provider,
     })
+
+@bp.get("/api/beratung/mittel/stream")
+@login_required
+def stream_mittel_empfehlung():
+    """
+    Streamt zugelassene Mittel per Server-Sent Events.
+    Schickt jedes Mittel einzeln sobald es geladen ist.
+    ---
+    tags:
+      - Beratung
+    parameters:
+      - in: query
+        name: kultur_id
+        type: integer
+        required: true
+      - in: query
+        name: schadorg_kode
+        type: string
+        required: true
+    responses:
+      200:
+        description: SSE-Stream mit Mittel-Daten
+      400:
+        description: Fehlende Parameter
+      404:
+        description: Kultur nicht gefunden
+    """
+    kultur_id = request.args.get("kultur_id")
+    schadorg_kode = request.args.get("schadorg_kode")
+
+    if not kultur_id or not schadorg_kode:
+        return jsonify({"ok": False, "message": "kultur_id und schadorg_kode erforderlich"}), 400
+
+    kultur = Kulturen.query.get(int(kultur_id))
+    if not kultur:
+        return jsonify({"ok": False, "message": "Kultur nicht gefunden"}), 404
+
+    if not kultur.eppoCode:
+        return jsonify({"ok": False, "message": f"Kultur '{kultur.name}' hat keinen EPPO-Code"}), 400
+
+    def generate():
+        try:
+            for event_type, payload in suche_mittel_stream(kultur.eppoCode, schadorg_kode):
+                if event_type == "mittel":
+                    data = json.dumps({"type": "mittel", "mittel": payload.to_dict()})
+                elif event_type == "progress":
+                    data = json.dumps({"type": "progress", **payload})
+                elif event_type == "total":
+                    data = json.dumps({"type": "done", "anzahl": payload})
+                else:
+                    continue
+                yield f"data: {data}\n\n"
+        except PSMBeratungError as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",   # nginx: Buffering deaktivieren
+        }
+    )

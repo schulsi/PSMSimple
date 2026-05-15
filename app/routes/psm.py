@@ -82,7 +82,7 @@ def api_add_psm():
     """
     data = request.get_json(silent=True) or {}
     required_fields = ["name", "zulassungsnr",
-                       "wirkstoffe", "aufwandEinheit", "bienen"]
+                       "wirkstoffe", "aufwandEinheit", "bienen", "lager_einheit", "min_lager", "warnung_lager"]
     for field in required_fields:
         if not data.get(field):
             return jsonify({"ok": False, "error": f"Feld '{field}' ist erforderlich."}), 400

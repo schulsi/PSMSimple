@@ -4,12 +4,17 @@ from ..models.ApplicationSetting import ApplicationSetting
 
 def get_setting(key):
     db = get_db()
-    return db.session.get(ApplicationSetting, key).to_dict()
+    return db.session.get(ApplicationSetting, key).get_value()
 
 
 def get_settings():
     db = get_db()
-    return [setting.to_dict() for setting in db.session.query(ApplicationSetting).all()]
+    settings = db.session.query(
+        ApplicationSetting.key,
+        ApplicationSetting.value
+    ).all()
+
+    return dict(settings)
 
 
 def set_setting(key, value):

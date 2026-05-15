@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from ..config import Config
 from dataclasses import dataclass
-from typing import Any
-import openai
+from openai import OpenAI, APIConnectionError, APIError, APITimeoutError
 import anthropic
 
 
@@ -41,7 +40,7 @@ def _call_anthropic(system: str, user: str, model: str, max_tokens: int) -> LLMR
 def _call_openai(system: str, user: str, model: str, max_tokens: int) -> LLMResponse:
     try:
 
-        client = openai.OpenAI(api_key=Config.OPENAI_API_KEY, base_url=Config.OPENAI_BASE_URL)
+        client = OpenAI(api_key=Config.OPENAI_API_KEY, base_url=Config.OPENAI_BASE_URL, timeout=120)
         msg = client.chat.completions.create(
             model=model,
             max_tokens=max_tokens,
@@ -55,6 +54,14 @@ def _call_openai(system: str, user: str, model: str, max_tokens: int) -> LLMResp
             model=model,
             provider="openai",
         )
+    except APITimeoutError as e:
+        raise LLMError(f"LLM-Timeout bei Provider 'openai': {e}") from e
+    except APIConnectionError as e:
+        raise LLMError(f"LLM-Verbindung fehlgeschlagen: {e}") from e
+    except APIError as e:
+        raise LLMError(f"LLM-API-Fehler: {e}") from e
+    except Exception as e:
+        raise LLMError(f"Unerwarteter LLM-Fehler: {e}") from e
     except Exception as exc:
         raise LLMError(f"OpenAI Fehler: {exc}") from exc
 
@@ -86,7 +93,10 @@ def llm_query(
     Modell wird aus LLM_MODEL gelesen oder auf den Provider-Standard gesetzt.
     """
     provider = provider or Config.LLM_PROVIDER
-    model = model or Config.LLM_MODEL or _DEFAULT_MODELS.get(provider, "")
+    model = model or Config.LLM_MODEL or _DEFAULT_MODELS.get(provider)
+
+    if not model:
+        raise LLMError(f"Kein Modell für Provider '{provider}' konfiguriert")
 
     if provider not in _PROVIDERS:
         raise LLMError(

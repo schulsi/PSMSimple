@@ -84,7 +84,7 @@ function renderFieldsTable(items) {
     <table class="psm-usage-table">
       <thead>
         <tr>
-          <th>Einsatzort (Feld)</th>
+          <th>Feld</th>
           <th>Verwendungen</th>
           <th>Zuletzt verwendet</th>
           <th>Details</th>

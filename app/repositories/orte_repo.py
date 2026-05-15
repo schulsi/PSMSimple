@@ -26,11 +26,9 @@ def create_ort(data: dict):
     ort = Ort(
         name=data["name"],
         plz=data["plz"],
-        ort_id=data["ort_id"]
     )
     db.session.add(ort)
     db.session.commit()
-    db.session.refresh()
 
     return {"ok": True, "id": ort.id}
 

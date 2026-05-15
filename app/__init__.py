@@ -19,6 +19,7 @@ def load_user(user_id):
 
 
 def create_app():
+    
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config.from_object(Config)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)

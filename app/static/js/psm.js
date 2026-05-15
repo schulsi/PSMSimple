@@ -64,11 +64,11 @@ async function resetPSMForm() {
   setPSMInfoLoading(false);
   const payload = await apiGet('/api/app/settings');
   const getSettingValue = (key, fallback = '') => {
-    const entry = Array.isArray(payload)
-      ? payload.find(item => item.key === key)
-      : null;
-    return entry?.value ?? fallback;
-  };
+    if (Array.isArray(payload)) {
+    return payload.find(item => item.key === key)?.value ?? fallback;
+  }
+  return payload?.[key] ?? fallback;
+};
   const fields = ['name', 'zulassungsnr', 'wirkstoffe', 'aufwandEinheit', 'bienen'];
   fields.forEach(field => {
     const el = $(`psm-${field}`);

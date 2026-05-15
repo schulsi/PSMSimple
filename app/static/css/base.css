@@ -56,6 +56,16 @@ h2 .badge {
   border-radius: 20px;
 }
 
+.badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .7rem;
+  font-weight: 600;
+  background: var(--green-pale);
+  color: var(--green-deep);
+  padding: .2rem .6rem;
+  border-radius: 20px;
+}
+
 pre {
   background: var(--green-deep);
   color: #b7e4c7;
