@@ -11,6 +11,7 @@ from .models import User
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
 from .services.permissions import seed_roles
+from .cli import register_cli
 
 
 @login_manager.user_loader
@@ -93,5 +94,6 @@ def create_app():
         
 
     register_blueprints(app)
+    register_cli(app)
     _start_warmup_cache(app)
     return app
