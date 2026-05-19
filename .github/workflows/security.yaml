@@ -184,13 +184,74 @@ jobs:
           docker run -d \
             --name myapp \
             -p 80:80 \
-            -e SECRET_KEY="f83j2k29skd9sl2k2ls0s9s2lsk2" \
+            -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
             myapp:dast
 
       - name: Wait for application startup
         run: |
-          sleep 20
-          curl -f http://localhost:80 || true
+          for i in {1..30}; do
+            if curl -fsS http://localhost:80/login > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Create ZAP test user
+        env:
+          ZAP_USERNAME: ${{ secrets.ZAP_USERNAME }}
+          ZAP_PASSWORD: ${{ secrets.ZAP_PASSWORD }}
+        run: |
+          docker exec \
+            -e PSM_CI_USERNAME="$ZAP_USERNAME" \
+            -e PSM_CI_PASSWORD="$ZAP_PASSWORD" \
+            -e PSM_CI_ROLE="user" \
+            myapp flask ensure-user
+
+      - name: Login ZAP test user
+        env:
+          ZAP_USERNAME: ${{ secrets.ZAP_USERNAME }}
+          ZAP_PASSWORD: ${{ secrets.ZAP_PASSWORD }}
+        run: |
+          curl -fsS \
+            -c zap-cookies.txt \
+            http://localhost:80/login \
+            -o zap-login.html
+
+          csrf_token="$(sed -n 's/.*name="csrf_token" value="\([^"]*\)".*/\1/p' zap-login.html | head -n 1)"
+          if [ -z "$csrf_token" ]; then
+            echo "CSRF token not found on login page."
+            exit 1
+          fi
+
+          curl -fsS -L \
+            -b zap-cookies.txt \
+            -c zap-cookies.txt \
+            --data-urlencode "csrf_token=$csrf_token" \
+            --data-urlencode "username=$ZAP_USERNAME" \
+            --data-urlencode "password=$ZAP_PASSWORD" \
+            http://localhost:80/login \
+            -o zap-login-result.html
+
+          curl -fsS \
+            -b zap-cookies.txt \
+            http://localhost:80/api/me \
+            -o zap-auth-check.json
+          grep -q '"ok":true' zap-auth-check.json
+
+          session_cookie="$(awk '$6 == "session" {print $7}' zap-cookies.txt | tail -n 1)"
+          if [ -z "$session_cookie" ]; then
+            echo "Session cookie not found after login."
+            exit 1
+          fi
+
+          echo "::add-mask::$session_cookie"
+          {
+            echo "ZAP_AUTH_HEADER=Cookie"
+            echo "ZAP_AUTH_HEADER_VALUE=session=$session_cookie"
+            echo "ZAP_AUTH_HEADER_SITE=localhost"
+          } >> "$GITHUB_ENV"
+
       - name: Show container logs
         run: |
           docker logs myapp
@@ -211,7 +272,7 @@ jobs:
       - name: Run OWASP ZAP API Scan
         uses: zaproxy/action-api-scan@v0.10.0
         with:
-          target: "http://localhost:80/api/openapi.json"
+          target: "http://localhost:80/apispec_1.json"
           format: openapi
           fail_action: false
           artifact_name: "zap-api-scan"
