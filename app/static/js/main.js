@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       await Promise.all([
         loadBetrieb(),
-        loadEinsatzorte(),
         loadKulturen(),
         loadSettings(),
         loadInventory()
@@ -47,8 +46,6 @@ function logout() {
   const CLICK_ACTIONS = new Set([
     'toggleMobileNav', 'closeMobileNav', 'toggleUserPopup',
     'saveBetrieb',
-    'closeMapModal', 'confirmMapSelection',
-    'openEinsatzortModal', 'saveEinsatzort', 'openMapModal',
     'openKulturModal', 'saveKultur',
     'previewJSON', 'exportSave', 'exportDownloadZip',
     'resetHistoryFilter', 'resetPSMHistoryFilter', 'resetFieldsHistoryFilter',
@@ -66,8 +63,6 @@ function logout() {
     ['quickSelectPSMHistory',el => [el.dataset.period]],
     ['quickSelectFieldsHistory', el => [el.dataset.period]],
     ['closeModal',           el => [el.dataset.modal]],
-    ['editEinsatzort',         el => [el.dataset.id]],
-    ['removeEinsatzort',       el => [el.dataset.id]],
     ['showHistoryDetail',         el => [el.dataset.id]],
     ['deleteHistoryEntry',       el => [el.dataset.id]],
     ['toggleFieldDetails',       el => [el.dataset.name, el]],

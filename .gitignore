@@ -12,6 +12,7 @@ users.db
 # Distribution / packaging
 .Python
 build/
+app/static/vue/
 develop-eggs/
 dist/
 downloads/

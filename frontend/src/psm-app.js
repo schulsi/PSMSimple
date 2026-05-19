@@ -3,6 +3,9 @@ import { createApp, h, nextTick, Teleport } from 'vue';
 import AppShell from './components/AppShell.js';
 import BetriebView from './components/BetriebView.js';
 import BetriebWizard from './components/BetriebWizard.js';
+import EinsatzortMapModal from './components/EinsatzortMapModal.js';
+import EinsatzortModal from './components/EinsatzortModal.js';
+import EinsatzorteView from './components/EinsatzorteView.js';
 import HomeView from './components/HomeView.js';
 import PsmModal from './components/PsmModal.js';
 import PsmView from './components/PsmView.js';
@@ -62,6 +65,10 @@ function readBootstrapData() {
 
 const bootstrap = readBootstrapData();
 
+const eoMapDefault = [51.1657, 10.4515];
+const eoMapDefaultZoom = 6;
+const eoMapPointZoom = 15;
+
 const app = createApp({
   data() {
     const permissions = bootstrap.permissions || {};
@@ -95,6 +102,7 @@ const app = createApp({
       },
       isBetriebSaving: false,
       isBetriebWizardSaving: false,
+      isEinsatzorteLoading: false,
       isMobileNavOpen: false,
       isPsmInfoLoading: false,
       isPsmLoading: false,
@@ -114,6 +122,22 @@ const app = createApp({
       psmItems: [],
       psmSearchResults: [],
       psmSearchTimer: null,
+      einsatzorteItems: [],
+      einsatzortEditId: null,
+      einsatzortForm: {
+        name: '',
+        gpsRechtswert: '',
+        gpsHochwert: '',
+        anwendungsbereich: 'Freiland',
+        geoTyp: 'GPS-Koordinaten',
+        einheit: 'm2',
+        flaecheVolumen: '',
+        ort_id: '',
+      },
+      eoMap: null,
+      eoMarker: null,
+      eoMapSelection: null,
+      orteItems: [],
       showPsmSearchResults: false,
       user: {
         username: user.username || '',
@@ -199,7 +223,10 @@ const app = createApp({
     document.getElementById('tab-home')?.replaceChildren();
     document.getElementById('tab-betrieb')?.replaceChildren();
     document.getElementById('tab-psm')?.replaceChildren();
+    document.getElementById('tab-einsatzorte')?.replaceChildren();
     document.getElementById('modal-psm')?.replaceChildren();
+    document.getElementById('modal-einsatzort')?.replaceChildren();
+    document.getElementById('modal-map')?.replaceChildren();
     document.getElementById('modal-betrieb-wizard')?.replaceChildren();
   },
 
@@ -223,6 +250,7 @@ const app = createApp({
     window.addEventListener('popstate', this.onPopState);
 
     this.loadPSM();
+    this.loadEinsatzorte();
   },
 
   beforeUnmount() {
@@ -454,6 +482,280 @@ const app = createApp({
       } catch (err) {
         console.error(err);
         callIfExists('toast', `❌ ${err.message}`);
+      }
+    },
+
+    getOrtNameById(ortId) {
+      const ort = this.orteItems.find(item => String(item.id) === String(ortId));
+      return ort?.name || ort?.bezeichnung || (ortId ? `Ort #${ortId}` : '-');
+    },
+
+    applyEinsatzortForm(item = {}) {
+      this.einsatzortForm = {
+        name: item.name || '',
+        gpsRechtswert: String(item.gpsRechtswert ?? ''),
+        gpsHochwert: String(item.gpsHochwert ?? ''),
+        anwendungsbereich: item.anwendungsbereich || 'Freiland',
+        geoTyp: item.geoTyp || 'GPS-Koordinaten',
+        einheit: item.einheit || 'm2',
+        flaecheVolumen: String(item.flaecheVolumen ?? ''),
+        ort_id: item.ort_id == null ? '' : String(item.ort_id),
+      };
+    },
+
+    collectEinsatzortForm() {
+      return {
+        name: this.einsatzortForm.name.trim(),
+        gpsRechtswert: this.einsatzortForm.gpsRechtswert.trim(),
+        gpsHochwert: this.einsatzortForm.gpsHochwert.trim(),
+        anwendungsbereich: this.einsatzortForm.anwendungsbereich.trim(),
+        geoTyp: this.einsatzortForm.geoTyp.trim(),
+        einheit: this.einsatzortForm.einheit.trim(),
+        flaecheVolumen: this.einsatzortForm.flaecheVolumen.trim(),
+        ort_id: this.einsatzortForm.ort_id,
+      };
+    },
+
+    updateEinsatzortField(field, value) {
+      this.einsatzortForm = {
+        ...this.einsatzortForm,
+        [field]: value,
+      };
+    },
+
+    async loadOrte() {
+      try {
+        const apiGetFn = window.apiGet;
+        if (typeof apiGetFn !== 'function') return;
+
+        const items = await apiGetFn('/api/orte');
+        this.orteItems = Array.isArray(items) ? items : [];
+      } catch (err) {
+        console.error(err);
+        callIfExists('toast', '❌ Orte konnten nicht geladen werden');
+      }
+    },
+
+    async loadEinsatzorte() {
+      try {
+        const apiGetFn = window.apiGet;
+        if (typeof apiGetFn !== 'function') return;
+
+        this.isEinsatzorteLoading = true;
+        await this.loadOrte();
+        const items = await apiGetFn('/api/einsatzorte');
+        this.einsatzorteItems = Array.isArray(items) ? items : [];
+        callIfExists('loadExportSelections');
+      } catch (err) {
+        console.error(err);
+        callIfExists('toast', '❌ Einsatzorte konnten nicht geladen werden');
+      } finally {
+        this.isEinsatzorteLoading = false;
+      }
+    },
+
+    async resetEinsatzortForm() {
+      this.einsatzortEditId = null;
+      this.applyEinsatzortForm();
+      await this.loadOrte();
+      this.resetEinsatzortMap();
+    },
+
+    async openEinsatzortModal() {
+      await this.resetEinsatzortForm();
+      callIfExists('openModal', 'modal-einsatzort');
+    },
+
+    async editEinsatzort(id) {
+      try {
+        const apiGetFn = window.apiGet;
+        if (typeof apiGetFn !== 'function') return;
+
+        const item = await apiGetFn(`/api/einsatzorte/${id}`);
+        this.einsatzortEditId = id;
+        await this.loadOrte();
+        this.applyEinsatzortForm(item);
+
+        const lat = parseFloat(item.gpsRechtswert);
+        const lng = parseFloat(item.gpsHochwert);
+        this.eoMapSelection = Number.isNaN(lat) || Number.isNaN(lng) ? null : { lat, lng };
+
+        callIfExists('openModal', 'modal-einsatzort');
+      } catch (err) {
+        console.error(err);
+        callIfExists('toast', `❌ ${err.message}`);
+      }
+    },
+
+    async saveEinsatzort() {
+      try {
+        const payload = this.collectEinsatzortForm();
+
+        if (!payload.name) {
+          callIfExists('toast', '❌ Bitte einen Namen eingeben');
+          return;
+        }
+
+        if (!payload.ort_id) {
+          callIfExists('toast', '❌ Bitte einen Ort auswählen');
+          return;
+        }
+
+        if (this.einsatzortEditId) {
+          const apiPutFn = window.apiPut;
+          if (typeof apiPutFn !== 'function') return;
+          await apiPutFn(`/api/einsatzorte/${this.einsatzortEditId}`, payload);
+          callIfExists('toast', '✅ Einsatzort gespeichert');
+        } else {
+          const apiPostFn = window.apiPost;
+          if (typeof apiPostFn !== 'function') return;
+          await apiPostFn('/api/einsatzorte', payload);
+          callIfExists('toast', '✅ Einsatzort hinzugefügt');
+        }
+
+        callIfExists('closeModal', 'modal-einsatzort');
+        await this.resetEinsatzortForm();
+        await this.loadEinsatzorte();
+      } catch (err) {
+        console.error(err);
+        callIfExists('toast', `❌ ${err.message}`);
+      }
+    },
+
+    async removeEinsatzort(id) {
+      if (!confirm('Diesen Einsatzort wirklich löschen?')) return;
+
+      try {
+        const apiDeleteFn = window.apiDelete;
+        if (typeof apiDeleteFn !== 'function') return;
+
+        await apiDeleteFn(`/api/einsatzorte/${id}`);
+        callIfExists('toast', '✅ Einsatzort gelöscht');
+        await this.loadEinsatzorte();
+      } catch (err) {
+        console.error(err);
+        callIfExists('toast', `❌ ${err.message}`);
+      }
+    },
+
+    async openMapModal() {
+      callIfExists('openModal', 'modal-map');
+      await nextTick();
+      window.setTimeout(() => this.initializeOrRefreshMap(), 80);
+    },
+
+    async initializeOrRefreshMap() {
+      const leaflet = window.L;
+      if (!leaflet) {
+        callIfExists('toast', '❌ Karte konnte nicht geladen werden');
+        return;
+      }
+
+      if (!this.eoMap) {
+        this.configureLeafletMarkerAssets(leaflet);
+        const { center, zoom } = await this.getInitialMapView();
+        this.eoMap = leaflet.map('eo-map', { zoomControl: true }).setView(center, zoom);
+
+        leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19,
+        }).addTo(this.eoMap);
+
+        this.eoMap.on('click', event => this.setMapPoint(event.latlng.lat, event.latlng.lng));
+      }
+
+      this.eoMap.invalidateSize();
+
+      const lat = parseFloat(this.einsatzortForm.gpsRechtswert);
+      const lng = parseFloat(this.einsatzortForm.gpsHochwert);
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        this.setMapPoint(lat, lng);
+      } else if (this.eoMapSelection) {
+        this.setMapPoint(this.eoMapSelection.lat, this.eoMapSelection.lng);
+      }
+    },
+
+    configureLeafletMarkerAssets(leaflet) {
+      if (!leaflet?.Icon?.Default || leaflet.Icon.Default.prototype._psmSimpleConfigured) return;
+
+      delete leaflet.Icon.Default.prototype._getIconUrl;
+      leaflet.Icon.Default.mergeOptions({
+        iconRetinaUrl: '/media/marker-icon-2x.png',
+        iconUrl: '/media/marker-icon.png',
+        shadowUrl: '/media/marker-shadow.png',
+      });
+      leaflet.Icon.Default.prototype._psmSimpleConfigured = true;
+    },
+
+    async getInitialMapView() {
+      try {
+        const apiGetFn = window.apiGet;
+        if (typeof apiGetFn !== 'function') return { center: eoMapDefault, zoom: eoMapDefaultZoom };
+
+        const betrieb = await apiGetFn('/api/betrieb');
+        if (!betrieb?.plz) throw new Error('Keine PLZ gefunden');
+
+        const data = await apiGetFn(`/api/einsatzorte/cord2plz/${encodeURIComponent(betrieb.plz)}`);
+        const lat = parseFloat(data.lat);
+        const lng = parseFloat(data.lon);
+
+        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+          return { center: [lat, lng], zoom: eoMapPointZoom };
+        }
+
+        callIfExists('toast', '❌ PLZ nicht gefunden');
+      } catch (err) {
+        console.error(err);
+        callIfExists('toast', `❌ ${err.message}`);
+      }
+
+      return { center: eoMapDefault, zoom: eoMapDefaultZoom };
+    },
+
+    setMapPoint(lat, lng) {
+      if (!this.eoMap) return;
+
+      const leaflet = window.L;
+      const latRounded = parseFloat(lat.toFixed(6));
+      const lngRounded = parseFloat(lng.toFixed(6));
+      this.eoMapSelection = { lat: latRounded, lng: lngRounded };
+
+      if (this.eoMarker) {
+        this.eoMarker.setLatLng([latRounded, lngRounded]);
+      } else if (leaflet) {
+        this.eoMarker = leaflet.marker([latRounded, lngRounded], { draggable: true }).addTo(this.eoMap);
+        this.eoMarker.on('dragend', (event) => {
+          const point = event.target.getLatLng();
+          this.setMapPoint(point.lat, point.lng);
+        });
+      }
+
+      this.eoMap.setView([latRounded, lngRounded], Math.max(this.eoMap.getZoom(), eoMapPointZoom));
+    },
+
+    confirmMapSelection() {
+      if (!this.eoMapSelection) return;
+
+      this.einsatzortForm = {
+        ...this.einsatzortForm,
+        gpsRechtswert: String(this.eoMapSelection.lat),
+        gpsHochwert: String(this.eoMapSelection.lng),
+      };
+
+      callIfExists('closeModal', 'modal-map');
+      callIfExists('toast', '📍 Koordinaten übernommen');
+    },
+
+    resetEinsatzortMap() {
+      if (this.eoMarker) {
+        this.eoMarker.remove();
+        this.eoMarker = null;
+      }
+
+      this.eoMapSelection = null;
+
+      if (this.eoMap) {
+        this.eoMap.setView(eoMapDefault, eoMapDefaultZoom);
       }
     },
 
@@ -752,6 +1054,17 @@ const app = createApp({
           onRemove: id => this.removePSM(id),
         }),
       ]),
+      h(Teleport, { to: '#tab-einsatzorte' }, [
+        h(EinsatzorteView, {
+          canWrite: !!this.permissions.can_write,
+          isLoading: this.isEinsatzorteLoading,
+          items: this.einsatzorteItems,
+          orte: this.orteItems,
+          onEdit: id => this.editEinsatzort(id),
+          onOpenCreate: () => this.openEinsatzortModal(),
+          onRemove: id => this.removeEinsatzort(id),
+        }),
+      ]),
       h(Teleport, { to: '#modal-psm' }, [
         h(PsmModal, {
           form: this.psmForm,
@@ -764,6 +1077,26 @@ const app = createApp({
           onSearch: term => this.searchPSMAutocomplete(term),
           onSelectSearchResult: item => this.selectPSMSearchResult(item),
           onUpdateField: (field, value) => this.updatePsmField(field, value),
+        }),
+      ]),
+      h(Teleport, { to: '#modal-einsatzort' }, [
+        h(EinsatzortModal, {
+          form: this.einsatzortForm,
+          isEditing: !!this.einsatzortEditId,
+          orte: this.orteItems,
+          onCancel: () => callIfExists('closeModal', 'modal-einsatzort'),
+          onOpenMap: () => this.openMapModal(),
+          onSave: () => this.saveEinsatzort(),
+          onUpdateField: (field, value) => this.updateEinsatzortField(field, value),
+        }),
+      ]),
+      h(Teleport, { to: '#modal-map' }, [
+        h(EinsatzortMapModal, {
+          hasSelection: !!this.eoMapSelection,
+          selectedLat: this.eoMapSelection?.lat ?? '-',
+          selectedLng: this.eoMapSelection?.lng ?? '-',
+          onCancel: () => callIfExists('closeModal', 'modal-map'),
+          onConfirm: () => this.confirmMapSelection(),
         }),
       ]),
       h(Teleport, { to: '#modal-betrieb-wizard' }, [

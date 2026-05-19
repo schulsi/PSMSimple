@@ -108,7 +108,8 @@ function getFilteredExportEinsatzorte() {
   if (!selectedKulturIds.length) return [];
 
   const selected = new Set(selectedKulturIds.map(String));
-  return (einsatzorteItems || []).filter(item => selected.has(String(item.kultur_id || '')));
+  const items = window.psmVueApp?.einsatzorteItems || einsatzorteItems || [];
+  return items.filter(item => selected.has(String(item.kultur_id || '')));
 }
 
 function getExportOrtNameById(ortId) {

@@ -23,12 +23,7 @@
 
     <div id="tab-psm" class="tab"></div>
 
-    <div id="tab-einsatzorte" class="tab">
-      <h2>📍 Felder <span class="badge" id="eo-count">0</span></h2>
-      <button type="button" class="btn btn-primary mb-1" data-action="openEinsatzortModal">+ Neues Feld</button>
-      <button type="button" class="btn btn-primary mb-1" data-action="openOrtModal">+ Neuer Ort</button>
-      <div class="item-list" id="einsatzorte-list"></div>
-    </div>
+    <div id="tab-einsatzorte" class="tab"></div>
 
     <div id="tab-kulturen" class="tab">
       <h2>🌾 Kulturen <span class="badge" id="kult-count">0</span></h2>
@@ -526,71 +521,9 @@
 
 <div class="modal-overlay" id="modal-psm"></div>
 
-<div class="modal-overlay" id="modal-einsatzort">
-  <div class="modal">
-    <h3 id="modal-einsatzort-title">Feld</h3>
-    <div class="form-grid">
-      <div class="field span-2"><label>Name / Bezeichnung <span class="danger-text">*</span></label><input id="eo-name"></div>
-      <div class="field span-2">
-        <label>Koordinaten</label>
-        <div class="map-picker-row">
-          <input type="number" id="eo-gpsRechtswert" step="any" placeholder="Lat, z.B. 48.123456" required>
-          <input type="number" id="eo-gpsHochwert" step="any" placeholder="Lng, z.B. 7.654321" required>
-          <button type="button" class="btn btn-ghost btn-sm nowrap shrink-0" data-action="openMapModal">🗺 Karte anzeigen</button>
-        </div>
-      </div>
-      <div class="field"><label>Anwendungsbereich</label><select id="eo-anwendungsbereich"><option value="Freiland" selected>Freiland</option><option value="Gewächshaus">Gewächshaus</option><option value="Lager">Lager</option></select></div>
-      <div class="field"><label>Geo-Typ</label><select id="eo-geoTyp"><option value="GPS-Koordinaten">GPS-Koordinaten</option><option value="Polygon">Polygon</option><option value="Schlagname">Schlagname</option></select></div>
-      <div class="field"><label>Fläche <span class="danger-text">*</span></label><input type="number" id="eo-flaecheVolumen" step="0.01"></div>
-      <div class="field"><label>Einheit</label><select id="eo-einheit"><option value="m2">m2</option><option value="ha">ha</option><option value="ar">ar</option></select></div>
-      <div class="field">
-        <label for="eo-ort_id">Ort</label>
-        <select id="eo-ort_id" class="input">
-          <option value="">Bitte Ort wählen</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="eo-kultur_id">Kultur</label>
-        <select id="eo-kultur_id" class="input">
-          <option value="">Keine Kultur</option>
-        </select>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-einsatzort">Abbrechen</button>
-      <button type="button" class="btn btn-primary" data-action="saveEinsatzort">Speichern</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="modal-einsatzort"></div>
 
-<div class="modal-overlay" id="modal-ort">
-  <div class="modal">
-    <h3 id="modal-ort-title">Ort</h3>
-    <div class="form-grid">
-      <div class="field span-2"><label>Name<span class="danger-text">*</span></label><input id="o-name"></div>
-      <div class="field"><label>PLZ <span class="danger-text">*</span></label><input type="number" id="o-plz" step="1"></div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-ort">Abbrechen</button>
-      <button type="button" class="btn btn-primary" data-action="saveOrt">Speichern</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modal-map">
-  <div class="modal">
-    <h3>🗺 Standort auf Karte wählen</h3>
-    <div id="eo-map"></div>
-    <div class="map-coords-bar">
-      📍 Gewählt: <strong id="map-lat-display">—</strong> / <strong id="map-lng-display">—</strong>
-    </div>
-    <p class="map-hint">Auf die Karte klicken um einen Punkt zu setzen · Marker ist verschiebbar</p>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" data-action="closeMapModal">Abbrechen</button>
-      <button type="button" id="map-confirm-btn" class="btn btn-primary" data-action="confirmMapSelection" disabled>✅ Koordinaten übernehmen</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="modal-map"></div>
 
 <div class="modal-overlay" id="modal-kultur">
   <div class="modal">
@@ -729,7 +662,6 @@
 <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 <script src="{{ url_for('static', filename='js/betrieb.js') }}"></script>
-<script src="{{ url_for('static', filename='js/felder.js') }}"></script>
 <script src="{{ url_for('static', filename='js/kulturen.js') }}"></script>
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
 <script src="{{ url_for('static', filename='js/forecast.js') }}"></script>
