@@ -1,0 +1,13 @@
+{
+  "name": "psmsimple",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint:js": "eslint \"app/static/js/**/*.js\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "globals": "^15.15.0",
+    "eslint": "^9.27.0"
+  }
+}
