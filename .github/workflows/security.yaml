@@ -195,6 +195,9 @@ jobs:
             fi
             sleep 2
           done
+          docker logs myapp
+          docker ps -a
+          echo "Application did not start within expected time."
           exit 1
 
       - name: Create ZAP test user
