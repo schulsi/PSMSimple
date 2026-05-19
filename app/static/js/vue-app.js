@@ -59,6 +59,24 @@
 
   const { createApp, h, nextTick, Teleport } = window.Vue;
   const bootstrap = readBootstrapData();
+  const bundeslandOptions = [
+    ['BW', 'Baden-Württemberg'],
+    ['BY', 'Bayern'],
+    ['BE', 'Berlin'],
+    ['BB', 'Brandenburg'],
+    ['HB', 'Bremen'],
+    ['HH', 'Hamburg'],
+    ['HE', 'Hessen'],
+    ['MV', 'Mecklenburg-Vorpommern'],
+    ['NI', 'Niedersachsen'],
+    ['NW', 'Nordrhein-Westfalen'],
+    ['RP', 'Rheinland-Pfalz'],
+    ['SL', 'Saarland'],
+    ['SN', 'Sachsen'],
+    ['ST', 'Sachsen-Anhalt'],
+    ['SH', 'Schleswig-Holstein'],
+    ['TH', 'Thüringen'],
+  ];
 
   const app = createApp({
     data() {
@@ -71,6 +89,17 @@
         isMobileNavOpen: false,
         isUserPopupOpen: false,
         assets,
+        betriebExists: false,
+        betriebForm: {
+          firma: '',
+          name: '',
+          vorname: '',
+          strHnr: '',
+          plz: '',
+          ort: '',
+          bundesland: 'BW',
+        },
+        isBetriebSaving: false,
         permissions,
         user: {
           username: user.username || '',
@@ -149,10 +178,15 @@
       document.getElementById('psm-vue-nav')?.replaceChildren();
       document.getElementById('psm-vue-overlay')?.replaceChildren();
       document.getElementById('tab-home')?.replaceChildren();
+      document.getElementById('tab-betrieb')?.replaceChildren();
     },
 
     mounted() {
       window.psmVueApp = this;
+      window.loadBetrieb = () => this.loadBetrieb();
+      window.saveBetrieb = () => this.saveBetrieb();
+      window.fillBetriebForm = betrieb => this.applyBetriebForm(betrieb);
+      window.collectBetriebForm = () => this.collectBetriebForm();
 
       this.applyTabClasses();
       this.applyMobileNavClasses();
@@ -176,10 +210,91 @@
         h(Teleport, { to: '#psm-vue-overlay' }, this.renderOverlay()),
         h(Teleport, { to: '#psm-vue-nav' }, this.renderSidebar()),
         h(Teleport, { to: '#tab-home' }, this.renderHomeTab()),
+        h(Teleport, { to: '#tab-betrieb' }, this.renderBetriebTab()),
       ];
     },
 
     methods: {
+      applyBetriebForm(betrieb = {}) {
+        this.betriebForm = {
+          firma: betrieb.firma || '',
+          name: betrieb.name || '',
+          vorname: betrieb.vorname || '',
+          strHnr: betrieb.strHnr || '',
+          plz: betrieb.plz || '',
+          ort: betrieb.ort || '',
+          bundesland: betrieb.bundesland || 'BW',
+        };
+      },
+
+      collectBetriebForm() {
+        return {
+          firma: this.betriebForm.firma.trim(),
+          name: this.betriebForm.name.trim(),
+          vorname: this.betriebForm.vorname.trim(),
+          strHnr: this.betriebForm.strHnr.trim(),
+          plz: this.betriebForm.plz.trim(),
+          ort: this.betriebForm.ort.trim(),
+          bundesland: this.betriebForm.bundesland || 'BW',
+        };
+      },
+
+      async loadBetrieb() {
+        try {
+          const apiGetFn = window.apiGet;
+          if (typeof apiGetFn !== 'function') return;
+
+          const betrieb = await apiGetFn('/api/betrieb');
+          if (!betrieb || !betrieb.id) {
+            this.betriebExists = false;
+            callIfExists('openBetriebWizard');
+            return;
+          }
+
+          this.betriebExists = true;
+          this.applyBetriebForm(betrieb);
+        } catch (err) {
+          console.error(err);
+          callIfExists('toast', '❌ Betrieb konnte nicht geladen werden');
+        }
+      },
+
+      async saveBetrieb() {
+        try {
+          const apiPostFn = window.apiPost;
+          if (typeof apiPostFn !== 'function') return;
+
+          this.isBetriebSaving = true;
+          await apiPostFn('/api/betrieb', this.collectBetriebForm());
+          this.betriebExists = true;
+          callIfExists('toast', '✅ Betrieb gespeichert');
+        } catch (err) {
+          console.error(err);
+          callIfExists('toast', `❌ ${err.message}`);
+        } finally {
+          this.isBetriebSaving = false;
+        }
+      },
+
+      updateBetriebField(field, value) {
+        this.betriebForm = {
+          ...this.betriebForm,
+          [field]: value,
+        };
+      },
+
+      renderField(label, inputId, field, attrs = {}) {
+        return h('div', { class: 'field' }, [
+          h('label', { for: inputId }, label),
+          h('input', {
+            id: inputId,
+            value: this.betriebForm[field],
+            onInput: event => this.updateBetriebField(field, event.target.value),
+            ...attrs,
+          }),
+        ]);
+      },
+
       renderHomeTab() {
         return h('div', { class: 'home-landing' }, [
           h('h1', { class: 'home-title' }, 'Willkommen bei PSMSimple'),
@@ -202,6 +317,43 @@
             h('span', { class: 'cta-arrow' }, '→'),
           ]),
         ]);
+      },
+
+      renderBetriebTab() {
+        return [
+          h('h2', [
+            '🏡 Betrieb ',
+            h('span', { class: 'badge' }, 'Stammdaten'),
+          ]),
+          h('div', { class: 'card' }, [
+            h('div', { class: 'form-grid cols-3' }, [
+              this.renderField('Firma', 'b-firma', 'firma'),
+              this.renderField('Nachname', 'b-name', 'name'),
+              this.renderField('Vorname', 'b-vorname', 'vorname'),
+              this.renderField('Straße + Hausnr.', 'b-strHnr', 'strHnr'),
+              this.renderField('PLZ', 'b-plz', 'plz'),
+              this.renderField('Ort', 'b-ort', 'ort'),
+              h('div', { class: 'field' }, [
+                h('label', { for: 'b-bundesland' }, 'Bundesland'),
+                h('select', {
+                  id: 'b-bundesland',
+                  value: this.betriebForm.bundesland,
+                  onChange: event => this.updateBetriebField('bundesland', event.target.value),
+                }, bundeslandOptions.map(([value, label]) => (
+                  h('option', { value }, label)
+                ))),
+              ]),
+            ]),
+            h('div', { class: 'mt-1 flex-end' }, [
+              h('button', {
+                type: 'button',
+                class: 'btn btn-primary',
+                disabled: this.isBetriebSaving,
+                onClick: () => this.saveBetrieb(),
+              }, this.isBetriebSaving ? 'Speichert...' : '💾 Speichern'),
+            ]),
+          ]),
+        ];
       },
 
       renderHeader() {

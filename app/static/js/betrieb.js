@@ -1,6 +1,11 @@
 let betriebExists = false;
 
 function fillBetriebForm(betrieb) {
+  if (window.psmVueApp?.applyBetriebForm) {
+    window.psmVueApp.applyBetriebForm(betrieb);
+    return;
+  }
+
   const fields = ['firma', 'name', 'vorname', 'strHnr', 'plz', 'ort'];
   fields.forEach(field => {
     const el = $(`b-${field}`);
@@ -14,6 +19,10 @@ function fillBetriebForm(betrieb) {
 }
 
 function collectBetriebForm() {
+  if (window.psmVueApp?.collectBetriebForm) {
+    return window.psmVueApp.collectBetriebForm();
+  }
+
   return {
     firma: $('b-firma') ? $('b-firma').value.trim() : '',
     name: $('b-name') ? $('b-name').value.trim() : '',
@@ -48,6 +57,10 @@ function closeBetriebWizard() {
 }
 
 async function loadBetrieb() {
+  if (window.psmVueApp?.loadBetrieb) {
+    return window.psmVueApp.loadBetrieb();
+  }
+
   try {
     const betrieb = await apiGet('/api/betrieb');
 
@@ -68,6 +81,10 @@ async function loadBetrieb() {
 }
 
 async function saveBetrieb() {
+  if (window.psmVueApp?.saveBetrieb) {
+    return window.psmVueApp.saveBetrieb();
+  }
+
   try {
     const payload = collectBetriebForm();
     await apiPost('/api/betrieb', payload);
