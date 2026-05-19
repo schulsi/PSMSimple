@@ -35,6 +35,10 @@ function collectBetriebForm() {
 }
 
 function collectWizardBetriebForm() {
+  if (window.psmVueApp?.collectWizardBetriebForm) {
+    return window.psmVueApp.collectWizardBetriebForm();
+  }
+
   return {
     firma: $('wiz-firma') ? $('wiz-firma').value.trim() : '',
     name: $('wiz-name') ? $('wiz-name').value.trim() : '',
@@ -97,6 +101,10 @@ async function saveBetrieb() {
 }
 
 async function saveBetriebWizard() {
+  if (window.psmVueApp?.saveBetriebWizard) {
+    return window.psmVueApp.saveBetriebWizard();
+  }
+
   try {
     const payload = collectWizardBetriebForm();
 

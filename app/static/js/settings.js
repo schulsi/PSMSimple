@@ -182,6 +182,10 @@ function collectSettingsForm() {
 }
 
 function collectWizardSaveMode() {
+  if (window.psmVueApp?.collectWizardSaveMode) {
+    return window.psmVueApp.collectWizardSaveMode();
+  }
+
   const wizToggle = $('wiz-save-mode-toggle');
   const localSave = wizToggle ? wizToggle.checked : true;
   return { browser_download: !localSave, local_save: localSave };

@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from flask import Flask, jsonify, request, render_template, flash, redirect, url_for
 from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
@@ -83,6 +86,19 @@ def create_app():
             )
 
         return response
+
+    @app.template_global()
+    def vite_asset(entry_name):
+        manifest_path = Path(app.static_folder) / "vue" / ".vite" / "manifest.json"
+        if not manifest_path.exists():
+            return ""
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        entry = manifest.get(entry_name)
+        if not entry:
+            return ""
+
+        return url_for("static", filename=f"vue/{entry['file']}")
 
     with app.app_context():
         db.create_all()

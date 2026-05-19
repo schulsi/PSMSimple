@@ -99,7 +99,20 @@
           ort: '',
           bundesland: 'BW',
         },
+        betriebWizardForm: {
+          firma: '',
+          name: '',
+          vorname: '',
+          strHnr: '',
+          plz: '',
+          ort: '',
+          bundesland: 'BW',
+          verantwortlicher: '',
+          anwender: '',
+          localSave: true,
+        },
         isBetriebSaving: false,
+        isBetriebWizardSaving: false,
         permissions,
         user: {
           username: user.username || '',
@@ -179,14 +192,18 @@
       document.getElementById('psm-vue-overlay')?.replaceChildren();
       document.getElementById('tab-home')?.replaceChildren();
       document.getElementById('tab-betrieb')?.replaceChildren();
+      document.getElementById('modal-betrieb-wizard')?.replaceChildren();
     },
 
     mounted() {
       window.psmVueApp = this;
       window.loadBetrieb = () => this.loadBetrieb();
       window.saveBetrieb = () => this.saveBetrieb();
+      window.saveBetriebWizard = () => this.saveBetriebWizard();
       window.fillBetriebForm = betrieb => this.applyBetriebForm(betrieb);
       window.collectBetriebForm = () => this.collectBetriebForm();
+      window.collectWizardBetriebForm = () => this.collectWizardBetriebForm();
+      window.collectWizardSaveMode = () => this.collectWizardSaveMode();
 
       this.applyTabClasses();
       this.applyMobileNavClasses();
@@ -211,6 +228,7 @@
         h(Teleport, { to: '#psm-vue-nav' }, this.renderSidebar()),
         h(Teleport, { to: '#tab-home' }, this.renderHomeTab()),
         h(Teleport, { to: '#tab-betrieb' }, this.renderBetriebTab()),
+        h(Teleport, { to: '#modal-betrieb-wizard' }, this.renderBetriebWizard()),
       ];
     },
 
@@ -236,6 +254,27 @@
           plz: this.betriebForm.plz.trim(),
           ort: this.betriebForm.ort.trim(),
           bundesland: this.betriebForm.bundesland || 'BW',
+        };
+      },
+
+      collectWizardBetriebForm() {
+        return {
+          firma: this.betriebWizardForm.firma.trim(),
+          name: this.betriebWizardForm.name.trim(),
+          vorname: this.betriebWizardForm.vorname.trim(),
+          strHnr: this.betriebWizardForm.strHnr.trim(),
+          plz: this.betriebWizardForm.plz.trim(),
+          ort: this.betriebWizardForm.ort.trim(),
+          bundesland: this.betriebWizardForm.bundesland || 'BW',
+          verantwortlicher: this.betriebWizardForm.verantwortlicher.trim(),
+          anwender: this.betriebWizardForm.anwender.trim(),
+        };
+      },
+
+      collectWizardSaveMode() {
+        return {
+          browser_download: !this.betriebWizardForm.localSave,
+          local_save: this.betriebWizardForm.localSave,
         };
       },
 
@@ -276,9 +315,71 @@
         }
       },
 
+      async saveBetriebWizard() {
+        try {
+          const apiPostFn = window.apiPost;
+          if (typeof apiPostFn !== 'function') return;
+
+          this.isBetriebWizardSaving = true;
+          const payload = this.collectWizardBetriebForm();
+          const wizSaveMode = this.collectWizardSaveMode();
+
+          await apiPostFn('/api/betrieb', {
+            firma: payload.firma,
+            name: payload.name,
+            vorname: payload.vorname,
+            strHnr: payload.strHnr,
+            plz: payload.plz,
+            ort: payload.ort,
+            bundesland: payload.bundesland,
+          });
+
+          await apiPostFn('/api/user/settings', {
+            browser_download: wizSaveMode.browser_download,
+            local_save: wizSaveMode.local_save,
+            default_anwender: payload.anwender,
+            default_verantwortlich: payload.verantwortlicher,
+          });
+
+          const settingsToggle = document.getElementById('save-mode-toggle');
+          if (settingsToggle) {
+            settingsToggle.checked = wizSaveMode.local_save;
+            callIfExists('updateSaveModeLabels', wizSaveMode.local_save);
+          }
+
+          callIfExists('updateExportButtons', wizSaveMode.local_save);
+          callIfExists('applyDefaultSettingsToExport', {
+            default_anwender: payload.anwender,
+            default_verantwortlich: payload.verantwortlicher,
+          });
+
+          const defaultAnwender = document.getElementById('set-default-anwender');
+          const defaultVerantwortlich = document.getElementById('set-default-verantwortlich');
+          if (defaultAnwender) defaultAnwender.value = payload.anwender || '';
+          if (defaultVerantwortlich) defaultVerantwortlich.value = payload.verantwortlicher || '';
+
+          this.applyBetriebForm(payload);
+          this.betriebExists = true;
+          callIfExists('closeModal', 'modal-betrieb-wizard');
+          callIfExists('toast', '✅ Betriebsdaten gespeichert');
+        } catch (err) {
+          console.error(err);
+          callIfExists('toast', `❌ ${err.message}`);
+        } finally {
+          this.isBetriebWizardSaving = false;
+        }
+      },
+
       updateBetriebField(field, value) {
         this.betriebForm = {
           ...this.betriebForm,
+          [field]: value,
+        };
+      },
+
+      updateBetriebWizardField(field, value) {
+        this.betriebWizardForm = {
+          ...this.betriebWizardForm,
           [field]: value,
         };
       },
@@ -290,6 +391,18 @@
             id: inputId,
             value: this.betriebForm[field],
             onInput: event => this.updateBetriebField(field, event.target.value),
+            ...attrs,
+          }),
+        ]);
+      },
+
+      renderWizardField(label, inputId, field, attrs = {}) {
+        return h('div', { class: 'field' }, [
+          h('label', { for: inputId }, label),
+          h('input', {
+            id: inputId,
+            value: this.betriebWizardForm[field],
+            onInput: event => this.updateBetriebWizardField(field, event.target.value),
             ...attrs,
           }),
         ]);
@@ -354,6 +467,77 @@
             ]),
           ]),
         ];
+      },
+
+      renderBetriebWizard() {
+        const localSave = this.betriebWizardForm.localSave;
+
+        return h('div', { class: 'modal' }, [
+          h('h3', 'Willkommen 👋'),
+          h('p', { class: 'modal-note' }, 'Bevor du loslegst, trage bitte einmal die Betriebsdaten ein.'),
+          h('div', { class: 'form-grid cols-3' }, [
+            this.renderWizardField('Firma', 'wiz-firma', 'firma', { placeholder: 'Mustermann Gemüsebau' }),
+            this.renderWizardField('Nachname', 'wiz-name', 'name', { placeholder: 'Mustermann' }),
+            this.renderWizardField('Vorname', 'wiz-vorname', 'vorname', { placeholder: 'Max' }),
+            this.renderWizardField('Straße + Hausnr.', 'wiz-strHnr', 'strHnr', { placeholder: 'Musterstraße 123' }),
+            this.renderWizardField('PLZ', 'wiz-plz', 'plz', { placeholder: '12345' }),
+            this.renderWizardField('Ort', 'wiz-ort', 'ort', { placeholder: 'Musterstadt' }),
+            h('div', { class: 'field' }, [
+              h('label', { for: 'wiz-bundesland' }, 'Bundesland'),
+              h('select', {
+                id: 'wiz-bundesland',
+                value: this.betriebWizardForm.bundesland,
+                onChange: event => this.updateBetriebWizardField('bundesland', event.target.value),
+              }, bundeslandOptions.map(([value, label]) => h('option', { value }, label))),
+            ]),
+            this.renderWizardField(
+              'Anwendungsverantwortlicher',
+              'wiz-anwendungsverantwortlicher',
+              'verantwortlicher',
+              { placeholder: 'Max Mustermann' },
+            ),
+            this.renderWizardField('Anwender', 'wiz-anwender', 'anwender', { placeholder: 'Max Mustermann' }),
+          ]),
+          h('div', { class: 'wizard-settings-box' }, [
+            h('div', { class: 'wizard-settings-title' }, '📁 Speicher-Einstellung'),
+            h('div', { class: 'settings-row' }, [
+              h('span', {
+                class: ['upper-label', localSave ? 'label-muted' : 'label-inherit'],
+                id: 'wiz-lbl-browser',
+              }, 'Browser-Download'),
+              h('label', {
+                class: 'save-toggle',
+                title: 'Umschalten zwischen Browser-Download und lokalem Speichern',
+              }, [
+                h('input', {
+                  type: 'checkbox',
+                  id: 'wiz-save-mode-toggle',
+                  checked: localSave,
+                  onChange: event => this.updateBetriebWizardField('localSave', event.target.checked),
+                }),
+                h('span', { class: 'save-toggle-track' }),
+              ]),
+              h('span', {
+                class: ['upper-label', localSave ? 'label-inherit' : 'label-muted'],
+                id: 'wiz-lbl-local',
+              }, 'Lokal speichern'),
+            ]),
+            h('div', {
+              class: 'text-muted-sm mt-05',
+              id: 'wiz-save-mode-desc',
+            }, localSave
+              ? 'Datei wird auf dem Server im Exportordner abgelegt'
+              : 'Datei wird als ZIP (JSON + PDF) direkt im Browser heruntergeladen'),
+          ]),
+          h('div', { class: 'modal-footer' }, [
+            h('button', {
+              type: 'button',
+              class: 'btn btn-primary',
+              disabled: this.isBetriebWizardSaving,
+              onClick: () => this.saveBetriebWizard(),
+            }, this.isBetriebWizardSaving ? 'Speichert...' : 'Speichern und starten'),
+          ]),
+        ]);
       },
 
       renderHeader() {
