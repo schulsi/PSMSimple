@@ -915,7 +915,6 @@
     }
   }
 </script>
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="{{ url_for('static', filename='js/api.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
@@ -935,6 +934,6 @@
 <script src="{{ url_for('static', filename='js/version.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
-<script src="{{ url_for('static', filename='js/vue-app.js') }}"></script>
+<script type="module" src="{{ vite_asset('src/main.js') }}"></script>
 
 {% endblock %}

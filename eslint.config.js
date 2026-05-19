@@ -29,4 +29,16 @@ export default [
       "no-undef": "warn",
     },
   },
+  {
+    files: ["frontend/src/**/*.js", "frontend/src/**/*.vue"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: globals.browser,
+    },
+    rules: {
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "no-undef": "warn",
+    },
+  },
 ];

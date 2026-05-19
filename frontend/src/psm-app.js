@@ -1,8 +1,4 @@
-(function initPsmVueApp() {
-  if (!window.Vue) {
-    console.warn('Vue wurde nicht geladen; die Oberfläche nutzt die Legacy-Steuerung.');
-    return;
-  }
+import { createApp, h, nextTick, Teleport } from 'vue';
 
   const tabToPath = window.PSM_TAB_TO_PATH || {
     home: '/',
@@ -57,7 +53,6 @@
     }
   }
 
-  const { createApp, h, nextTick, Teleport } = window.Vue;
   const bootstrap = readBootstrapData();
   const bundeslandOptions = [
     ['BW', 'Baden-Württemberg'],
@@ -782,4 +777,3 @@
   });
 
   app.mount('#psm-vue-app');
-})();
