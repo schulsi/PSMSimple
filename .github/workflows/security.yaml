@@ -178,6 +178,10 @@ jobs:
           
       - name: Fix workspace permissions
         run: chmod -R 777 .
+      
+      - name: Create Secret Key
+        run: |
+          echo "SECRET_KEY=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
       - name: Run application container
         run: |
