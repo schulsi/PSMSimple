@@ -301,7 +301,7 @@ function buildExportBasename() {
     const id    = Number(firstPsmCheck.dataset.id);
     const wrap  = $(`exp-psm-${id}`);
     const name  = wrap ? (wrap.querySelector('.ci-name') || {}).textContent || '' : '';
-    psmPart = name.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_äöüÄÖÜß\-]/g, '').slice(0, 40);
+    psmPart = name.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_äöüÄÖÜß-]/g, '').slice(0, 40);
   }
 
   return psmPart ? `PSM_Anwendung_${datePart}_${psmPart}` : `PSM_Anwendung_${datePart}`;

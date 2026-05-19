@@ -50,14 +50,23 @@ const pathToTab = {
   "prediction": "forecast",
   "inventory": "inventory"
 };
-function showTab(tabName, el, push = true) {
+
+window.PSM_TAB_TO_PATH = tabToPath;
+window.PSM_PATH_TO_TAB = pathToTab;
+
+function showTab(tabName, el, push = true, source = 'legacy') {
+  if (source !== 'vue' && window.psmVueApp?.showTab) {
+    window.psmVueApp.showTab(tabName, el, push);
+    return;
+  }
+
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(`tab-${tabName}`).classList.add('active');
+  document.getElementById(`tab-${tabName}`)?.classList.add('active');
 
   document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
   if (el) el.classList.add('active');
 
-  closeUserPopup();
+  closeUserPopup(source);
 
   if (push) {
     history.pushState({ tab: tabName }, '', tabToPath[tabName] || "/betrieb");
@@ -80,7 +89,12 @@ function closeModal(id) {
   if (el) el.classList.remove('open');
 }
 
-function toggleUserPopup() {
+function toggleUserPopup(source = 'legacy') {
+  if (source !== 'vue' && window.psmVueApp?.toggleUserPopup) {
+    window.psmVueApp.toggleUserPopup();
+    return;
+  }
+
   const popup = $('user-popup');
   const button = $('user-btn');
 
@@ -96,7 +110,12 @@ function toggleUserPopup() {
   }
 }
 
-function closeUserPopup() {
+function closeUserPopup(source = 'legacy') {
+  if (source !== 'vue' && window.psmVueApp?.closeUserPopup) {
+    window.psmVueApp.closeUserPopup();
+    return;
+  }
+
   const popup = $('user-popup');
   const button = $('user-btn');
 
@@ -104,7 +123,12 @@ function closeUserPopup() {
   if (button) button.classList.remove('open');
 }
 
-function positionUserPopup() {
+function positionUserPopup(source = 'legacy') {
+  if (source !== 'vue' && window.psmVueApp?.positionUserPopup) {
+    window.psmVueApp.positionUserPopup();
+    return;
+  }
+
   const popup = $('user-popup');
   const button = $('user-btn');
 

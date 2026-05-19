@@ -21,7 +21,7 @@
 <div class="nav-overlay" id="nav-overlay" data-action="closeMobileNav"></div>
 
 <div class="app">
-  <nav>
+  <nav id="psm-vue-nav">
     <div class="nav-items">
       <a class="active" href="/" data-action="showTab" data-tab="home"><span class="ico">🏠</span> Home</a>
       <div class="section-label">Stammdaten</div>
@@ -902,6 +902,16 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+  window.PSM_BOOTSTRAP = {
+    user: {
+      username: {{ current_user.username | tojson }},
+      avatar: {{ (current_user.username[0] | upper) | tojson }},
+    },
+    permissions: {{ permissions | tojson }},
+  };
+</script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="{{ url_for('static', filename='js/api.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
@@ -921,5 +931,6 @@
 <script src="{{ url_for('static', filename='js/version.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vue-app.js') }}"></script>
 
 {% endblock %}

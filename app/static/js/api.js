@@ -15,7 +15,9 @@ async function apiGet(url) {
       try {
         const body = await res.json();
         if (body.error) message = body.error;
-      } catch (_) {}
+      } catch (_) {
+        // Keep the generic error when the response body is not valid JSON.
+      }
     }
     throw new Error(message);
   }
@@ -50,7 +52,9 @@ async function apiSend(url, method, data = null) {
       try {
         const body = await res.json();
         if (body.error) message = body.error;
-      } catch (_) {}
+      } catch (_) {
+        // Keep the generic error when the response body is not valid JSON.
+      }
     }
     throw new Error(message);
   }

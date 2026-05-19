@@ -93,7 +93,9 @@ const original = window[name];
 if (typeof original !== 'function') return;
 window[name] = async function(...args) {
     const result = await original.apply(this, args);
-    try { afterFn(); } catch (_) {}
+    try { afterFn(); } catch (_) {
+    // Optional UI refresh hooks must never break the original action.
+    }
     return result;
 };
 }
@@ -124,24 +126,22 @@ if (event.target.matches('#exp-anwender, #exp-verantwortlich, .exp-psm-amount, .
     syncLegacyExportUI();
 }
 });
-function closeMobileNav() {
-document.querySelector('nav').classList.remove('open');
-document.getElementById('nav-overlay').classList.remove('open');
-}
-document.querySelectorAll('nav a').forEach(a => {
-a.addEventListener('click', () => {
-    if (window.innerWidth <= 640) closeMobileNav();
-});
-});
-
 /* ── Mobile nav helpers ── */
-function toggleMobileNav() {
+function toggleMobileNav(source = 'legacy') {
+if (source !== 'vue' && window.psmVueApp?.toggleMobileNav) {
+    window.psmVueApp.toggleMobileNav();
+    return;
+}
 const nav = document.querySelector('nav');
 const overlay = document.getElementById('nav-overlay');
 const open = nav.classList.toggle('open');
 overlay.classList.toggle('open', open);
 }
-function closeMobileNav() {
+function closeMobileNav(source = 'legacy') {
+if (source !== 'vue' && window.psmVueApp?.closeMobileNav) {
+    window.psmVueApp.closeMobileNav();
+    return;
+}
 document.querySelector('nav').classList.remove('open');
 document.getElementById('nav-overlay').classList.remove('open');
 }
