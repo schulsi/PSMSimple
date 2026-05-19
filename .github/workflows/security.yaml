@@ -181,14 +181,16 @@ jobs:
       
       - name: Create Secret Key
         run: |
-          echo "SECRET_KEY=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          secret_key="$(openssl rand -hex 32)"
+          echo "::add-mask::$secret_key"
+          echo "SECRET_KEY=$secret_key" >> "$GITHUB_ENV"
 
       - name: Run application container
         run: |
           docker run -d \
             --name myapp \
             -p 80:80 \
-            -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            -e SECRET_KEY="$SECRET_KEY" \
             myapp:dast
 
       - name: Wait for application startup
