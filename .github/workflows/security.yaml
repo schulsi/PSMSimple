@@ -166,7 +166,6 @@ jobs:
   dast-zap-scan:
     name: OWASP ZAP DAST Scan
     runs-on: ubuntu-latest
-    needs: security-scanning
 
     steps:
       - name: Checkout repository
