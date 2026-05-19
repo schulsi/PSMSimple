@@ -196,11 +196,15 @@ jobs:
       - name: Wait for application startup
         run: |
           for i in {1..30}; do
-            if curl -fsS http://localhost:80/login > /dev/null; then
+            http_code="$(curl -sS -o /dev/null -w "%{http_code}" http://localhost:80/ || true)"
+            if [ "$http_code" != "000" ]; then
+              echo "Application is reachable with HTTP $http_code."
               exit 0
             fi
+            echo "Waiting for application startup... attempt $i/30"
             sleep 2
           done
+
           docker logs myapp
           docker ps -a
           echo "Application did not start within expected time."
@@ -211,6 +215,11 @@ jobs:
           ZAP_USERNAME: ${{ secrets.ZAP_USERNAME }}
           ZAP_PASSWORD: ${{ secrets.ZAP_PASSWORD }}
         run: |
+          if [ -z "$ZAP_USERNAME" ] || [ -z "$ZAP_PASSWORD" ]; then
+            echo "ZAP_USERNAME and ZAP_PASSWORD GitHub secrets must be set."
+            exit 1
+          fi
+
           docker exec \
             -e PSM_CI_USERNAME="$ZAP_USERNAME" \
             -e PSM_CI_PASSWORD="$ZAP_PASSWORD" \
@@ -222,31 +231,51 @@ jobs:
           ZAP_USERNAME: ${{ secrets.ZAP_USERNAME }}
           ZAP_PASSWORD: ${{ secrets.ZAP_PASSWORD }}
         run: |
+          if [ -z "$ZAP_USERNAME" ] || [ -z "$ZAP_PASSWORD" ]; then
+            echo "ZAP_USERNAME and ZAP_PASSWORD GitHub secrets must be set."
+            exit 1
+          fi
+
           curl -fsS \
             -c zap-cookies.txt \
             http://localhost:80/login \
             -o zap-login.html
 
-          csrf_token="$(sed -n 's/.*name="csrf_token" value="\([^"]*\)".*/\1/p' zap-login.html | head -n 1)"
+          csrf_token="$(grep -o 'name="csrf_token" value="[^"]*"' zap-login.html | head -n 1 | sed 's/.*value="\([^"]*\)"/\1/')"
           if [ -z "$csrf_token" ]; then
             echo "CSRF token not found on login page."
+            head -n 40 zap-login.html
             exit 1
           fi
 
-          curl -fsS -L \
+          login_status="$(curl -sS -L \
+            -w "%{http_code}" \
             -b zap-cookies.txt \
             -c zap-cookies.txt \
             --data-urlencode "csrf_token=$csrf_token" \
             --data-urlencode "username=$ZAP_USERNAME" \
             --data-urlencode "password=$ZAP_PASSWORD" \
             http://localhost:80/login \
-            -o zap-login-result.html
+            -o zap-login-result.html)"
 
-          curl -fsS \
+          if [ "$login_status" != "200" ]; then
+            echo "Login request failed with HTTP $login_status."
+            docker logs myapp
+            exit 1
+          fi
+
+          auth_status="$(curl -sS \
+            -w "%{http_code}" \
             -b zap-cookies.txt \
             http://localhost:80/api/me \
-            -o zap-auth-check.json
-          grep -q '"ok":true' zap-auth-check.json
+            -o zap-auth-check.json)"
+
+          if [ "$auth_status" != "200" ] || ! grep -q '"ok":true' zap-auth-check.json; then
+            echo "Authenticated check failed with HTTP $auth_status."
+            cat zap-auth-check.json
+            docker logs myapp
+            exit 1
+          fi
 
           session_cookie="$(awk '$6 == "session" {print $7}' zap-cookies.txt | tail -n 1)"
           if [ -z "$session_cookie" ]; then
