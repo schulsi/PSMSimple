@@ -50,7 +50,9 @@ class Config:
     ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
     OPENAI_BASE_URL = os.environ.get(
         "OPENAI_BASE_URL", "https://api.openai.com/v1")
-    CACHE_REDIS_URL = os.environ.get("RATELIMIT_STORAGE_URI")
+    CACHE_REDIS_URL = os.environ.get("CACHE_REDIS_URL")
+    if not CACHE_REDIS_URL and RATELIMIT_STORAGE_URI.startswith(("redis://", "rediss://")):
+        CACHE_REDIS_URL = RATELIMIT_STORAGE_URI
     CACHE_TYPE = "RedisCache" if CACHE_REDIS_URL else "FileSystemCache"
     CACHE_DIR = os.path.join(DATA_DIR, "cache") if CACHE_TYPE == "FileSystemCache" else None
     CACHE_DEFAULT_TIMEOUT = 60 * 60 * 24 * 20  # 20d — BVL aktualisiert monatlich
