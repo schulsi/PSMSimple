@@ -231,7 +231,8 @@ async function toggleExpItem(type, id) {
 }
 
 function loadExportSelections() {
-  renderExportSelectionList('exp-psm-list',       psmItems        || [], 'psm');
+  const psmItemsForExport = window.psmVueApp?.psmItems || psmItems || [];
+  renderExportSelectionList('exp-psm-list',       psmItemsForExport || [], 'psm');
   renderExportSelectionList('exp-kulturen-list',   kulturenItems   || [], 'kultur');
   renderFilteredExportEinsatzorte();
 }

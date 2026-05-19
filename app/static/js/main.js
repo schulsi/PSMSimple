@@ -8,14 +8,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       await Promise.all([
         loadBetrieb(),
-        loadPSM(),
         loadEinsatzorte(),
         loadKulturen(),
         loadSettings(),
         loadInventory()
       ]);
-
-      initPSMSearch();
     }
   } catch (err) {
     console.error(err);
@@ -50,7 +47,7 @@ function logout() {
   const CLICK_ACTIONS = new Set([
     'toggleMobileNav', 'closeMobileNav', 'toggleUserPopup',
     'saveBetrieb',
-    'openPSMModal', 'savePSM', 'closeMapModal', 'confirmMapSelection',
+    'closeMapModal', 'confirmMapSelection',
     'openEinsatzortModal', 'saveEinsatzort', 'openMapModal',
     'openKulturModal', 'saveKultur',
     'previewJSON', 'exportSave', 'exportDownloadZip',
@@ -76,10 +73,7 @@ function logout() {
     ['toggleFieldDetails',       el => [el.dataset.name, el]],
     ['editKultur',           el => [el.dataset.id]],
     ['removeKultur',         el => [el.dataset.id]],
-    ['editPSM',              el => [el.dataset.id]],
-    ['removePSM',            el => [el.dataset.id]],
     ['saveUserRole',         el => [el.dataset.id]],
-    ['selectPSMSearchResult', el => [el.dataset.name, el.dataset.kennr]],
     ['openDeleteUserConfirm', el => [el.dataset.id, el.dataset.username]],
     ['showPanelAuth',        el => [el.dataset.panel]],
     ['openInventoryMovementModal', el => [el.dataset.id, el.dataset.name, el.dataset.einheit]],

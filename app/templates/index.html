@@ -10,111 +10,18 @@
 
 {% block body %}
 <div id="psm-vue-app" hidden></div>
-<header id="psm-vue-header">
-  <button class="nav-toggle" id="nav-toggle" data-action="toggleMobileNav" aria-label="Menü öffnen">☰</button>
-  <div class="logo">🌿 Pflanzen<span>schutz</span></div>
-  <div class="sub">Dokumentation & JSON-Export</div>
-  <a class="version-badge hidden" id="app-version-badge" href="#" target="_blank" rel="noopener">
-    <span id="app-version-label"></span>
-    <span class="version-update hidden" id="app-version-update"></span>
-  </a>
-</header>
+<header id="psm-vue-header"></header>
 <div class="nav-overlay" id="psm-vue-overlay"></div>
 
 <div class="app">
-  <nav id="psm-vue-nav">
-    <div class="nav-items">
-      <a class="active" href="/" data-action="showTab" data-tab="home"><span class="ico">🏠</span> Home</a>
-      <div class="section-label">Stammdaten</div>
-      <a href="/betrieb" data-action="showTab" data-tab="betrieb"><span class="ico">🏡</span> Betrieb</a>
-      <a href="/psm" data-action="showTab" data-tab="psm"><span class="ico">🧪</span> Pflanzenschutzmittel</a>
-      <a href="/fields" data-action="showTab" data-tab="einsatzorte"><span class="ico">📍</span> Felder</a>
-      <a href="/cultures" data-action="showTab" data-tab="kulturen"><span class="ico">🌾</span> Kulturen</a>
-      {% if permissions.can_export %}
-      <div class="section-label">Export</div>
-      <a href="/export" data-action="showTab" data-tab="export" data-also="loadExportSelections,syncLegacyExportUI"><span class="ico">📄</span> Applikation dokumentieren</a>
-      {% endif %}
-      <div class="section-label">Verlauf</div>
-      <a href="/history" data-action="showTab" data-tab="history" data-also="loadHistory"><span class="ico">🕘</span> Übersicht Applikationen</a>
-      <div class="section-label">Vorhersage</div>
-      <a href="/prediction" data-action="showTab" data-tab="forecast" data-also="initForecastTab"><span class="ico">📈</span> Beratung</a>
-      <div class="section-label">Lager</div>
-      <a href="/inventory" data-action="showTab" data-tab="inventory" data-also="loadInventory">
-        <span class="ico">📦</span> Lagerbestand
-        <span class="badge badge-critical hidden" id="inventory-warning-count"></span>
-      </a>
-    </div>
-
-    <div class="nav-user">
-      <div class="nav-user-popup" id="user-popup">
-        <div class="popup-header">
-          <div class="popup-label">Angemeldet als</div>
-          <div class="popup-username" id="popup-username">{{ current_user.username }}</div>
-          <div class="popup-label">Rolle: {{ permissions.role }}</div>
-        </div>
-
-        <a href="/settings" data-action="showTab" data-tab="settings" class="popup-button-reset"><span class="ico">⚙️</span> <div class="popup-label">Einstellungen</div></a>
-        <button type="button" data-action="logout" class="popup-button-reset"><span class="ico">🚪</span> <div class="popup-label">Abmelden</div></button>
-      </div>
-
-      <button type="button" class="nav-user-btn" id="user-btn" data-action="toggleUserPopup">
-        <div class="nav-user-avatar" id="user-avatar">{{ current_user.username[0] | upper }}</div>
-        <span class="nav-user-name" id="user-name-label">{{ current_user.username }}</span>
-        <span class="nav-user-caret">▲</span>
-      </button>
-    </div>
-  </nav>
+  <nav id="psm-vue-nav"></nav>
 
   <main>
-    <div id="tab-home" class="tab active">
-      <div class="home-landing">
-        <h1 class="home-title">Willkommen bei PSMSimple</h1>
-        <div class="home-logo-wrap">
-          <img src="{{ url_for('pages.media', filename='logo.png') }}" alt="PSMSimple Logo" class="home-logo">
-        </div>
-        <a href="/export" class="btn-home-cta" data-action="showTab" data-tab="export" data-also="loadExportSelections,syncLegacyExportUI">
-          Jetzt dokumentieren <span class="cta-arrow">→</span>
-        </a>
-      </div>
-    </div>
+    <div id="tab-home" class="tab active"></div>
 
-    <div id="tab-betrieb" class="tab">
-      <h2>🏡 Betrieb <span class="badge">Stammdaten</span></h2>
-      <div class="card">
-        <div class="form-grid cols-3">
-          <div class="field"><label>Firma</label><input id="b-firma"></div>
-          <div class="field"><label>Nachname</label><input id="b-name"></div>
-          <div class="field"><label>Vorname</label><input id="b-vorname"></div>
-          <div class="field"><label>Straße + Hausnr.</label><input id="b-strHnr"></div>
-          <div class="field"><label>PLZ</label><input id="b-plz"></div>
-          <div class="field"><label>Ort</label><input id="b-ort"></div>
-          <div class="field">
-            <label>Bundesland</label>
-            <select id="b-bundesland">
-              <option value="BW">Baden-Württemberg</option><option value="BY">Bayern</option>
-              <option value="BE">Berlin</option><option value="BB">Brandenburg</option>
-              <option value="HB">Bremen</option><option value="HH">Hamburg</option>
-              <option value="HE">Hessen</option><option value="MV">Mecklenburg-Vorpommern</option>
-              <option value="NI">Niedersachsen</option><option value="NW">Nordrhein-Westfalen</option>
-              <option value="RP">Rheinland-Pfalz</option><option value="SL">Saarland</option>
-              <option value="SN">Sachsen</option><option value="ST">Sachsen-Anhalt</option>
-              <option value="SH">Schleswig-Holstein</option><option value="TH">Thüringen</option>
-            </select>
-          </div>
-        </div>
-        <div class="mt-1 flex-end">
-          <button type="button" class="btn btn-primary" data-action="saveBetrieb">💾 Speichern</button>
-        </div>
-      </div>
-    </div>
+    <div id="tab-betrieb" class="tab"></div>
 
-    <div id="tab-psm" class="tab">
-      <h2>🧪 Pflanzenschutzmittel <span class="badge" id="psm-count">0</span></h2>
-      {% if permissions.can_write %}
-        <button type="button" class="btn btn-primary mb-1" data-action="openPSMModal">+ Neues Mittel</button>
-      {% endif %}
-      <div class="item-list" id="psm-list"></div>
-    </div>
+    <div id="tab-psm" class="tab"></div>
 
     <div id="tab-einsatzorte" class="tab">
       <h2>📍 Felder <span class="badge" id="eo-count">0</span></h2>
@@ -617,48 +524,7 @@
   </main>
 </div>
 
-<div class="modal-overlay" id="modal-psm">
-  <div class="modal">
-    <h3 id="modal-psm-title">Pflanzenschutzmittel</h3>
-    <div class="form-grid">
-      <div class="field">
-        <label>Name</label>
-        <div class="autocomplete-wrap">
-          <input id="psm-name" autocomplete="off">
-          <div id="psm-search-results" class="autocomplete-results"></div>
-        </div>
-      </div>
-      <div class="field"><label>Zulassungsnr.</label><input id="psm-zulassungsnr" disabled></div>
-      <div class="field"><label>Wirkstoffe</label><input id="psm-wirkstoffe" disabled></div>
-      <div class="field">
-        <label>Einheit (Aufwandsmenge)</label>
-        <input id="psm-aufwandEinheit" name="einheit" list="einheiten">
-        <datalist id="einheiten">
-          <option value="kg/ha">
-          <option value="l/ha">
-          <option value="g/ha">
-          <option value="ml/ha">
-        </datalist>
-      </div>
-      <div class="field span-2">
-        <label>Bienengefährlichkeit</label>
-        <select id="psm-bienen" class="small-select">
-          <option value="B1">(B1) Bienengefährlich</option>
-          <option value="B2">(B2) Bienengefährlich außer nach dem täglichen Bienenflug</option>
-          <option value="B3">(B3) Bienengefährlich, Anwendungsverbot</option>
-          <option value="B4">(B4) Nicht bienengefährlich</option>
-        </select>
-      </div>
-      <div class="field"><label>Lagereinheit</label><input id="psm-lager_einheit"></div>
-      <div class="field"><label>Mindestbestand</label><input type="number" id="psm-min_lager" step="0.01" value="0"></div>
-      <div class="field"><label>Warnbestand</label><input type="number" id="psm-warnung_lager" step="0.01" value="0"></div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-psm">Abbrechen</button>
-      <button type="button" class="btn btn-primary" data-action="savePSM" id="psm-save-btn">Speichern</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="modal-psm"></div>
 
 <div class="modal-overlay" id="modal-einsatzort">
   <div class="modal">
@@ -798,63 +664,7 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-betrieb-wizard">
-  <div class="modal">
-    <h3>Willkommen 👋</h3>
-    <p class="modal-note">
-      Bevor du loslegst, trage bitte einmal die Betriebsdaten ein.
-    </p>
-
-    <div class="form-grid cols-3">
-      <div class="field"><label>Firma</label><input id="wiz-firma" placeholder="Mustermann Gemüsebau"></div>
-      <div class="field"><label>Nachname</label><input id="wiz-name" placeholder="Mustermann"></div>
-      <div class="field"><label>Vorname</label><input id="wiz-vorname" placeholder="Max"></div>
-      <div class="field"><label>Straße + Hausnr.</label><input id="wiz-strHnr" placeholder="Musterstraße 123"></div>
-      <div class="field"><label>PLZ</label><input id="wiz-plz" placeholder="12345"></div>
-      <div class="field"><label>Ort</label><input id="wiz-ort" placeholder="Musterstadt"></div>
-      <div class="field">
-        <label>Bundesland</label>
-        <select id="wiz-bundesland">
-          <option value="BW">Baden-Württemberg</option>
-          <option value="BY">Bayern</option>
-          <option value="BE">Berlin</option>
-          <option value="BB">Brandenburg</option>
-          <option value="HB">Bremen</option>
-          <option value="HH">Hamburg</option>
-          <option value="HE">Hessen</option>
-          <option value="MV">Mecklenburg-Vorpommern</option>
-          <option value="NI">Niedersachsen</option>
-          <option value="NW">Nordrhein-Westfalen</option>
-          <option value="RP">Rheinland-Pfalz</option>
-          <option value="SL">Saarland</option>
-          <option value="SN">Sachsen</option>
-          <option value="ST">Sachsen-Anhalt</option>
-          <option value="SH">Schleswig-Holstein</option>
-          <option value="TH">Thüringen</option>
-        </select>
-      </div>
-      <div class="field"><label>Anwendungsverantwortlicher</label><input id="wiz-anwendungsverantwortlicher" placeholder="Max Mustermann"></div>
-      <div class="field"><label>Anwender</label><input id="wiz-anwender" placeholder="Max Mustermann"></div>
-    </div>
-
-    <div class="wizard-settings-box">
-      <div class="wizard-settings-title">📁 Speicher-Einstellung</div>
-      <div class="settings-row">
-        <span class="upper-label" id="wiz-lbl-browser">Browser-Download</span>
-        <label class="save-toggle" title="Umschalten zwischen Browser-Download und lokalem Speichern">
-          <input type="checkbox" id="wiz-save-mode-toggle" checked data-action="onWizSaveModeToggle">
-          <span class="save-toggle-track"></span>
-        </label>
-        <span class="upper-label" id="wiz-lbl-local">Lokal speichern</span>
-      </div>
-      <div class="text-muted-sm mt-05" id="wiz-save-mode-desc">Datei wird auf dem Server im Exportordner abgelegt</div>
-    </div>
-
-    <div class="modal-footer">
-      <button type="button" class="btn btn-primary" data-action="saveBetriebWizard">Speichern und starten</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="modal-betrieb-wizard"></div>
 
 <div class="modal-overlay" id="modal-inventory">
   <div class="modal">
@@ -919,7 +729,6 @@
 <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 <script src="{{ url_for('static', filename='js/betrieb.js') }}"></script>
-<script src="{{ url_for('static', filename='js/psm.js') }}"></script>
 <script src="{{ url_for('static', filename='js/felder.js') }}"></script>
 <script src="{{ url_for('static', filename='js/kulturen.js') }}"></script>
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
