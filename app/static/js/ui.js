@@ -145,6 +145,8 @@ function positionUserPopup(source = 'legacy') {
 }
 
 document.addEventListener('click', (event) => {
+  if (window.psmVueApp) return;
+
   const popup = $('user-popup');
   const button = $('user-btn');
 
@@ -159,6 +161,8 @@ document.addEventListener('click', (event) => {
 });
 
 window.addEventListener('resize', () => {
+  if (window.psmVueApp) return;
+
   const popup = $('user-popup');
   if (popup && popup.classList.contains('open')) {
     positionUserPopup();
@@ -166,6 +170,8 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('popstate', (event) => {
+  if (window.psmVueApp) return;
+
   const tabName = (event.state && event.state.tab)
     ? event.state.tab
     : getTabFromPath();
@@ -183,6 +189,8 @@ window.addEventListener('popstate', (event) => {
  
 // ── On initial page load: activate correct tab from URL & set initial state ──
 document.addEventListener('DOMContentLoaded', () => {
+  if (window.psmVueApp) return;
+
   const tabName = getTabFromPath();
   const navLink = document.querySelector(`nav a[data-action="showTab"][data-tab="${tabName}"]`);
   showTab(tabName, navLink, false);

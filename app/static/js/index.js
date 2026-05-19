@@ -133,9 +133,9 @@ if (source !== 'vue' && window.psmVueApp?.toggleMobileNav) {
     return;
 }
 const nav = document.querySelector('nav');
-const overlay = document.getElementById('nav-overlay');
+const overlay = document.getElementById('psm-vue-overlay');
 const open = nav.classList.toggle('open');
-overlay.classList.toggle('open', open);
+overlay?.classList.toggle('open', open);
 }
 function closeMobileNav(source = 'legacy') {
 if (source !== 'vue' && window.psmVueApp?.closeMobileNav) {
@@ -143,14 +143,8 @@ if (source !== 'vue' && window.psmVueApp?.closeMobileNav) {
     return;
 }
 document.querySelector('nav').classList.remove('open');
-document.getElementById('nav-overlay').classList.remove('open');
+document.getElementById('psm-vue-overlay')?.classList.remove('open');
 }
-/* Close nav on any nav link click on mobile */
-document.querySelectorAll('nav a').forEach(a => {
-a.addEventListener('click', () => {
-    if (window.innerWidth <= 640) closeMobileNav();
-});
-});
 
 document.addEventListener('DOMContentLoaded', () => {
 updateArtSubkategorie();

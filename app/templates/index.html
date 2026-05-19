@@ -9,7 +9,8 @@
 {% endblock %}
 
 {% block body %}
-<header>
+<div id="psm-vue-app" hidden></div>
+<header id="psm-vue-header">
   <button class="nav-toggle" id="nav-toggle" data-action="toggleMobileNav" aria-label="Menü öffnen">☰</button>
   <div class="logo">🌿 Pflanzen<span>schutz</span></div>
   <div class="sub">Dokumentation & JSON-Export</div>
@@ -18,7 +19,7 @@
     <span class="version-update hidden" id="app-version-update"></span>
   </a>
 </header>
-<div class="nav-overlay" id="nav-overlay" data-action="closeMobileNav"></div>
+<div class="nav-overlay" id="psm-vue-overlay"></div>
 
 <div class="app">
   <nav id="psm-vue-nav">
@@ -902,14 +903,17 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-  window.PSM_BOOTSTRAP = {
-    user: {
-      username: {{ current_user.username | tojson }},
-      avatar: {{ (current_user.username[0] | upper) | tojson }},
+<script type="application/json" id="psm-bootstrap-data">
+  {
+    "user": {
+      "username": {{ current_user.username | tojson }},
+      "avatar": {{ (current_user.username[0] | upper) | tojson }}
     },
-    permissions: {{ permissions | tojson }},
-  };
+    "permissions": {{ permissions | tojson }},
+    "assets": {
+      "logo": {{ url_for('pages.media', filename='logo.png') | tojson }}
+    }
+  }
 </script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="{{ url_for('static', filename='js/api.js') }}"></script>

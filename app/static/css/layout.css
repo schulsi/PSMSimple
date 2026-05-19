@@ -322,6 +322,16 @@ main {
   transform: translateY(6px);
 }
 
+.nav-overlay-button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
 /* Beratung Bubbles */
 .beratung-bubble-grid {
   display: flex;

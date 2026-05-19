@@ -45,78 +45,32 @@
     return undefined;
   }
 
-  const { createApp, nextTick } = window.Vue;
-  const bootstrap = window.PSM_BOOTSTRAP || {};
+  function readBootstrapData() {
+    const el = document.getElementById('psm-bootstrap-data');
+    if (!el) return {};
+
+    try {
+      return JSON.parse(el.textContent);
+    } catch (err) {
+      console.warn('Vue-Bootstrap-Daten konnten nicht gelesen werden.', err);
+      return {};
+    }
+  }
+
+  const { createApp, h, nextTick, Teleport } = window.Vue;
+  const bootstrap = readBootstrapData();
 
   const app = createApp({
-    template: `
-      <div class="nav-items">
-        <template v-for="section in navSections" :key="section.label">
-          <div v-if="section.label" class="section-label">{{ section.label }}</div>
-          <a
-            v-for="item in section.items"
-            :key="item.tab"
-            :href="item.href"
-            :data-tab="item.tab"
-            :class="{ active: activeTab === item.tab }"
-            @click.prevent.stop="openNavItem(item, $event)"
-          >
-            <span class="ico">{{ item.icon }}</span>
-            {{ item.label }}
-            <span
-              v-if="item.warningBadge"
-              class="badge badge-critical hidden"
-              id="inventory-warning-count"
-            ></span>
-          </a>
-        </template>
-      </div>
-
-      <div class="nav-user">
-        <div class="nav-user-popup" id="user-popup">
-          <div class="popup-header">
-            <div class="popup-label">Angemeldet als</div>
-            <div class="popup-username" id="popup-username">{{ user.username }}</div>
-            <div class="popup-label">Rolle: {{ permissions.role }}</div>
-          </div>
-
-          <a
-            href="/settings"
-            data-tab="settings"
-            class="popup-button-reset"
-            @click.prevent.stop="showTab('settings', $event.currentTarget)"
-          >
-            <span class="ico">⚙️</span>
-            <div class="popup-label">Einstellungen</div>
-          </a>
-          <button type="button" class="popup-button-reset" @click.stop="logout">
-            <span class="ico">🚪</span>
-            <div class="popup-label">Abmelden</div>
-          </button>
-        </div>
-
-        <button
-          type="button"
-          class="nav-user-btn"
-          id="user-btn"
-          :class="{ open: isUserPopupOpen }"
-          @click.stop="toggleUserPopup"
-        >
-          <div class="nav-user-avatar" id="user-avatar">{{ user.avatar }}</div>
-          <span class="nav-user-name" id="user-name-label">{{ user.username }}</span>
-          <span class="nav-user-caret">▲</span>
-        </button>
-      </div>
-    `,
-
     data() {
       const permissions = bootstrap.permissions || {};
       const user = bootstrap.user || {};
+      const assets = bootstrap.assets || {};
 
       return {
         activeTab: getTabFromPath(),
         isMobileNavOpen: false,
         isUserPopupOpen: false,
+        assets,
         permissions,
         user: {
           username: user.username || '',
@@ -190,6 +144,13 @@
       },
     },
 
+    beforeMount() {
+      document.getElementById('psm-vue-header')?.replaceChildren();
+      document.getElementById('psm-vue-nav')?.replaceChildren();
+      document.getElementById('psm-vue-overlay')?.replaceChildren();
+      document.getElementById('tab-home')?.replaceChildren();
+    },
+
     mounted() {
       window.psmVueApp = this;
 
@@ -209,7 +170,159 @@
       window.removeEventListener('popstate', this.onPopState);
     },
 
+    render() {
+      return [
+        h(Teleport, { to: '#psm-vue-header' }, this.renderHeader()),
+        h(Teleport, { to: '#psm-vue-overlay' }, this.renderOverlay()),
+        h(Teleport, { to: '#psm-vue-nav' }, this.renderSidebar()),
+        h(Teleport, { to: '#tab-home' }, this.renderHomeTab()),
+      ];
+    },
+
     methods: {
+      renderHomeTab() {
+        return h('div', { class: 'home-landing' }, [
+          h('h1', { class: 'home-title' }, 'Willkommen bei PSMSimple'),
+          h('div', { class: 'home-logo-wrap' }, [
+            h('img', {
+              src: this.assets.logo || '',
+              alt: 'PSMSimple Logo',
+              class: 'home-logo',
+            }),
+          ]),
+          h('a', {
+            href: '/export',
+            class: 'btn-home-cta',
+            onClick: (event) => {
+              event.preventDefault();
+              this.showTab('export', event.currentTarget);
+            },
+          }, [
+            'Jetzt dokumentieren ',
+            h('span', { class: 'cta-arrow' }, '→'),
+          ]),
+        ]);
+      },
+
+      renderHeader() {
+        return [
+          h('button', {
+            class: 'nav-toggle',
+            id: 'nav-toggle',
+            type: 'button',
+            'aria-label': this.isMobileNavOpen ? 'Menü schließen' : 'Menü öffnen',
+            onClick: (event) => {
+              event.stopPropagation();
+              this.toggleMobileNav();
+            },
+          }, '☰'),
+          h('div', { class: 'logo' }, [
+            '🌿 Pflanzen',
+            h('span', 'schutz'),
+          ]),
+          h('div', { class: 'sub' }, 'Dokumentation & JSON-Export'),
+        ];
+      },
+
+      renderOverlay() {
+        return h('button', {
+          type: 'button',
+          class: 'nav-overlay-button',
+          'aria-label': 'Menü schließen',
+          onClick: () => this.closeMobileNav(),
+        });
+      },
+
+      renderSidebar() {
+        return [
+          h('div', { class: 'nav-items' }, this.renderNavSections()),
+          h('div', { class: 'nav-user' }, [
+            h('div', { class: 'nav-user-popup', id: 'user-popup' }, [
+              h('div', { class: 'popup-header' }, [
+                h('div', { class: 'popup-label' }, 'Angemeldet als'),
+                h('div', { class: 'popup-username', id: 'popup-username' }, this.user.username),
+                h('div', { class: 'popup-label' }, `Rolle: ${this.permissions.role || ''}`),
+              ]),
+              h('a', {
+                href: '/settings',
+                'data-tab': 'settings',
+                class: 'popup-button-reset',
+                onClick: (event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  this.showTab('settings', event.currentTarget);
+                },
+              }, [
+                h('span', { class: 'ico' }, '⚙️'),
+                h('div', { class: 'popup-label' }, 'Einstellungen'),
+              ]),
+              h('button', {
+                type: 'button',
+                class: 'popup-button-reset',
+                onClick: (event) => {
+                  event.stopPropagation();
+                  this.logout();
+                },
+              }, [
+                h('span', { class: 'ico' }, '🚪'),
+                h('div', { class: 'popup-label' }, 'Abmelden'),
+              ]),
+            ]),
+            h('button', {
+              type: 'button',
+              class: ['nav-user-btn', { open: this.isUserPopupOpen }],
+              id: 'user-btn',
+              onClick: (event) => {
+                event.stopPropagation();
+                this.toggleUserPopup();
+              },
+            }, [
+              h('div', { class: 'nav-user-avatar', id: 'user-avatar' }, this.user.avatar),
+              h('span', { class: 'nav-user-name', id: 'user-name-label' }, this.user.username),
+              h('span', { class: 'nav-user-caret' }, '▲'),
+            ]),
+          ]),
+        ];
+      },
+
+      renderNavSections() {
+        return this.navSections.flatMap((section) => {
+          const children = [];
+
+          if (section.label) {
+            children.push(h('div', {
+              class: 'section-label',
+              key: `${section.label}-label`,
+            }, section.label));
+          }
+
+          section.items.forEach((item) => {
+            children.push(h('a', {
+              href: item.href,
+              'data-tab': item.tab,
+              class: { active: this.activeTab === item.tab },
+              key: item.tab,
+              onClick: (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.openNavItem(item, event);
+              },
+            }, [
+              h('span', { class: 'ico' }, item.icon),
+              ` ${item.label}`,
+              item.warningBadge
+                ? h('span', {
+                  class: 'badge badge-critical hidden',
+                  id: 'inventory-warning-count',
+                })
+                : null,
+            ]));
+          });
+
+          return children;
+        });
+      },
+
       openNavItem(item, event) {
         this.showTab(item.tab, event.currentTarget);
       },
@@ -267,7 +380,7 @@
 
       applyMobileNavClasses() {
         document.querySelector('nav')?.classList.toggle('open', this.isMobileNavOpen);
-        document.getElementById('nav-overlay')?.classList.toggle('open', this.isMobileNavOpen);
+        document.getElementById('psm-vue-overlay')?.classList.toggle('open', this.isMobileNavOpen);
       },
 
       toggleUserPopup() {
@@ -332,5 +445,5 @@
     },
   });
 
-  app.mount('#psm-vue-nav');
+  app.mount('#psm-vue-app');
 })();
