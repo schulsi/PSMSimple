@@ -111,6 +111,7 @@ const AppRoot = {
       bbchTempRowId: 0,
       orteItems: [],
       showPsmSearchResults: false,
+      toastTimer: null,
       user: {
         username: user.username || '',
         avatar: user.avatar || '?',
@@ -216,6 +217,10 @@ const AppRoot = {
     window.saveBetrieb = () => this.saveBetrieb();
     window.saveBetriebWizard = () => this.saveBetriebWizard();
     window.showForecastSubTab = (subtab, btn = null) => this.showForecastSubTab(subtab, btn);
+    window.toast = (message, duration = 2600) => this.toast(message, duration);
+    window.openModal = (id) => this.openModal(id);
+    window.closeModal = (id) => this.closeModal(id);
+    window.logout = () => this.logout();
 
     this.applyTabClasses();
     this.applyMobileNavClasses();
@@ -226,6 +231,7 @@ const AppRoot = {
     window.addEventListener('resize', this.onResize);
     window.addEventListener('popstate', this.onPopState);
 
+    this.loadBetrieb();
     this.loadPSM();
     this.loadEinsatzorte();
     this.loadKulturen();
@@ -1187,8 +1193,43 @@ const AppRoot = {
       this.showTab(tabName, null, false);
     },
 
+    toast(message, duration = 2600) {
+      const el = document.getElementById('toast');
+      if (!el) return;
+
+      el.textContent = message;
+      el.classList.add('show');
+
+      clearTimeout(this.toastTimer);
+      this.toastTimer = window.setTimeout(() => {
+        el.classList.remove('show');
+      }, duration);
+    },
+
+    openModal(id) {
+      document.getElementById(id)?.classList.add('open');
+    },
+
+    closeModal(id) {
+      document.getElementById(id)?.classList.remove('open');
+    },
+
     logout() {
-      callIfExists('logout');
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/logout';
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]');
+      if (csrfToken) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'csrf_token';
+        input.value = csrfToken.content;
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
     },
   },
 

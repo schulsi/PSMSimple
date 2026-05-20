@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
-
+<div id="login-vue-app">
 <header>
   <button class="nav-toggle" data-action="toggleMobileNav" aria-label="Menü öffnen">☰</button>
   <div class="logo">Pflanzen<span>schutz</span></div>
@@ -98,9 +98,9 @@
     </div>
   </main>
 </div>
+</div>
 
-<script src="{{ url_for('static', filename='js/login.js') }}"></script>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script type="module" src="{{ vite_asset('src/login.js') }}"></script>
 
 </body>
 </html>
