@@ -4,8 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof loadBetrieb === 'function') {
       await Promise.all([
         loadBetrieb(),
-        loadSettings(),
-        loadInventory()
+        loadSettings()
       ]);
     }
   } catch (err) {
@@ -42,28 +41,17 @@ function logout() {
     'toggleMobileNav', 'closeMobileNav', 'toggleUserPopup',
     'saveBetrieb',
     'previewJSON', 'exportSave', 'exportDownloadZip',
-    'resetHistoryFilter', 'resetPSMHistoryFilter', 'resetFieldsHistoryFilter',
     'saveSettings', 'renameUser', 'saveBetriebWizard',
-    'closeModal', 'logout',
-    'loadInventoryMovements', 'loadInventoryMovements', 'saveInventoryMovement'
+    'closeModal', 'logout'
   ]);
 
   // Aktionen mit einem Argument aus data-tab, data-period, data-subtab oder data-panel
   const CLICK_ACTIONS_WITH_ARG = new Map([
     ['showTab',              el => [el.dataset.tab,    el]],
-    ['showHistorySubTab',    el => [el.dataset.subtab, el]],
-    ['quickSelectHistory',   el => [el.dataset.period]],
-    ['quickSelectPSMHistory',el => [el.dataset.period]],
-    ['quickSelectFieldsHistory', el => [el.dataset.period]],
     ['closeModal',           el => [el.dataset.modal]],
-    ['showHistoryDetail',         el => [el.dataset.id]],
-    ['deleteHistoryEntry',       el => [el.dataset.id]],
-    ['toggleFieldDetails',       el => [el.dataset.name, el]],
     ['saveUserRole',         el => [el.dataset.id]],
     ['openDeleteUserConfirm', el => [el.dataset.id, el.dataset.username]],
     ['showPanelAuth',        el => [el.dataset.panel]],
-    ['openInventoryMovementModal', el => [el.dataset.id, el.dataset.name, el.dataset.einheit]],
-    ['showInventorySubTab', el => [el.dataset.subtab, el]],
     ['showForecastSubTab', el => [el.dataset.subtab, el]],
   ]);
 
@@ -72,8 +60,7 @@ function logout() {
 
   // Aktionen, die per change ausgelöst werden
   const CHANGE_ACTIONS = new Set([
-    'loadHistory', 'loadPSMUsage', 'loadFieldsUsage',
-    'onSaveModeToggle', 'onWizSaveModeToggle', 'loadInventoryMovements',
+    'onSaveModeToggle', 'onWizSaveModeToggle',
   ]);
 
   // change-Aktionen mit type und id Parameter

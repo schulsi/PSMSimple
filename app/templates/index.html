@@ -29,103 +29,7 @@
 
     <div id="tab-export" class="tab"></div>
 
-    <div id="tab-history" class="tab">
-      <h2>🕘 Verlauf <span class="badge" id="history-count">0</span></h2>
-
-      <div class="sub-tabs">
-        <button class="sub-tab-btn active" data-action="showHistorySubTab" data-subtab="applications">📄 Applikationen</button>
-        <button class="sub-tab-btn" data-action="showHistorySubTab" data-subtab="psm-usage">🧪 PSM-Verwendung</button>
-        <button class="sub-tab-btn" data-action="showHistorySubTab" data-subtab="fields-usage">📍 Felder-Verwendung</button>
-      </div>
-
-      <div id="history-sub-applications" class="history-sub-tab active">
-        <div class="card mb-085">
-          <div class="form-grid history-filter-row filter-grid">
-            <div class="field"><label>Von</label><input type="date" id="history-date-from" data-action="loadHistory"></div>
-            <div class="field"><label>Bis</label><input type="date" id="history-date-to" data-action="loadHistory"></div>
-            <div class="flex-center gap-05">
-              <button type="button" class="btn btn-sm btn-ghost" data-action="resetHistoryFilter">Zurücksetzen</button>
-            </div>
-          </div>
-          <div class="history-quick-select quick-select-row">
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectHistory" data-period="thisMonth">Dieser Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectHistory" data-period="lastMonth">Letzter Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectHistory" data-period="thisYear">Dieses Jahr</button>
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectHistory" data-period="lastYear">Letztes Jahr</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <p class="text-muted-history">
-            Hier siehst du alle gespeicherten Applikationen.
-          </p>
-          <div class="item-list" id="history-list"></div>
-        </div>
-      </div>
-
-      <div id="history-sub-psm-usage" class="history-sub-tab">
-        <div class="card mb-085">
-          <div class="form-grid history-filter-row filter-grid">
-            <div class="field"><label>Von</label><input type="date" id="psm-history-date-from" data-action="loadPSMUsage"></div>
-            <div class="field"><label>Bis</label><input type="date" id="psm-history-date-to" data-action="loadPSMUsage"></div>
-            <div class="flex-center gap-05">
-              <button type="button" class="btn btn-sm btn-ghost" data-action="resetPSMHistoryFilter">Zurücksetzen</button>
-            </div>
-          </div>
-          <div class="history-quick-select quick-select-row">
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectPSMHistory" data-period="thisMonth">Dieser Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectPSMHistory" data-period="lastMonth">Letzter Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectPSMHistory" data-period="thisYear">Dieses Jahr</button>
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectPSMHistory" data-period="lastYear">Letztes Jahr</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <p class="text-muted-history">
-            Übersicht über die Verwendung von Pflanzenschutzmitteln.
-          </p>
-          <div class="history-chart-wrap">
-            <canvas id="psm-usage-chart" class="chart-canvas"></canvas>
-          </div>
-          <div id="psm-usage-list"></div>
-        </div>
-      </div>
-
-      <div id="history-sub-fields-usage" class="history-sub-tab">
-        <div class="card mb-085">
-          <div class="form-grid history-filter-row filter-grid">
-            <div class="field"><label>Von</label><input type="date" id="fields-history-date-from" data-action="loadFieldsUsage"></div>
-            <div class="field"><label>Bis</label><input type="date" id="fields-history-date-to" data-action="loadFieldsUsage"></div>
-            <div class="flex-center gap-05">
-              <button type="button" class="btn btn-sm btn-ghost" data-action="resetFieldsHistoryFilter">Zurücksetzen</button>
-            </div>
-          </div>
-          <div class="history-quick-select quick-select-row">
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectFieldsHistory" data-period="thisMonth">Dieser Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectFieldsHistory" data-period="lastMonth">Letzter Monat</button>
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectFieldsHistory" data-period="thisYear">Dieses Jahr</button>
-            <button type="button" class="btn btn-sm btn-outline" data-action="quickSelectFieldsHistory" data-period="lastYear">Letztes Jahr</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <p class="text-muted-history">
-            Übersicht über die Verwendung von Feldern.
-          </p>
-          <div class="history-chart-wrap">
-            <canvas id="fields-usage-chart" class="chart-canvas"></canvas>
-          </div>
-          <div id="fields-usage-list"></div>
-        </div>
-      </div>
-
-      <div class="card hidden" id="history-detail-wrap">
-        <h3 class="section-title">
-          🔍 Applikationsdetails
-        </h3>
-        <div id="history-detail" class="history-detail"></div>
-      </div>
-    </div>
+    <div id="tab-history" class="tab"></div>
 
 <div id="tab-forecast" class="tab">
   <h2>📈 Beratung <span class="badge" id="forecast-status-badge">Spritzfenster</span></h2>
@@ -147,42 +51,7 @@
 
 </div>
  
-  <div id="tab-inventory" class="tab">
-    <h2>📦 Lagerbestand</h2>
-  
-    <div class="sub-tabs">
-      <button class="sub-tab-btn active" data-action="showInventorySubTab" data-subtab="overview">
-        📊 Übersicht
-      </button>
-      <button class="sub-tab-btn" data-action="showInventorySubTab" data-subtab="movements">
-        📋 Bewegungshistorie
-      </button>
-    </div>
-  
-    {# --- Übersicht --- #}
-    <div id="inventory-sub-overview" class="history-sub-tab active">
-      <div class="item-list" id="inventory-list"></div>
-    </div>
-  
-    {# --- Bewegungshistorie --- #}
-    <div id="inventory-sub-movements" class="history-sub-tab">
-      <div class="card mb-085">
-        <div class="form-grid filter-grid">
-          <div class="field">
-            <label>Anzahl Einträge</label>
-            <select id="inventory-movements-limit" data-action="loadInventoryMovements">
-              <option value="50">50</option>
-              <option value="200" selected>200</option>
-              <option value="500">500</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div id="inventory-movements-list"></div>
-      </div>
-    </div>
-  </div>
+  <div id="tab-inventory" class="tab"></div>
     <div id="tab-settings" class="tab">
       <h2>⚙️ Einstellungen</h2>
 
@@ -341,48 +210,7 @@
 
 <div class="modal-overlay" id="modal-betrieb-wizard"></div>
 
-<div class="modal-overlay" id="modal-inventory">
-  <div class="modal">
-    <h3 id="modal-inventory-title">Lagerbuchung</h3>
-    <input type="hidden" id="inv-psm-id">
- 
-    <div class="form-grid">
-      <div class="field">
-        <label>Buchungstyp</label>
-        <select id="inv-typ">
-          <option value="purchase">Einkauf (Zugang)</option>
-          <option value="correction_plus">Korrektur + (Zugang)</option>
-          <option value="correction_minus">Korrektur − (Abgang)</option>
-          <option value="disposal">Entsorgung (Abgang)</option>
-        </select>
-      </div>
- 
-      <div class="field">
-        <label>Menge (<span id="inv-einheit-label">—</span>)</label>
-        <input type="number" id="inv-menge" step="0.001" min="0" placeholder="0.000">
-      </div>
- 
-      <div class="field">
-        <label>Datum</label>
-        <input type="date" id="inv-datum">
-      </div>
- 
-      <div class="field span-2">
-        <label>Notiz (optional)</label>
-        <input id="inv-notiz" placeholder="z.B. Lieferschein-Nr. oder Grund">
-      </div>
-    </div>
- 
-    <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" data-action="closeModal" data-modal="modal-inventory">
-        Abbrechen
-      </button>
-      <button type="button" class="btn btn-primary" data-action="saveInventoryMovement">
-        Buchen
-      </button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="modal-inventory"></div>
 
 <div id="toast"></div>
 {% endblock %}
@@ -402,13 +230,6 @@
 </script>
 <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
-<script src="{{ url_for('static', filename='js/inventory.js') }}"></script>
-<script src="{{ url_for('static', filename='js/history/history-init.js') }}"></script>
-<script src="{{ url_for('static', filename='js/history/history-fields.js') }}"></script>
-<script src="{{ url_for('static', filename='js/history/history-list.js') }}"></script>
-<script src="{{ url_for('static', filename='js/history/history-psm.js') }}"></script>
-<script src="{{ url_for('static', filename='js/history/history-utils.js') }}"></script>
-<script src="{{ url_for('static', filename='js/version.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script type="module" src="{{ vite_asset('src/main.js') }}"></script>
 

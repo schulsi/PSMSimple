@@ -9,6 +9,8 @@ import EinsatzortModal from '../components/EinsatzortModal.vue';
 import EinsatzorteView from '../components/EinsatzorteView.js';
 import ForecastView from '../components/ForecastView.vue';
 import HomeView from '../components/HomeView.js';
+import HistoryView from '../components/HistoryView.vue';
+import InventoryView from '../components/InventoryView.vue';
 import KulturModal from '../components/KulturModal.js';
 import KulturenView from '../components/KulturenView.js';
 import PsmModal from '../components/PsmModal.js';
@@ -62,6 +64,7 @@ const AppRoot = {
       isBetriebWizardSaving: false,
       isEinsatzorteLoading: false,
       isKulturenLoading: false,
+      inventoryWarningCount: 0,
       isMobileNavOpen: false,
       isPsmInfoLoading: false,
       isPsmLoading: false,
@@ -194,6 +197,8 @@ const AppRoot = {
     document.getElementById('tab-einsatzorte')?.replaceChildren();
     document.getElementById('tab-kulturen')?.replaceChildren();
     document.getElementById('tab-export')?.replaceChildren();
+    document.getElementById('tab-history')?.replaceChildren();
+    document.getElementById('tab-inventory')?.replaceChildren();
     document.getElementById('forecast-sub-spritzfenster')?.replaceChildren();
     document.getElementById('forecast-sub-beratung')?.replaceChildren();
     document.getElementById('modal-psm')?.replaceChildren();
@@ -1113,8 +1118,6 @@ const AppRoot = {
     runTabHooks(tabName, el = null) {
       if (el?.dataset?.also) return;
 
-      if (tabName === 'history') callIfExists('loadHistory');
-      if (tabName === 'inventory') callIfExists('loadInventory');
     },
 
     toggleMobileNav() {
@@ -1202,6 +1205,7 @@ const AppRoot = {
         navSections: this.navSections,
         permissions: this.permissions,
         user: this.user,
+        inventoryWarningCount: this.inventoryWarningCount,
         onCloseMobileNav: () => this.closeMobileNav(),
         onLogout: () => this.logout(),
         onOpenTab: (tabName, el) => this.showTab(tabName, el),
@@ -1265,6 +1269,21 @@ const AppRoot = {
       ]),
       h(Teleport, { to: '#forecast-sub-beratung' }, [
         h(BeratungView),
+      ]),
+      h(Teleport, { to: '#tab-history' }, [
+        h(HistoryView, {
+          activeTab: this.activeTab,
+          canWrite: !!this.permissions.can_write,
+        }),
+      ]),
+      h(Teleport, { to: '#tab-inventory' }, [
+        h(InventoryView, {
+          activeTab: this.activeTab,
+          canWrite: !!this.permissions.can_write,
+          onWarningCount: count => {
+            this.inventoryWarningCount = count;
+          },
+        }),
       ]),
       h(Teleport, { to: '#modal-psm' }, [
         h(PsmModal, {

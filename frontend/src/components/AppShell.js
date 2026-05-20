@@ -9,6 +9,7 @@ export default {
     navSections: { type: Array, required: true },
     permissions: { type: Object, required: true },
     user: { type: Object, required: true },
+    inventoryWarningCount: { type: Number, default: 0 },
   },
   emits: ['close-mobile-nav', 'logout', 'open-tab', 'toggle-mobile-nav', 'toggle-user-popup'],
   methods: {
@@ -120,9 +121,9 @@ export default {
             ` ${item.label}`,
             item.warningBadge
               ? h('span', {
-                class: 'badge badge-critical hidden',
+                class: ['badge', 'badge-critical', { hidden: this.inventoryWarningCount === 0 }],
                 id: 'inventory-warning-count',
-              })
+              }, this.inventoryWarningCount > 0 ? String(this.inventoryWarningCount) : '')
               : null,
           ]));
         });

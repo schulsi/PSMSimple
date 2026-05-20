@@ -261,7 +261,6 @@ window.addEventListener('popstate', (event) => {
   showTab(tabName, navLink, false);  // false = don't push again
  
   // Re-run loaders that need fresh data
-  if (tabName === 'history' && typeof loadHistory === 'function') loadHistory();
 });
  
 // ── On initial page load: activate correct tab from URL & set initial state ──
