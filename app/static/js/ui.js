@@ -23,6 +23,87 @@ function toast(message, duration = 2600) {
     el.classList.remove('show');
   }, duration);
 }
+
+function getCsrfToken() {
+  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
+async function apiGet(url) {
+  const res = await fetch(url, {
+    credentials: 'same-origin'
+  });
+
+  const contentType = res.headers.get('Content-Type') || '';
+
+  if (!res.ok) {
+    let message = `GET ${url} fehlgeschlagen`;
+    if (contentType.includes('application/json')) {
+      try {
+        const body = await res.json();
+        if (body.error) message = body.error;
+      } catch (_) {
+        // Keep the generic error when the response body is not valid JSON.
+      }
+    }
+    throw new Error(message);
+  }
+
+  if (contentType.includes('application/json')) {
+    return res.json();
+  }
+
+  return res;
+}
+
+async function apiSend(url, method, data = null) {
+  const options = {
+    method,
+    credentials: 'same-origin',
+    headers: {
+      'X-CSRFToken': getCsrfToken()
+    }
+  };
+
+  if (data !== null) {
+    options.headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(data);
+  }
+
+  const res = await fetch(url, options);
+  const contentType = res.headers.get('Content-Type') || '';
+
+  if (!res.ok) {
+    let message = `${method} ${url} fehlgeschlagen`;
+    if (contentType.includes('application/json')) {
+      try {
+        const body = await res.json();
+        if (body.error) message = body.error;
+      } catch (_) {
+        // Keep the generic error when the response body is not valid JSON.
+      }
+    }
+    throw new Error(message);
+  }
+
+  if (contentType.includes('application/json')) {
+    return res.json();
+  }
+
+  return res;
+}
+
+async function apiPost(url, data) {
+  return apiSend(url, 'POST', data);
+}
+
+async function apiPut(url, data) {
+  return apiSend(url, 'PUT', data);
+}
+
+async function apiDelete(url) {
+  return apiSend(url, 'DELETE');
+}
+
 const tabToPath = {
   home: "/",
   betrieb: "/betrieb",
@@ -181,10 +262,6 @@ window.addEventListener('popstate', (event) => {
  
   // Re-run loaders that need fresh data
   if (tabName === 'history' && typeof loadHistory === 'function') loadHistory();
-  if (tabName === 'export'  && typeof loadExportSelections === 'function') {
-    loadExportSelections();
-    if (typeof syncLegacyExportUI === 'function') syncLegacyExportUI();
-  }
 });
  
 // ── On initial page load: activate correct tab from URL & set initial state ──
@@ -196,7 +273,4 @@ document.addEventListener('DOMContentLoaded', () => {
   showTab(tabName, navLink, false);
   // Replace so the initial entry also carries state for popstate
   history.replaceState({ tab: tabName }, '', window.location.pathname);
-  if (tabName === 'forecast' && typeof initForecastTab === 'function') {
-    initForecastTab();
-  }
 });

@@ -2,10 +2,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     // Nur App-Seite laden, wenn alle Funktionen vorhanden sind
     if (typeof loadBetrieb === 'function') {
-      if ($('exp-datum') && !$('exp-datum').value) {
-        $('exp-datum').value = new Date().toISOString().split('T')[0];
-      }
-
       await Promise.all([
         loadBetrieb(),
         loadSettings(),
@@ -48,9 +44,8 @@ function logout() {
     'previewJSON', 'exportSave', 'exportDownloadZip',
     'resetHistoryFilter', 'resetPSMHistoryFilter', 'resetFieldsHistoryFilter',
     'saveSettings', 'renameUser', 'saveBetriebWizard',
-    'closeModal', 'logout',  'calculateForecastWindow', 'forecastSelectAllOrte', 'forecastSelectNoOrte',
-    'loadInventoryMovements', 'loadInventoryMovements', 'saveInventoryMovement', 'startBeratung',
-    'openOrtModal', 'saveOrt',
+    'closeModal', 'logout',
+    'loadInventoryMovements', 'loadInventoryMovements', 'saveInventoryMovement'
   ]);
 
   // Aktionen mit einem Argument aus data-tab, data-period, data-subtab oder data-panel
@@ -77,16 +72,12 @@ function logout() {
 
   // Aktionen, die per change ausgelöst werden
   const CHANGE_ACTIONS = new Set([
-    'updateArtSubkategorie', 'syncArtVerwendungField',
     'loadHistory', 'loadPSMUsage', 'loadFieldsUsage',
     'onSaveModeToggle', 'onWizSaveModeToggle', 'loadInventoryMovements',
-    'onBeratungSchadInput'
   ]);
 
   // change-Aktionen mit type und id Parameter
-  const CHANGE_ACTIONS_WITH_TYPE_ID = new Set([
-    'toggleExpItem',
-  ]);
+  const CHANGE_ACTIONS_WITH_TYPE_ID = new Set([]);
 
   // change-Aktionen, die das Element als Argument brauchen
   const CHANGE_ACTIONS_WITH_EL = new Set([

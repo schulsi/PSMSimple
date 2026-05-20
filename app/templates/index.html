@@ -27,64 +27,7 @@
 
     <div id="tab-kulturen" class="tab"></div>
 
-    <div id="tab-export" class="tab">
-      <h2>📄 Dokumentation erstellen</h2>
-
-      <div class="card export-section">
-        <h3>🧪 Pflanzenschutzmittel &amp; Aufwandsmenge</h3>
-        <p class="export-help-text">Mittel auswählen und Aufwandsmenge für diese Anwendung eingeben.</p>
-        <div id="exp-psm-list"></div>
-      </div>
-
-      <div class="card export-section">
-        <h3>🌾 Kulturen &amp; BBCH-Code</h3>
-        <p class="export-help-text">Kultur auswählen und BBCH-Code für diese Anwendung eingeben.</p>
-        <div id="exp-kulturen-list"></div>
-      </div>
-
-      <div class="card export-section">
-        <h3>📍 Felder auswählen</h3>
-        <p class="export-help-text">Es werden nur Felder der ausgewählten Kultur angezeigt.</p>
-        <div id="exp-einsatzorte-quick-select" class="quick-select-row"></div>
-        <div id="exp-einsatzorte-list"></div>
-      </div>
-
-      <div class="card export-section">
-        <h3>📋 Anwendung</h3>
-        <div class="form-grid">
-          <div class="field"><label>Datum</label><input type="date" id="exp-datum"></div>
-          <div class="field"><label>Uhrzeit</label><input type="time" id="exp-uhrzeit"></div>
-          <div class="field">
-            <label>Art der Verwendung</label>
-            <select id="exp-art-haupt" data-action="updateArtSubkategorie">
-              <option value="Behandlung von Freilandflächen">Behandlung von Freilandflächen</option>
-              <option value="Behandlung geschlossener Räume bzw. in geschlossenen Räumen">Behandlung geschlossener Räume bzw. in geschlossenen Räumen</option>
-              <option value="Behandlung von Saatgut oder Pflanzenvermehrungsmaterial">Behandlung von Saatgut oder Pflanzenvermehrungsmaterial</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Subkategorie</label>
-            <select id="exp-art-sub" data-action="syncArtVerwendungField"></select>
-          </div>
-          <div class="field"><label>Verantwortlich</label><input id="exp-verantwortlich"></div>
-          <div class="field"><label>Anwender</label><input id="exp-anwender"></div>
-        </div>
-        <input type="hidden" id="exp-artVerwendung">
-      </div>
-
-      <div class="export-footer">
-        <button type="button" id="btn-preview" class="btn btn-ghost" data-action="previewJSON" disabled>👁 Vorschau</button>
-        <button type="button" id="btn-save" class="btn btn-export" data-action="exportSave" disabled>💾 Speichern</button>
-        <button type="button" id="btn-download" class="btn btn-export" data-action="exportDownloadZip" disabled>⬇ Download</button>
-      </div>
-      <div id="validation-msg" class="validation-msg hidden"></div>
-
-      <div id="json-preview-wrap" class="preview-wrap">
-        <div class="divider"></div>
-        <h3 class="preview-title">🔍 Vorschau</h3>
-        <pre id="preview-json"></pre>
-      </div>
-    </div>
+    <div id="tab-export" class="tab"></div>
 
     <div id="tab-history" class="tab">
       <h2>🕘 Verlauf <span class="badge" id="history-count">0</span></h2>
@@ -197,137 +140,10 @@
   </div>
 
   {# --- Spritzfenster --- #}
-  <div id="forecast-sub-spritzfenster" class="history-sub-tab active">
-    <div class="forecast-layout">
-
-      <div class="card forecast-settings-card">
-        <div class="forecast-settings-head">
-          <div>
-            <h3 class="section-title">⚙️ Einstellungen</h3>
-            <p class="text-muted-history">
-              Zeitraum und Thresholds für die Berechnung des besten Spritzfensters.
-            </p>
-          </div>
-        </div>
-
-        <div class="form-grid forecast-grid">
-          <div class="field forecast-orte-field">
-            <label>Orte auswählen</label>
-            <div class="forecast-checkbox-toolbar">
-              <button type="button" class="btn btn-sm btn-ghost" data-action="forecastSelectAllOrte">Alle</button>
-              <button type="button" class="btn btn-sm btn-ghost" data-action="forecastSelectNoOrte">Keine</button>
-            </div>
-            <div id="forecast-orte" class="forecast-checkbox-list"></div>
-          </div>
-
-          <div class="field">
-            <label>Zeitraum</label>
-            <select id="forecast-range">
-              <option value="today">Heute</option>
-              <option value="24">Bis Morgen</option>
-              <option value="48">Nächste 2 Tage</option>
-              <option value="72" selected>Nächste 3 Tage</option>
-              <option value="96">Nächste 4 Tage</option>
-              <option value="120">Nächste 5 Tage</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label>Min. Fensterdauer (h)</label>
-            <input id="forecast-min-window-hours" type="number" step="1" value="2">
-          </div>
-        </div>
-
-        <div class="forecast-actions">
-          <button type="button" class="btn btn-primary" id="btn-forecast-calc" data-action="calculateForecastWindow">
-            📈 Vorhersage berechnen
-          </button>
-        </div>
-      </div>
-
-      <div class="card forecast-result-card">
-        <h3 class="section-title">🌤 Bestes Zeitfenster</h3>
-        <div id="forecast-loading" class="forecast-info-box hidden">Vorhersage wird geladen...</div>
-        <div id="forecast-error" class="forecast-error-box hidden"></div>
-        <div id="forecast-best-window" class="forecast-best-window hidden"></div>
-        <div id="forecast-alt-wrap" class="hidden">
-          <h4 class="section-title mt-1">Weitere Zeitfenster</h4>
-          <div id="forecast-alt-list" class="forecast-alt-list"></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
+  <div id="forecast-sub-spritzfenster" class="history-sub-tab active"></div>
 
   {# --- PSM-Beratung --- #}
-  <div id="forecast-sub-beratung" class="history-sub-tab">
-
-    <div class="card mb-085">
-      <h3 class="section-title">🌾 Kultur &amp; Schadorganismus</h3>
-      <p class="text-muted-history">Wähle eine Kultur aus deiner Datenbank und suche nach dem Schadorganismus.</p>
-
-      <div class="form-grid">
-
-        <div class="field">
-          <label>Kultur</label>
-          <select id="beratung-kultur-select">
-            <option value="">— Kultur wählen —</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Schadorganismus</label>
-          <div class="beratung-search-wrap">
-            <input
-              id="beratung-schad-input"
-              type="text"
-              placeholder="z.B. Blattläuse, Mehltau..."
-              autocomplete="off"
-              data-action="onBeratungSchadInput"
-            >
-            <div id="beratung-schad-dropdown" class="beratung-dropdown hidden"></div>
-          </div>
-          <input type="hidden" id="beratung-schad-kode">
-          <div id="beratung-schad-selected" class="beratung-bubble-wrap"></div>
-        </div>
-
-        <div class="field">
-          <label>Felder (optional, für Wetterfenster)</label>
-          <select id="beratung-ort-select">
-            <option value="">— Kein Feld —</option>
-          </select>
-        </div>
-
-      </div>
-
-      <div class="mt-1">
-        <button type="button" class="btn btn-primary" data-action="startBeratung">
-          🗫 Beratung starten
-        </button>
-      </div>
-    </div>
-
-    {# Ergebnisse: Mittel-Bubbles #}
-    <div id="beratung-mittel-wrap" class="hidden">
-      <div class="card mb-085">
-        <h3 class="section-title">🧪 Zugelassene Mittel <span class="badge" id="beratung-mittel-count">0</span></h3>
-        <p class="text-muted-history">Alle aktuell zugelassenen Mittel laut BVL für die gewählte Kombination.</p>
-        <div id="beratung-mittel-list" class="beratung-bubble-grid"></div>
-      </div>
-
-      <div class="card hidden" id="beratung-empfehlung-card">
-        <h3 class="section-title">🤖 Empfehlung</h3>
-        <div id="beratung-empfehlung-loading" class="forecast-info-box hidden">Empfehlung wird erstellt...</div>
-        <div id="beratung-empfehlung-error" class="forecast-error-box hidden"></div>
-        <div id="beratung-empfehlung-result" class="beratung-empfehlung-text hidden"></div>
-        <div id="beratung-empfehlung-meta" class="beratung-empfehlung-meta hidden"></div>
-      </div>
-    </div>
-
-    <div id="beratung-loading" class="forecast-info-box hidden">Mittel werden geladen...</div>
-    <div id="beratung-error" class="forecast-error-box hidden"></div>
-
-  </div>
+  <div id="forecast-sub-beratung" class="history-sub-tab"></div>
 
 </div>
  
@@ -584,14 +400,9 @@
     }
   }
 </script>
-<script src="{{ url_for('static', filename='js/api.js') }}"></script>
 <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
-<script src="{{ url_for('static', filename='js/betrieb.js') }}"></script>
-<script src="{{ url_for('static', filename='js/export.js') }}"></script>
-<script src="{{ url_for('static', filename='js/forecast.js') }}"></script>
 <script src="{{ url_for('static', filename='js/inventory.js') }}"></script>
-<script src="{{ url_for('static', filename='js/beratung.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-init.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-fields.js') }}"></script>
 <script src="{{ url_for('static', filename='js/history/history-list.js') }}"></script>
@@ -599,7 +410,6 @@
 <script src="{{ url_for('static', filename='js/history/history-utils.js') }}"></script>
 <script src="{{ url_for('static', filename='js/version.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-<script src="{{ url_for('static', filename='js/index.js') }}"></script>
 <script type="module" src="{{ vite_asset('src/main.js') }}"></script>
 
 {% endblock %}

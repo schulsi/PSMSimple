@@ -1,16 +1,20 @@
 import { h, nextTick, Teleport } from 'vue';
 
 import AppShell from '../components/AppShell.js';
+import BeratungView from '../components/BeratungView.vue';
 import BetriebView from '../components/BetriebView.js';
 import BetriebWizard from '../components/BetriebWizard.js';
 import EinsatzortMapModal from '../components/EinsatzortMapModal.js';
-import EinsatzortModal from '../components/EinsatzortModal.js';
+import EinsatzortModal from '../components/EinsatzortModal.vue';
 import EinsatzorteView from '../components/EinsatzorteView.js';
+import ForecastView from '../components/ForecastView.vue';
 import HomeView from '../components/HomeView.js';
 import KulturModal from '../components/KulturModal.js';
 import KulturenView from '../components/KulturenView.js';
 import PsmModal from '../components/PsmModal.js';
 import PsmView from '../components/PsmView.js';
+import ExportView from '../components/ExportView.vue';
+import { apiDelete, apiGet, apiPost, apiPut } from './api.js';
 import {
   callIfExists,
   eoMapDefault,
@@ -189,6 +193,9 @@ const AppRoot = {
     document.getElementById('tab-psm')?.replaceChildren();
     document.getElementById('tab-einsatzorte')?.replaceChildren();
     document.getElementById('tab-kulturen')?.replaceChildren();
+    document.getElementById('tab-export')?.replaceChildren();
+    document.getElementById('forecast-sub-spritzfenster')?.replaceChildren();
+    document.getElementById('forecast-sub-beratung')?.replaceChildren();
     document.getElementById('modal-psm')?.replaceChildren();
     document.getElementById('modal-einsatzort')?.replaceChildren();
     document.getElementById('modal-map')?.replaceChildren();
@@ -201,10 +208,7 @@ const AppRoot = {
     window.loadBetrieb = () => this.loadBetrieb();
     window.saveBetrieb = () => this.saveBetrieb();
     window.saveBetriebWizard = () => this.saveBetriebWizard();
-    window.fillBetriebForm = betrieb => this.applyBetriebForm(betrieb);
-    window.collectBetriebForm = () => this.collectBetriebForm();
-    window.collectWizardBetriebForm = () => this.collectWizardBetriebForm();
-    window.collectWizardSaveMode = () => this.collectWizardSaveMode();
+    window.showForecastSubTab = (subtab, btn = null) => this.showForecastSubTab(subtab, btn);
 
     this.applyTabClasses();
     this.applyMobileNavClasses();
@@ -273,12 +277,9 @@ const AppRoot = {
 
       let inventoryDefaults = {};
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn === 'function') {
-          const payload = await apiGetFn('/api/app/settings');
-          if (Array.isArray(payload)) {
-            inventoryDefaults = Object.fromEntries(payload.map(item => [item.key, item.value]));
-          }
+        const payload = await apiGet('/api/app/settings');
+        if (Array.isArray(payload)) {
+          inventoryDefaults = Object.fromEntries(payload.map(item => [item.key, item.value]));
         }
       } catch (err) {
         console.warn('[resetPSMForm] App-Settings konnten nicht geladen werden:', err);
@@ -298,10 +299,7 @@ const AppRoot = {
 
     async editPSM(id) {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
-        const item = await apiGetFn(`/api/psm/${id}`);
+        const item = await apiGet(`/api/psm/${id}`);
         this.psmEditId = id;
         this.psmSearchResults = [];
         this.showPsmSearchResults = false;
@@ -327,15 +325,11 @@ const AppRoot = {
         }
 
         if (this.psmEditId) {
-          const apiPutFn = window.apiPut;
-          if (typeof apiPutFn !== 'function') return;
-          await apiPutFn(`/api/psm/${this.psmEditId}`, payload);
+          await apiPut(`/api/psm/${this.psmEditId}`, payload);
           callIfExists('toast', '✅ Pflanzenschutzmittel gespeichert');
         } else {
-          const apiPostFn = window.apiPost;
-          if (typeof apiPostFn !== 'function') return;
           try {
-            await apiPostFn('/api/psm', payload);
+            await apiPost('/api/psm', payload);
             callIfExists('toast', '✅ Pflanzenschutzmittel hinzugefügt');
           } catch (err) {
             if (err.message.includes('existiert bereits')) {
@@ -368,10 +362,7 @@ const AppRoot = {
       }
 
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
-        this.psmSearchResults = await apiGetFn(`/search/psm/${encodeURIComponent(term.trim())}`) || [];
+        this.psmSearchResults = await apiGet(`/search/psm/${encodeURIComponent(term.trim())}`) || [];
         this.showPsmSearchResults = true;
       } catch (err) {
         console.error(err);
@@ -389,10 +380,7 @@ const AppRoot = {
 
       this.isPsmInfoLoading = true;
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
-        const info = await apiGetFn(`/api/psm/info/${encodeURIComponent(kennr)}`);
+        const info = await apiGet(`/api/psm/info/${encodeURIComponent(kennr)}`);
         const beeClass = (info.bienenfreundlichkeit || '').split(',')[0].trim();
         const effortUnit = info.aufwand_einheit || '';
         const [lagerEinheit] = effortUnit.split('/');
@@ -422,12 +410,8 @@ const AppRoot = {
 
     async loadPSM() {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
         this.isPsmLoading = true;
-        this.psmItems = await apiGetFn('/api/psm');
-        callIfExists('loadExportSelections');
+        this.psmItems = await apiGet('/api/psm');
       } catch (err) {
         console.error(err);
         callIfExists('toast', '❌ Pflanzenschutzmittel konnten nicht geladen werden');
@@ -440,10 +424,7 @@ const AppRoot = {
       if (!confirm('Dieses Pflanzenschutzmittel wirklich löschen?')) return;
 
       try {
-        const apiDeleteFn = window.apiDelete;
-        if (typeof apiDeleteFn !== 'function') return;
-
-        await apiDeleteFn(`/api/psm/${id}`);
+        await apiDelete(`/api/psm/${id}`);
         callIfExists('toast', '✅ Pflanzenschutzmittel gelöscht');
         await this.loadPSM();
       } catch (err) {
@@ -492,10 +473,7 @@ const AppRoot = {
 
     async loadOrte() {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
-        const items = await apiGetFn('/api/orte');
+        const items = await apiGet('/api/orte');
         this.orteItems = Array.isArray(items) ? items : [];
       } catch (err) {
         console.error(err);
@@ -505,14 +483,10 @@ const AppRoot = {
 
     async loadEinsatzorte() {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
         this.isEinsatzorteLoading = true;
         await this.loadOrte();
-        const items = await apiGetFn('/api/einsatzorte');
+        const items = await apiGet('/api/einsatzorte');
         this.einsatzorteItems = Array.isArray(items) ? items : [];
-        callIfExists('loadExportSelections');
       } catch (err) {
         console.error(err);
         callIfExists('toast', '❌ Einsatzorte konnten nicht geladen werden');
@@ -535,10 +509,7 @@ const AppRoot = {
 
     async editEinsatzort(id) {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
-        const item = await apiGetFn(`/api/einsatzorte/${id}`);
+        const item = await apiGet(`/api/einsatzorte/${id}`);
         this.einsatzortEditId = id;
         await this.loadOrte();
         this.applyEinsatzortForm(item);
@@ -569,14 +540,10 @@ const AppRoot = {
         }
 
         if (this.einsatzortEditId) {
-          const apiPutFn = window.apiPut;
-          if (typeof apiPutFn !== 'function') return;
-          await apiPutFn(`/api/einsatzorte/${this.einsatzortEditId}`, payload);
+          await apiPut(`/api/einsatzorte/${this.einsatzortEditId}`, payload);
           callIfExists('toast', '✅ Einsatzort gespeichert');
         } else {
-          const apiPostFn = window.apiPost;
-          if (typeof apiPostFn !== 'function') return;
-          await apiPostFn('/api/einsatzorte', payload);
+          await apiPost('/api/einsatzorte', payload);
           callIfExists('toast', '✅ Einsatzort hinzugefügt');
         }
 
@@ -593,10 +560,7 @@ const AppRoot = {
       if (!confirm('Diesen Einsatzort wirklich löschen?')) return;
 
       try {
-        const apiDeleteFn = window.apiDelete;
-        if (typeof apiDeleteFn !== 'function') return;
-
-        await apiDeleteFn(`/api/einsatzorte/${id}`);
+        await apiDelete(`/api/einsatzorte/${id}`);
         callIfExists('toast', '✅ Einsatzort gelöscht');
         await this.loadEinsatzorte();
       } catch (err) {
@@ -656,13 +620,10 @@ const AppRoot = {
 
     async getInitialMapView() {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return { center: eoMapDefault, zoom: eoMapDefaultZoom };
-
-        const betrieb = await apiGetFn('/api/betrieb');
+        const betrieb = await apiGet('/api/betrieb');
         if (!betrieb?.plz) throw new Error('Keine PLZ gefunden');
 
-        const data = await apiGetFn(`/api/einsatzorte/cord2plz/${encodeURIComponent(betrieb.plz)}`);
+        const data = await apiGet(`/api/einsatzorte/cord2plz/${encodeURIComponent(betrieb.plz)}`);
         const lat = parseFloat(data.lat);
         const lng = parseFloat(data.lon);
 
@@ -749,13 +710,9 @@ const AppRoot = {
 
     async loadKulturen() {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
         this.isKulturenLoading = true;
-        const items = await apiGetFn('/api/kulturen');
+        const items = await apiGet('/api/kulturen');
         this.kulturenItems = Array.isArray(items) ? items : [];
-        callIfExists('loadExportSelections');
       } catch (err) {
         console.error(err);
         callIfExists('toast', '❌ Kulturen konnten nicht geladen werden');
@@ -779,10 +736,7 @@ const AppRoot = {
 
     async editKultur(id) {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
-        const item = await apiGetFn(`/api/kulturen/${id}`);
+        const item = await apiGet(`/api/kulturen/${id}`);
         this.kulturEditId = id;
         this.applyKulturForm(item);
         this.bbchDraftItems = [];
@@ -809,14 +763,10 @@ const AppRoot = {
         }
 
         if (this.kulturEditId) {
-          const apiPutFn = window.apiPut;
-          if (typeof apiPutFn !== 'function') return;
-          await apiPutFn(`/api/kulturen/${this.kulturEditId}`, payload);
+          await apiPut(`/api/kulturen/${this.kulturEditId}`, payload);
           callIfExists('toast', '✅ Kultur gespeichert');
         } else {
-          const apiPostFn = window.apiPost;
-          if (typeof apiPostFn !== 'function') return;
-          await apiPostFn('/api/kulturen', payload);
+          await apiPost('/api/kulturen', payload);
           callIfExists('toast', '✅ Kultur hinzugefügt');
         }
 
@@ -833,10 +783,7 @@ const AppRoot = {
       if (!confirm('Diese Kultur wirklich löschen?')) return;
 
       try {
-        const apiDeleteFn = window.apiDelete;
-        if (typeof apiDeleteFn !== 'function') return;
-
-        await apiDeleteFn(`/api/kulturen/${id}`);
+        await apiDelete(`/api/kulturen/${id}`);
         callIfExists('toast', '✅ Kultur gelöscht');
         await this.loadKulturen();
       } catch (err) {
@@ -884,10 +831,7 @@ const AppRoot = {
 
     async loadBBCHForKultur(kulturId) {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
-        const items = await apiGetFn(`/api/bbch/kultur/${kulturId}`);
+        const items = await apiGet(`/api/bbch/kultur/${kulturId}`);
         this.bbchOverviewItems = Array.isArray(items) ? items.map(item => this.normalizeBBCHItem(item)) : [];
         this.bbchDraftItems = [];
       } catch (err) {
@@ -960,16 +904,12 @@ const AppRoot = {
       }
 
       try {
-        const apiPostFn = window.apiPost;
-        const apiPutFn = window.apiPut;
         const payload = this.buildBBCHPayload(item, this.kulturEditId);
 
         if (item.id != null) {
-          if (typeof apiPutFn !== 'function') return;
-          await apiPutFn(`/api/bbch/${item.id}`, payload);
+          await apiPut(`/api/bbch/${item.id}`, payload);
         } else {
-          if (typeof apiPostFn !== 'function') return;
-          await apiPostFn('/api/bbch', payload);
+          await apiPost('/api/bbch', payload);
         }
 
         await this.loadBBCHForKultur(this.kulturEditId);
@@ -984,10 +924,7 @@ const AppRoot = {
       if (!id || !confirm('Diesen BBCH-Eintrag wirklich löschen?')) return;
 
       try {
-        const apiDeleteFn = window.apiDelete;
-        if (typeof apiDeleteFn !== 'function') return;
-
-        await apiDeleteFn(`/api/bbch/${id}`);
+        await apiDelete(`/api/bbch/${id}`);
         callIfExists('toast', '✅ BBCH gelöscht');
         if (this.kulturEditId) await this.loadBBCHForKultur(this.kulturEditId);
       } catch (err) {
@@ -1031,10 +968,7 @@ const AppRoot = {
 
     async loadBetrieb() {
       try {
-        const apiGetFn = window.apiGet;
-        if (typeof apiGetFn !== 'function') return;
-
-        const betrieb = await apiGetFn('/api/betrieb');
+        const betrieb = await apiGet('/api/betrieb');
         if (!betrieb || !betrieb.id) {
           this.betriebExists = false;
           callIfExists('openBetriebWizard');
@@ -1051,11 +985,8 @@ const AppRoot = {
 
     async saveBetrieb() {
       try {
-        const apiPostFn = window.apiPost;
-        if (typeof apiPostFn !== 'function') return;
-
         this.isBetriebSaving = true;
-        await apiPostFn('/api/betrieb', this.collectBetriebForm());
+        await apiPost('/api/betrieb', this.collectBetriebForm());
         this.betriebExists = true;
         callIfExists('toast', '✅ Betrieb gespeichert');
       } catch (err) {
@@ -1068,14 +999,11 @@ const AppRoot = {
 
     async saveBetriebWizard() {
       try {
-        const apiPostFn = window.apiPost;
-        if (typeof apiPostFn !== 'function') return;
-
         this.isBetriebWizardSaving = true;
         const payload = this.collectWizardBetriebForm();
         const wizSaveMode = this.collectWizardSaveMode();
 
-        await apiPostFn('/api/betrieb', {
+        await apiPost('/api/betrieb', {
           firma: payload.firma,
           name: payload.name,
           vorname: payload.vorname,
@@ -1085,7 +1013,7 @@ const AppRoot = {
           bundesland: payload.bundesland,
         });
 
-        await apiPostFn('/api/user/settings', {
+        await apiPost('/api/user/settings', {
           browser_download: wizSaveMode.browser_download,
           local_save: wizSaveMode.local_save,
           default_anwender: payload.anwender,
@@ -1135,6 +1063,24 @@ const AppRoot = {
       };
     },
 
+    showForecastSubTab(subtab, btn = null) {
+      document.querySelectorAll('#tab-forecast .sub-tab-btn')
+        .forEach(button => button.classList.remove('active'));
+
+      document.querySelectorAll('#tab-forecast .history-sub-tab')
+        .forEach(panel => panel.classList.remove('active'));
+
+      const activeButton = btn || document.querySelector(`[data-action="showForecastSubTab"][data-subtab="${subtab}"]`);
+      activeButton?.classList.add('active');
+
+      document.getElementById(`forecast-sub-${subtab}`)?.classList.add('active');
+
+      const badge = document.getElementById('forecast-status-badge');
+      if (badge) {
+        badge.textContent = subtab === 'beratung' ? 'PSM-Beratung' : 'Spritzfenster';
+      }
+    },
+
     showTab(tabName, el = null, push = true) {
       if (!tabName) return;
 
@@ -1168,12 +1114,7 @@ const AppRoot = {
       if (el?.dataset?.also) return;
 
       if (tabName === 'history') callIfExists('loadHistory');
-      if (tabName === 'forecast') callIfExists('initForecastTab');
       if (tabName === 'inventory') callIfExists('loadInventory');
-      if (tabName === 'export') {
-        callIfExists('loadExportSelections');
-        callIfExists('syncLegacyExportUI');
-      }
     },
 
     toggleMobileNav() {
@@ -1311,6 +1252,19 @@ const AppRoot = {
           onOpenCreate: () => this.openKulturModal(),
           onRemove: id => this.removeKultur(id),
         }),
+      ]),
+      h(Teleport, { to: '#tab-export' }, [
+        h(ExportView, {
+          psmItems: this.psmItems,
+          einsatzorteItems: this.einsatzorteItems,
+          kulturenItems: this.kulturenItems,
+        }),
+      ]),
+      h(Teleport, { to: '#forecast-sub-spritzfenster' }, [
+        h(ForecastView),
+      ]),
+      h(Teleport, { to: '#forecast-sub-beratung' }, [
+        h(BeratungView),
       ]),
       h(Teleport, { to: '#modal-psm' }, [
         h(PsmModal, {

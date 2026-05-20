@@ -415,6 +415,15 @@ main {
   gap: 0.5rem;
 }
 
+.beratung-dropdown button.beratung-dropdown-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
 .beratung-dropdown-item:hover { background: var(--surface-alt, #f5f5f5); }
 .beratung-dropdown-loading,
 .beratung-dropdown-empty { color: var(--text-muted); cursor: default; }
