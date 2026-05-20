@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       await Promise.all([
         loadBetrieb(),
-        loadKulturen(),
         loadSettings(),
         loadInventory()
       ]);
@@ -46,7 +45,6 @@ function logout() {
   const CLICK_ACTIONS = new Set([
     'toggleMobileNav', 'closeMobileNav', 'toggleUserPopup',
     'saveBetrieb',
-    'openKulturModal', 'saveKultur',
     'previewJSON', 'exportSave', 'exportDownloadZip',
     'resetHistoryFilter', 'resetPSMHistoryFilter', 'resetFieldsHistoryFilter',
     'saveSettings', 'renameUser', 'saveBetriebWizard',
@@ -66,8 +64,6 @@ function logout() {
     ['showHistoryDetail',         el => [el.dataset.id]],
     ['deleteHistoryEntry',       el => [el.dataset.id]],
     ['toggleFieldDetails',       el => [el.dataset.name, el]],
-    ['editKultur',           el => [el.dataset.id]],
-    ['removeKultur',         el => [el.dataset.id]],
     ['saveUserRole',         el => [el.dataset.id]],
     ['openDeleteUserConfirm', el => [el.dataset.id, el.dataset.username]],
     ['showPanelAuth',        el => [el.dataset.panel]],

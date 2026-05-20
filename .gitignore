@@ -240,3 +240,4 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+app/static/vue/
