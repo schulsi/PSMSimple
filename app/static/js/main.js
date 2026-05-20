@@ -2,10 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     // Nur App-Seite laden, wenn alle Funktionen vorhanden sind
     if (typeof loadBetrieb === 'function') {
-      await Promise.all([
-        loadBetrieb(),
-        loadSettings()
-      ]);
+      await loadBetrieb();
     }
   } catch (err) {
     console.error(err);
@@ -41,7 +38,7 @@ function logout() {
     'toggleMobileNav', 'closeMobileNav', 'toggleUserPopup',
     'saveBetrieb',
     'previewJSON', 'exportSave', 'exportDownloadZip',
-    'saveSettings', 'renameUser', 'saveBetriebWizard',
+    'saveBetriebWizard',
     'closeModal', 'logout'
   ]);
 
@@ -49,8 +46,6 @@ function logout() {
   const CLICK_ACTIONS_WITH_ARG = new Map([
     ['showTab',              el => [el.dataset.tab,    el]],
     ['closeModal',           el => [el.dataset.modal]],
-    ['saveUserRole',         el => [el.dataset.id]],
-    ['openDeleteUserConfirm', el => [el.dataset.id, el.dataset.username]],
     ['showPanelAuth',        el => [el.dataset.panel]],
     ['showForecastSubTab', el => [el.dataset.subtab, el]],
   ]);
@@ -60,7 +55,6 @@ function logout() {
 
   // Aktionen, die per change ausgelöst werden
   const CHANGE_ACTIONS = new Set([
-    'onSaveModeToggle', 'onWizSaveModeToggle',
   ]);
 
   // change-Aktionen mit type und id Parameter
@@ -68,7 +62,6 @@ function logout() {
 
   // change-Aktionen, die das Element als Argument brauchen
   const CHANGE_ACTIONS_WITH_EL = new Set([
-    'onSaveModeToggle', 'onWizSaveModeToggle',
   ]);
 
   function dispatch(actionName, args = []) {

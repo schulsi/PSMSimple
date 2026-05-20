@@ -15,6 +15,7 @@ import KulturModal from '../components/KulturModal.js';
 import KulturenView from '../components/KulturenView.js';
 import PsmModal from '../components/PsmModal.js';
 import PsmView from '../components/PsmView.js';
+import SettingsView from '../components/SettingsView.vue';
 import ExportView from '../components/ExportView.vue';
 import { apiDelete, apiGet, apiPost, apiPut } from './api.js';
 import {
@@ -199,6 +200,7 @@ const AppRoot = {
     document.getElementById('tab-export')?.replaceChildren();
     document.getElementById('tab-history')?.replaceChildren();
     document.getElementById('tab-inventory')?.replaceChildren();
+    document.getElementById('tab-settings')?.replaceChildren();
     document.getElementById('forecast-sub-spritzfenster')?.replaceChildren();
     document.getElementById('forecast-sub-beratung')?.replaceChildren();
     document.getElementById('modal-psm')?.replaceChildren();
@@ -1025,22 +1027,16 @@ const AppRoot = {
           default_verantwortlich: payload.verantwortlicher,
         });
 
-        const settingsToggle = document.getElementById('save-mode-toggle');
-        if (settingsToggle) {
-          settingsToggle.checked = wizSaveMode.local_save;
-          callIfExists('updateSaveModeLabels', wizSaveMode.local_save);
-        }
-
         callIfExists('updateExportButtons', wizSaveMode.local_save);
         callIfExists('applyDefaultSettingsToExport', {
           default_anwender: payload.anwender,
           default_verantwortlich: payload.verantwortlicher,
         });
-
-        const defaultAnwender = document.getElementById('set-default-anwender');
-        const defaultVerantwortlich = document.getElementById('set-default-verantwortlich');
-        if (defaultAnwender) defaultAnwender.value = payload.anwender || '';
-        if (defaultVerantwortlich) defaultVerantwortlich.value = payload.verantwortlicher || '';
+        window.psmSettingsView?.applyUserSettings?.({
+          local_save: wizSaveMode.local_save,
+          default_anwender: payload.anwender,
+          default_verantwortlich: payload.verantwortlicher,
+        });
 
         this.applyBetriebForm(payload);
         this.betriebExists = true;
@@ -1282,6 +1278,18 @@ const AppRoot = {
           canWrite: !!this.permissions.can_write,
           onWarningCount: count => {
             this.inventoryWarningCount = count;
+          },
+        }),
+      ]),
+      h(Teleport, { to: '#tab-settings' }, [
+        h(SettingsView, {
+          initialUsername: this.user.username,
+          permissions: this.permissions,
+          onRenameUser: username => {
+            this.user = {
+              username,
+              avatar: username.charAt(0).toUpperCase(),
+            };
           },
         }),
       ]),
