@@ -217,6 +217,7 @@
 <script>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, toRef, watch } from 'vue';
 
+import { registerExportView, toast } from '../app/appBridge.js';
 import { apiGet, apiPost, getCsrfToken } from '../app/api.js';
 
 const validationText = 'Bitte mindestens ein Pflanzenschutzmittel, einen Einsatzort, eine Kultur sowie Datum, Uhrzeit und Art der Verwendung auswählen. Aufwandsmenge und BBCH-Code sind erforderlich.';
@@ -278,7 +279,7 @@ export default {
     const isSubmitting = ref(false);
     const isLocalSaveMode = ref(true);
     const lastSavedHistorySignature = ref(null);
-    const previousGlobals = {};
+    let unregisterExportView = null;
 
     const artVerwendung = computed(() => {
       return form.artHaupt && form.artSub ? `${form.artHaupt} – ${form.artSub}` : form.artHaupt;
@@ -333,12 +334,6 @@ export default {
         },
         body: JSON.stringify(data),
       });
-    }
-
-    function toast(message) {
-      if (typeof window.toast === 'function') {
-        window.toast(message);
-      }
     }
 
     function syncValidation() {
@@ -683,8 +678,8 @@ export default {
       isLocalSaveMode.value = !!localSave;
     }
 
-    function installGlobalBridge() {
-      const bridge = {
+    function installExportBridge() {
+      unregisterExportView = registerExportView({
         applyDefaultSettingsToExport: applyDefaultSettings,
         exportDownloadZip: handleDownload,
         exportJSON: handleSave,
@@ -693,26 +688,11 @@ export default {
         getExportPayload: getPayload,
         previewJSON: handlePreview,
         updateExportButtons,
-      };
-
-      Object.keys(bridge).forEach((name) => {
-        previousGlobals[name] = window[name];
-        window[name] = bridge[name];
       });
-      window.psmExportView = bridge;
     }
 
-    function restoreGlobalBridge() {
-      Object.keys(previousGlobals).forEach((name) => {
-        if (previousGlobals[name] === undefined) {
-          delete window[name];
-        } else {
-          window[name] = previousGlobals[name];
-        }
-      });
-      if (window.psmExportView?.getExportPayload === getPayload) {
-        delete window.psmExportView;
-      }
+    function restoreExportBridge() {
+      unregisterExportView?.();
     }
 
     const now = new Date();
@@ -722,12 +702,12 @@ export default {
     onMounted(() => {
       const saveToggle = document.getElementById('save-mode-toggle');
       isLocalSaveMode.value = saveToggle ? saveToggle.checked : true;
-      installGlobalBridge();
+      installExportBridge();
       syncValidation();
     });
 
     onBeforeUnmount(() => {
-      restoreGlobalBridge();
+      restoreExportBridge();
     });
 
     return {

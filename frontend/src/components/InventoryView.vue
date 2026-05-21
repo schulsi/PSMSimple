@@ -149,6 +149,7 @@
 <script>
 import { onMounted, reactive, ref, watch } from 'vue';
 
+import { toast } from '../app/appBridge.js';
 import { apiGet, apiPost } from '../app/api.js';
 
 const statusLabels = {
@@ -302,12 +303,6 @@ export default {
         toast(`❌ ${error.message}`);
       } finally {
         isSavingMovement.value = false;
-      }
-    }
-
-    function toast(message) {
-      if (typeof window.toast === 'function') {
-        window.toast(message);
       }
     }
 

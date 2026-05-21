@@ -17,9 +17,15 @@ import PsmModal from '../components/PsmModal.js';
 import PsmView from '../components/PsmView.js';
 import SettingsView from '../components/SettingsView.vue';
 import ExportView from '../components/ExportView.vue';
+import { useUiStore } from '../stores/uiStore.js';
+import {
+  applyDefaultSettingsToExport,
+  applyUserSettings,
+  setToastHandler,
+  updateExportButtons,
+} from './appBridge.js';
 import { apiDelete, apiGet, apiPost, apiPut } from './api.js';
 import {
-  callIfExists,
   eoMapDefault,
   eoMapDefaultZoom,
   eoMapPointZoom,
@@ -38,6 +44,7 @@ const AppRoot = {
 
     return {
       activeTab: getTabFromPath(),
+      activeForecastSubTab: 'spritzfenster',
       assets,
       betriebExists: false,
       betriebForm: {
@@ -112,6 +119,8 @@ const AppRoot = {
       orteItems: [],
       showPsmSearchResults: false,
       toastTimer: null,
+      removeToastHandler: null,
+      uiStore: null,
       user: {
         username: user.username || '',
         avatar: user.avatar || '?',
@@ -200,10 +209,9 @@ const AppRoot = {
     document.getElementById('tab-kulturen')?.replaceChildren();
     document.getElementById('tab-export')?.replaceChildren();
     document.getElementById('tab-history')?.replaceChildren();
+    document.getElementById('tab-forecast')?.replaceChildren();
     document.getElementById('tab-inventory')?.replaceChildren();
     document.getElementById('tab-settings')?.replaceChildren();
-    document.getElementById('forecast-sub-spritzfenster')?.replaceChildren();
-    document.getElementById('forecast-sub-beratung')?.replaceChildren();
     document.getElementById('modal-psm')?.replaceChildren();
     document.getElementById('modal-einsatzort')?.replaceChildren();
     document.getElementById('modal-map')?.replaceChildren();
@@ -212,24 +220,17 @@ const AppRoot = {
   },
 
   mounted() {
-    window.psmVueApp = this;
-    window.loadBetrieb = () => this.loadBetrieb();
-    window.saveBetrieb = () => this.saveBetrieb();
-    window.saveBetriebWizard = () => this.saveBetriebWizard();
-    window.showForecastSubTab = (subtab, btn = null) => this.showForecastSubTab(subtab, btn);
-    window.toast = (message, duration = 2600) => this.toast(message, duration);
-    window.openModal = (id) => this.openModal(id);
-    window.closeModal = (id) => this.closeModal(id);
-    window.logout = () => this.logout();
+    this.uiStore = useUiStore();
+    this.uiStore.setActiveTab(this.activeTab);
+    this.uiStore.setUser(this.user);
+    this.removeToastHandler = setToastHandler((message, duration = 2600) => this.toast(message, duration));
 
     this.applyTabClasses();
     this.applyMobileNavClasses();
     this.applyUserPopupClasses();
-    history.replaceState({ tab: this.activeTab }, '', window.location.pathname);
 
     document.addEventListener('click', this.onDocumentClick);
     window.addEventListener('resize', this.onResize);
-    window.addEventListener('popstate', this.onPopState);
 
     this.loadBetrieb();
     this.loadPSM();
@@ -238,9 +239,18 @@ const AppRoot = {
   },
 
   beforeUnmount() {
+    this.removeToastHandler?.();
     document.removeEventListener('click', this.onDocumentClick);
     window.removeEventListener('resize', this.onResize);
-    window.removeEventListener('popstate', this.onPopState);
+  },
+
+  watch: {
+    '$route.path'(path) {
+      const tabName = getTabFromPath(path);
+      if (tabName !== this.activeTab) {
+        this.showTab(tabName, null, false);
+      }
+    },
   },
 
   methods: {
@@ -307,7 +317,7 @@ const AppRoot = {
 
     async openPSMModal() {
       await this.resetPSMForm();
-      callIfExists('openModal', 'modal-psm');
+      this.openModal('modal-psm');
     },
 
     async editPSM(id) {
@@ -317,48 +327,48 @@ const AppRoot = {
         this.psmSearchResults = [];
         this.showPsmSearchResults = false;
         this.applyPsmForm(item);
-        callIfExists('openModal', 'modal-psm');
+        this.openModal('modal-psm');
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       }
     },
 
     async savePSM() {
       try {
         if (this.isPsmInfoLoading) {
-          callIfExists('toast', '⚠️ Bitte warten, bis die Daten geladen sind');
+          this.toast('⚠️ Bitte warten, bis die Daten geladen sind');
           return;
         }
 
         const payload = this.collectPSMForm();
         if (!payload.name) {
-          callIfExists('toast', '❌ Bitte einen Namen eingeben');
+          this.toast('❌ Bitte einen Namen eingeben');
           return;
         }
 
         if (this.psmEditId) {
           await apiPut(`/api/psm/${this.psmEditId}`, payload);
-          callIfExists('toast', '✅ Pflanzenschutzmittel gespeichert');
+          this.toast('✅ Pflanzenschutzmittel gespeichert');
         } else {
           try {
             await apiPost('/api/psm', payload);
-            callIfExists('toast', '✅ Pflanzenschutzmittel hinzugefügt');
+            this.toast('✅ Pflanzenschutzmittel hinzugefügt');
           } catch (err) {
             if (err.message.includes('existiert bereits')) {
-              callIfExists('toast', '⚠️ Mittel existiert bereits');
+              this.toast('⚠️ Mittel existiert bereits');
             } else {
               throw err;
             }
           }
         }
 
-        callIfExists('closeModal', 'modal-psm');
+        this.closeModal('modal-psm');
         await this.resetPSMForm();
         await this.loadPSM();
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       }
     },
 
@@ -408,7 +418,7 @@ const AppRoot = {
         };
       } catch (err) {
         console.error(err);
-        callIfExists('toast', '⚠️ Wirkstoffdaten konnten nicht geladen werden');
+        this.toast('⚠️ Wirkstoffdaten konnten nicht geladen werden');
       } finally {
         this.isPsmInfoLoading = false;
       }
@@ -427,7 +437,7 @@ const AppRoot = {
         this.psmItems = await apiGet('/api/psm');
       } catch (err) {
         console.error(err);
-        callIfExists('toast', '❌ Pflanzenschutzmittel konnten nicht geladen werden');
+        this.toast('❌ Pflanzenschutzmittel konnten nicht geladen werden');
       } finally {
         this.isPsmLoading = false;
       }
@@ -438,11 +448,11 @@ const AppRoot = {
 
       try {
         await apiDelete(`/api/psm/${id}`);
-        callIfExists('toast', '✅ Pflanzenschutzmittel gelöscht');
+        this.toast('✅ Pflanzenschutzmittel gelöscht');
         await this.loadPSM();
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       }
     },
 
@@ -490,7 +500,7 @@ const AppRoot = {
         this.orteItems = Array.isArray(items) ? items : [];
       } catch (err) {
         console.error(err);
-        callIfExists('toast', '❌ Orte konnten nicht geladen werden');
+        this.toast('❌ Orte konnten nicht geladen werden');
       }
     },
 
@@ -502,7 +512,7 @@ const AppRoot = {
         this.einsatzorteItems = Array.isArray(items) ? items : [];
       } catch (err) {
         console.error(err);
-        callIfExists('toast', '❌ Einsatzorte konnten nicht geladen werden');
+        this.toast('❌ Einsatzorte konnten nicht geladen werden');
       } finally {
         this.isEinsatzorteLoading = false;
       }
@@ -517,7 +527,7 @@ const AppRoot = {
 
     async openEinsatzortModal() {
       await this.resetEinsatzortForm();
-      callIfExists('openModal', 'modal-einsatzort');
+      this.openModal('modal-einsatzort');
     },
 
     async editEinsatzort(id) {
@@ -531,10 +541,10 @@ const AppRoot = {
         const lng = parseFloat(item.gpsHochwert);
         this.eoMapSelection = Number.isNaN(lat) || Number.isNaN(lng) ? null : { lat, lng };
 
-        callIfExists('openModal', 'modal-einsatzort');
+        this.openModal('modal-einsatzort');
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       }
     },
 
@@ -543,29 +553,29 @@ const AppRoot = {
         const payload = this.collectEinsatzortForm();
 
         if (!payload.name) {
-          callIfExists('toast', '❌ Bitte einen Namen eingeben');
+          this.toast('❌ Bitte einen Namen eingeben');
           return;
         }
 
         if (!payload.ort_id) {
-          callIfExists('toast', '❌ Bitte einen Ort auswählen');
+          this.toast('❌ Bitte einen Ort auswählen');
           return;
         }
 
         if (this.einsatzortEditId) {
           await apiPut(`/api/einsatzorte/${this.einsatzortEditId}`, payload);
-          callIfExists('toast', '✅ Einsatzort gespeichert');
+          this.toast('✅ Einsatzort gespeichert');
         } else {
           await apiPost('/api/einsatzorte', payload);
-          callIfExists('toast', '✅ Einsatzort hinzugefügt');
+          this.toast('✅ Einsatzort hinzugefügt');
         }
 
-        callIfExists('closeModal', 'modal-einsatzort');
+        this.closeModal('modal-einsatzort');
         await this.resetEinsatzortForm();
         await this.loadEinsatzorte();
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       }
     },
 
@@ -574,16 +584,16 @@ const AppRoot = {
 
       try {
         await apiDelete(`/api/einsatzorte/${id}`);
-        callIfExists('toast', '✅ Einsatzort gelöscht');
+        this.toast('✅ Einsatzort gelöscht');
         await this.loadEinsatzorte();
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       }
     },
 
     async openMapModal() {
-      callIfExists('openModal', 'modal-map');
+      this.openModal('modal-map');
       await nextTick();
       window.setTimeout(() => this.initializeOrRefreshMap(), 80);
     },
@@ -591,7 +601,7 @@ const AppRoot = {
     async initializeOrRefreshMap() {
       const leaflet = window.L;
       if (!leaflet) {
-        callIfExists('toast', '❌ Karte konnte nicht geladen werden');
+        this.toast('❌ Karte konnte nicht geladen werden');
         return;
       }
 
@@ -644,10 +654,10 @@ const AppRoot = {
           return { center: [lat, lng], zoom: eoMapPointZoom };
         }
 
-        callIfExists('toast', '❌ PLZ nicht gefunden');
+        this.toast('❌ PLZ nicht gefunden');
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       }
 
       return { center: eoMapDefault, zoom: eoMapDefaultZoom };
@@ -683,8 +693,8 @@ const AppRoot = {
         gpsHochwert: String(this.eoMapSelection.lng),
       };
 
-      callIfExists('closeModal', 'modal-map');
-      callIfExists('toast', '📍 Koordinaten übernommen');
+      this.closeModal('modal-map');
+      this.toast('📍 Koordinaten übernommen');
     },
 
     resetEinsatzortMap() {
@@ -728,7 +738,7 @@ const AppRoot = {
         this.kulturenItems = Array.isArray(items) ? items : [];
       } catch (err) {
         console.error(err);
-        callIfExists('toast', '❌ Kulturen konnten nicht geladen werden');
+        this.toast('❌ Kulturen konnten nicht geladen werden');
       } finally {
         this.isKulturenLoading = false;
       }
@@ -744,7 +754,7 @@ const AppRoot = {
 
     openKulturModal() {
       this.resetKulturForm();
-      callIfExists('openModal', 'modal-kultur');
+      this.openModal('modal-kultur');
     },
 
     async editKultur(id) {
@@ -753,11 +763,11 @@ const AppRoot = {
         this.kulturEditId = id;
         this.applyKulturForm(item);
         this.bbchDraftItems = [];
-        callIfExists('openModal', 'modal-kultur');
+        this.openModal('modal-kultur');
         await this.loadBBCHForKultur(id);
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message || 'Kultur konnte nicht geladen werden'}`);
+        this.toast(`❌ ${err.message || 'Kultur konnte nicht geladen werden'}`);
       }
     },
 
@@ -766,29 +776,29 @@ const AppRoot = {
         const payload = this.collectKulturForm();
 
         if (!payload.name) {
-          callIfExists('toast', '❌ Bitte einen Namen eingeben');
+          this.toast('❌ Bitte einen Namen eingeben');
           return;
         }
 
         if (!payload.eppoCode) {
-          callIfExists('toast', '❌ Bitte einen EPPO-Code eingeben');
+          this.toast('❌ Bitte einen EPPO-Code eingeben');
           return;
         }
 
         if (this.kulturEditId) {
           await apiPut(`/api/kulturen/${this.kulturEditId}`, payload);
-          callIfExists('toast', '✅ Kultur gespeichert');
+          this.toast('✅ Kultur gespeichert');
         } else {
           await apiPost('/api/kulturen', payload);
-          callIfExists('toast', '✅ Kultur hinzugefügt');
+          this.toast('✅ Kultur hinzugefügt');
         }
 
-        callIfExists('closeModal', 'modal-kultur');
+        this.closeModal('modal-kultur');
         this.resetKulturForm();
         await this.loadKulturen();
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message || 'Speichern fehlgeschlagen'}`);
+        this.toast(`❌ ${err.message || 'Speichern fehlgeschlagen'}`);
       }
     },
 
@@ -797,11 +807,11 @@ const AppRoot = {
 
       try {
         await apiDelete(`/api/kulturen/${id}`);
-        callIfExists('toast', '✅ Kultur gelöscht');
+        this.toast('✅ Kultur gelöscht');
         await this.loadKulturen();
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message || 'Löschen fehlgeschlagen'}`);
+        this.toast(`❌ ${err.message || 'Löschen fehlgeschlagen'}`);
       }
     },
 
@@ -851,13 +861,13 @@ const AppRoot = {
         console.error(err);
         this.bbchOverviewItems = [];
         this.bbchDraftItems = [];
-        callIfExists('toast', '❌ BBCH-Codes konnten nicht geladen werden');
+        this.toast('❌ BBCH-Codes konnten nicht geladen werden');
       }
     },
 
     addBBCHRow() {
       if (!this.kulturEditId) {
-        callIfExists('toast', '❌ Bitte zuerst die Kultur speichern');
+        this.toast('❌ Bitte zuerst die Kultur speichern');
         return;
       }
 
@@ -896,23 +906,23 @@ const AppRoot = {
 
     async saveSingleBBCHRow(key) {
       if (!this.kulturEditId) {
-        callIfExists('toast', '❌ Bitte zuerst die Kultur speichern');
+        this.toast('❌ Bitte zuerst die Kultur speichern');
         return;
       }
 
       const item = this.bbchDraftItems.find(entry => entry.key === key);
       if (!item) {
-        callIfExists('toast', '❌ BBCH-Zeile nicht gefunden');
+        this.toast('❌ BBCH-Zeile nicht gefunden');
         return;
       }
 
       if (!String(item.code || '').trim()) {
-        callIfExists('toast', '❌ Bitte einen BBCH-Code angeben');
+        this.toast('❌ Bitte einen BBCH-Code angeben');
         return;
       }
 
       if (!String(item.bezeichnung || '').trim()) {
-        callIfExists('toast', '❌ Bitte eine Bezeichnung angeben');
+        this.toast('❌ Bitte eine Bezeichnung angeben');
         return;
       }
 
@@ -926,10 +936,10 @@ const AppRoot = {
         }
 
         await this.loadBBCHForKultur(this.kulturEditId);
-        callIfExists('toast', '✅ BBCH gespeichert');
+        this.toast('✅ BBCH gespeichert');
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message || 'BBCH speichern fehlgeschlagen'}`);
+        this.toast(`❌ ${err.message || 'BBCH speichern fehlgeschlagen'}`);
       }
     },
 
@@ -938,11 +948,11 @@ const AppRoot = {
 
       try {
         await apiDelete(`/api/bbch/${id}`);
-        callIfExists('toast', '✅ BBCH gelöscht');
+        this.toast('✅ BBCH gelöscht');
         if (this.kulturEditId) await this.loadBBCHForKultur(this.kulturEditId);
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       }
     },
 
@@ -984,7 +994,7 @@ const AppRoot = {
         const betrieb = await apiGet('/api/betrieb');
         if (!betrieb || !betrieb.id) {
           this.betriebExists = false;
-          callIfExists('openBetriebWizard');
+          this.openModal('modal-betrieb-wizard');
           return;
         }
 
@@ -992,7 +1002,7 @@ const AppRoot = {
         this.applyBetriebForm(betrieb);
       } catch (err) {
         console.error(err);
-        callIfExists('toast', '❌ Betrieb konnte nicht geladen werden');
+        this.toast('❌ Betrieb konnte nicht geladen werden');
       }
     },
 
@@ -1001,10 +1011,10 @@ const AppRoot = {
         this.isBetriebSaving = true;
         await apiPost('/api/betrieb', this.collectBetriebForm());
         this.betriebExists = true;
-        callIfExists('toast', '✅ Betrieb gespeichert');
+        this.toast('✅ Betrieb gespeichert');
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       } finally {
         this.isBetriebSaving = false;
       }
@@ -1033,12 +1043,12 @@ const AppRoot = {
           default_verantwortlich: payload.verantwortlicher,
         });
 
-        callIfExists('updateExportButtons', wizSaveMode.local_save);
-        callIfExists('applyDefaultSettingsToExport', {
+        updateExportButtons(wizSaveMode.local_save);
+        applyDefaultSettingsToExport({
           default_anwender: payload.anwender,
           default_verantwortlich: payload.verantwortlicher,
         });
-        window.psmSettingsView?.applyUserSettings?.({
+        applyUserSettings({
           local_save: wizSaveMode.local_save,
           default_anwender: payload.anwender,
           default_verantwortlich: payload.verantwortlicher,
@@ -1046,11 +1056,11 @@ const AppRoot = {
 
         this.applyBetriebForm(payload);
         this.betriebExists = true;
-        callIfExists('closeModal', 'modal-betrieb-wizard');
-        callIfExists('toast', '✅ Betriebsdaten gespeichert');
+        this.closeModal('modal-betrieb-wizard');
+        this.toast('✅ Betriebsdaten gespeichert');
       } catch (err) {
         console.error(err);
-        callIfExists('toast', `❌ ${err.message}`);
+        this.toast(`❌ ${err.message}`);
       } finally {
         this.isBetriebWizardSaving = false;
       }
@@ -1070,28 +1080,15 @@ const AppRoot = {
       };
     },
 
-    showForecastSubTab(subtab, btn = null) {
-      document.querySelectorAll('#tab-forecast .sub-tab-btn')
-        .forEach(button => button.classList.remove('active'));
-
-      document.querySelectorAll('#tab-forecast .history-sub-tab')
-        .forEach(panel => panel.classList.remove('active'));
-
-      const activeButton = btn || document.querySelector(`[data-action="showForecastSubTab"][data-subtab="${subtab}"]`);
-      activeButton?.classList.add('active');
-
-      document.getElementById(`forecast-sub-${subtab}`)?.classList.add('active');
-
-      const badge = document.getElementById('forecast-status-badge');
-      if (badge) {
-        badge.textContent = subtab === 'beratung' ? 'PSM-Beratung' : 'Spritzfenster';
-      }
+    showForecastSubTab(subtab) {
+      this.activeForecastSubTab = subtab === 'beratung' ? 'beratung' : 'spritzfenster';
     },
 
     showTab(tabName, el = null, push = true) {
       if (!tabName) return;
 
       this.activeTab = tabName;
+      this.uiStore?.setActiveTab(tabName);
       this.applyTabClasses(el);
       this.closeUserPopup();
 
@@ -1100,7 +1097,10 @@ const AppRoot = {
       }
 
       if (push) {
-        history.pushState({ tab: tabName }, '', tabToPath[tabName] || '/betrieb');
+        const path = tabToPath[tabName] || '/betrieb';
+        if (this.$route?.path !== path) {
+          this.$router.push(path);
+        }
       }
 
       this.runTabHooks(tabName, el);
@@ -1186,11 +1186,6 @@ const AppRoot = {
       if (this.isUserPopupOpen) {
         this.positionUserPopup();
       }
-    },
-
-    onPopState(event) {
-      const tabName = event.state?.tab || getTabFromPath();
-      this.showTab(tabName, null, false);
     },
 
     toast(message, duration = 2600) {
@@ -1301,11 +1296,36 @@ const AppRoot = {
           kulturenItems: this.kulturenItems,
         }),
       ]),
-      h(Teleport, { to: '#forecast-sub-spritzfenster' }, [
-        h(ForecastView),
-      ]),
-      h(Teleport, { to: '#forecast-sub-beratung' }, [
-        h(BeratungView),
+      h(Teleport, { to: '#tab-forecast' }, [
+        h('h2', [
+          '📈 Beratung ',
+          h('span', { class: 'badge', id: 'forecast-status-badge' }, this.activeForecastSubTab === 'beratung' ? 'PSM-Beratung' : 'Spritzfenster'),
+        ]),
+        h('div', { class: 'sub-tabs' }, [
+          h('button', {
+            type: 'button',
+            class: ['sub-tab-btn', { active: this.activeForecastSubTab === 'spritzfenster' }],
+            onClick: () => this.showForecastSubTab('spritzfenster'),
+          }, '🌤 Spritzfenster'),
+          h('button', {
+            id: 'forecast-subtab-beratung',
+            type: 'button',
+            class: ['sub-tab-btn', { active: this.activeForecastSubTab === 'beratung' }],
+            onClick: () => this.showForecastSubTab('beratung'),
+          }, '🤖 PSM-Beratung'),
+        ]),
+        h('div', {
+          id: 'forecast-sub-spritzfenster',
+          class: ['history-sub-tab', { active: this.activeForecastSubTab === 'spritzfenster' }],
+        }, [
+          h(ForecastView),
+        ]),
+        h('div', {
+          id: 'forecast-sub-beratung',
+          class: ['history-sub-tab', { active: this.activeForecastSubTab === 'beratung' }],
+        }, [
+          h(BeratungView),
+        ]),
       ]),
       h(Teleport, { to: '#tab-history' }, [
         h(HistoryView, {
@@ -1319,6 +1339,7 @@ const AppRoot = {
           canWrite: !!this.permissions.can_write,
           onWarningCount: count => {
             this.inventoryWarningCount = count;
+            this.uiStore?.setInventoryWarningCount(count);
           },
         }),
       ]),
@@ -1331,7 +1352,9 @@ const AppRoot = {
               username,
               avatar: username.charAt(0).toUpperCase(),
             };
+            this.uiStore?.setUser(this.user);
           },
+          onSwitchForecastSubTab: subtab => this.showForecastSubTab(subtab),
         }),
       ]),
       h(Teleport, { to: '#modal-psm' }, [
@@ -1341,7 +1364,7 @@ const AppRoot = {
           isInfoLoading: this.isPsmInfoLoading,
           searchResults: this.psmSearchResults,
           showSearchResults: this.showPsmSearchResults,
-          onCancel: () => callIfExists('closeModal', 'modal-psm'),
+          onCancel: () => this.closeModal('modal-psm'),
           onSave: () => this.savePSM(),
           onSearch: term => this.searchPSMAutocomplete(term),
           onSelectSearchResult: item => this.selectPSMSearchResult(item),
@@ -1353,7 +1376,7 @@ const AppRoot = {
           form: this.einsatzortForm,
           isEditing: !!this.einsatzortEditId,
           orte: this.orteItems,
-          onCancel: () => callIfExists('closeModal', 'modal-einsatzort'),
+          onCancel: () => this.closeModal('modal-einsatzort'),
           onOpenMap: () => this.openMapModal(),
           onSave: () => this.saveEinsatzort(),
           onUpdateField: (field, value) => this.updateEinsatzortField(field, value),
@@ -1364,7 +1387,7 @@ const AppRoot = {
           hasSelection: !!this.eoMapSelection,
           selectedLat: this.eoMapSelection?.lat ?? '-',
           selectedLng: this.eoMapSelection?.lng ?? '-',
-          onCancel: () => callIfExists('closeModal', 'modal-map'),
+          onCancel: () => this.closeModal('modal-map'),
           onConfirm: () => this.confirmMapSelection(),
         }),
       ]),
@@ -1375,7 +1398,7 @@ const AppRoot = {
           bbchDrafts: this.bbchDraftItems,
           bbchOverview: this.bbchOverviewItems,
           onAddBbchRow: () => this.addBBCHRow(),
-          onCancel: () => callIfExists('closeModal', 'modal-kultur'),
+          onCancel: () => this.closeModal('modal-kultur'),
           onDeleteBbchOverview: id => this.deleteBBCHOverview(id),
           onRemoveBbchRow: key => this.removeBBCHRow(key),
           onSave: () => this.saveKultur(),
@@ -1397,3 +1420,4 @@ const AppRoot = {
 };
 
 export default AppRoot;
+

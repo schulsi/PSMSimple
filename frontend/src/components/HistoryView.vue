@@ -191,6 +191,7 @@
 <script>
 import { computed, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
+import { toast } from '../app/appBridge.js';
 import { apiDelete, apiGet } from '../app/api.js';
 
 const palette = [
@@ -661,12 +662,6 @@ export default {
     function formatQuantity(quantity, unit) {
       if (quantity == null) return '—';
       return `${Number.parseFloat(quantity.toFixed(3))} ${unit || ''}`.trim();
-    }
-
-    function toast(message) {
-      if (typeof window.toast === 'function') {
-        window.toast(message);
-      }
     }
 
     watch(() => props.activeTab, (tabName) => {

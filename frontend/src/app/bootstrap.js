@@ -1,4 +1,4 @@
-export const tabToPath = window.PSM_TAB_TO_PATH || {
+export const tabToPath = {
   home: '/',
   betrieb: '/betrieb',
   psm: '/psm',
@@ -11,7 +11,7 @@ export const tabToPath = window.PSM_TAB_TO_PATH || {
   inventory: '/inventory',
 };
 
-const pathToTab = window.PSM_PATH_TO_TAB || {
+const pathToTab = {
   '': 'home',
   home: 'home',
   betrieb: 'betrieb',
@@ -30,17 +30,9 @@ export const eoMapDefault = [51.1657, 10.4515];
 export const eoMapDefaultZoom = 6;
 export const eoMapPointZoom = 15;
 
-export function getTabFromPath() {
-  const path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+export function getTabFromPath(pathname = window.location.pathname) {
+  const path = pathname.replace(/^\/+|\/+$/g, '');
   return pathToTab[path] || 'home';
-}
-
-export function callIfExists(name, ...args) {
-  const fn = window[name];
-  if (typeof fn === 'function') {
-    return fn(...args);
-  }
-  return undefined;
 }
 
 export function readBootstrapData() {

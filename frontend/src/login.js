@@ -1,4 +1,8 @@
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import PrimeVue from 'primevue/config';
+
+import './styles/primevue.css';
 
 const LoginApp = {
   data() {
@@ -8,70 +12,46 @@ const LoginApp = {
     };
   },
   mounted() {
+    this.bindDomEvents();
+
     const params = new URLSearchParams(window.location.search);
     if (params.get('tab') === 'register') {
       this.showPanelAuth('register');
+    } else {
+      this.applyDomState();
     }
-
-    document.addEventListener('click', this.handleDocumentClick);
-    this.updateNavActive();
-  },
-  beforeUnmount() {
-    document.removeEventListener('click', this.handleDocumentClick);
   },
   methods: {
-    handleDocumentClick(event) {
-      const el = event.target.closest('[data-action]');
-      if (!el) return;
+    bindDomEvents() {
+      document.getElementById('login-nav-toggle')?.addEventListener('click', this.toggleMobileNav);
+      document.getElementById('nav-overlay')?.addEventListener('click', this.closeMobileNav);
 
-      const action = el.dataset.action;
-      if (action === 'toggleMobileNav') {
-        event.preventDefault();
-        this.toggleMobileNav();
-        return;
-      }
-
-      if (action === 'closeMobileNav') {
-        event.preventDefault();
-        this.closeMobileNav();
-        return;
-      }
-
-      if (action === 'showPanelAuth') {
-        event.preventDefault();
-        this.showPanelAuth(el.dataset.panel);
-      }
+      document.querySelectorAll('[data-panel]').forEach((el) => {
+        el.addEventListener('click', (event) => {
+          event.preventDefault();
+          this.showPanelAuth(el.dataset.panel);
+        });
+      });
     },
     showPanelAuth(panelName) {
       this.activePanel = panelName || 'login';
       this.closeMobileNav();
-      this.updateNavActive();
+      this.applyDomState();
     },
     toggleMobileNav() {
       this.isMobileNavOpen = !this.isMobileNavOpen;
-      const nav = document.querySelector('nav');
-      const overlay = document.getElementById('nav-overlay');
-      if (!nav || !overlay) return;
-
-      const open = this.isMobileNavOpen;
-      nav.classList.toggle('open', open);
-      overlay.classList.toggle('open', open);
+      this.applyDomState();
     },
     closeMobileNav() {
       this.isMobileNavOpen = false;
-      const nav = document.querySelector('nav');
-      const overlay = document.getElementById('nav-overlay');
-      if (!nav || !overlay) return;
-
-      nav.classList.remove('open');
-      overlay.classList.remove('open');
+      this.applyDomState();
     },
-    updateNavActive() {
-      document.querySelectorAll('nav a').forEach((link) => {
-        const targetPanel = link.dataset.panel;
-        if (targetPanel) {
-          link.classList.toggle('active', targetPanel === this.activePanel);
-        }
+    applyDomState() {
+      document.getElementById('login-nav')?.classList.toggle('open', this.isMobileNavOpen);
+      document.getElementById('nav-overlay')?.classList.toggle('open', this.isMobileNavOpen);
+
+      document.querySelectorAll('[data-panel]').forEach((el) => {
+        el.classList.toggle('active', el.dataset.panel === this.activePanel);
       });
 
       document.querySelectorAll('.auth-panel').forEach((panel) => {
@@ -79,6 +59,14 @@ const LoginApp = {
       });
     },
   },
+  render() {
+    return null;
+  },
 };
 
-createApp(LoginApp).mount('#login-vue-app');
+const app = createApp(LoginApp);
+
+app.use(createPinia());
+app.use(PrimeVue, { unstyled: true });
+
+app.mount('#login-vue-controller');

@@ -1,5 +1,15 @@
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import PrimeVue from 'primevue/config';
 
 import AppRoot from './app/AppRoot.js';
+import router from './app/router.js';
+import './styles/primevue.css';
 
-createApp(AppRoot).mount('#psm-vue-app');
+const app = createApp(AppRoot);
+
+app.use(createPinia());
+app.use(router);
+app.use(PrimeVue, { unstyled: true });
+
+app.mount('#psm-vue-app');

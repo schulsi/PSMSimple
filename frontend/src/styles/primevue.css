@@ -1,0 +1,85 @@
+:root {
+  --p-focus-ring-color: rgba(42, 111, 78, 0.28);
+  --p-primary-color: #2a6f4e;
+  --p-primary-hover-color: #245f43;
+  --p-surface-border: #d7dfd8;
+  --p-surface-card: #ffffff;
+  --p-text-color: #1f2a24;
+  --p-text-muted-color: #69766d;
+}
+
+.p-component {
+  font-family: inherit;
+  color: var(--p-text-color);
+}
+
+.p-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  border: 1px solid var(--p-primary-color);
+  border-radius: 6px;
+  background: var(--p-primary-color);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.p-button:hover {
+  background: var(--p-primary-hover-color);
+  border-color: var(--p-primary-hover-color);
+}
+
+.p-button:focus-visible,
+.p-inputtext:focus,
+.p-select:not(.p-disabled).p-focus {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--p-focus-ring-color);
+}
+
+.p-button.p-button-secondary,
+.p-button.p-button-outlined {
+  background: #fff;
+  color: var(--p-primary-color);
+}
+
+.p-inputtext,
+.p-select {
+  min-height: 2.35rem;
+  border: 1px solid var(--p-surface-border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--p-text-color);
+  font: inherit;
+  padding: 0.52rem 0.7rem;
+}
+
+.p-card {
+  border: 1px solid var(--p-surface-border);
+  border-radius: 8px;
+  background: var(--p-surface-card);
+  color: var(--p-text-color);
+}
+
+.p-card-body {
+  padding: 1rem;
+}
+
+.p-dialog {
+  border: 1px solid var(--p-surface-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--p-text-color);
+  box-shadow: 0 18px 60px rgba(24, 37, 30, 0.18);
+}
+
+.p-dialog-header,
+.p-dialog-content,
+.p-dialog-footer {
+  padding: 1rem;
+}

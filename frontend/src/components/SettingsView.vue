@@ -168,6 +168,12 @@
 <script>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 
+import {
+  applyDefaultSettingsToExport,
+  registerSettingsView,
+  toast,
+  updateExportButtons,
+} from '../app/appBridge.js';
 import { apiDelete, apiGet, apiPost, apiPut } from '../app/api.js';
 
 const appDefaults = {
@@ -198,7 +204,7 @@ export default {
       default: () => ({}),
     },
   },
-  emits: ['rename-user', 'settings-saved'],
+  emits: ['rename-user', 'settings-saved', 'switch-forecast-sub-tab'],
   setup(props, { emit }) {
     const username = ref(props.initialUsername);
     const renameInput = ref('');
@@ -207,6 +213,7 @@ export default {
     const warmupSchadorg = ref('');
     const isSaving = ref(false);
     const isUsersLoading = ref(false);
+    let unregisterSettingsView = null;
     const userSettings = reactive({
       default_anwender: '',
       default_verantwortlich: '',
@@ -389,20 +396,16 @@ export default {
     }
 
     function syncSaveMode() {
-      if (typeof window.updateExportButtons === 'function') {
-        window.updateExportButtons(localSave.value);
-      }
+      updateExportButtons(localSave.value);
     }
 
     function applyExportDefaults(settings) {
-      if (typeof window.applyDefaultSettingsToExport === 'function') {
-        window.applyDefaultSettingsToExport(settings);
-      }
+      applyDefaultSettingsToExport(settings);
     }
 
     function applyBeratungVisibility() {
       const enabled = !!appSettings.aiEnabled;
-      const subTabBtn = document.querySelector('[data-action="showForecastSubTab"][data-subtab="beratung"]');
+      const subTabBtn = document.getElementById('forecast-subtab-beratung');
       const subTabPanel = document.getElementById('forecast-sub-beratung');
 
       subTabBtn?.classList.toggle('hidden', !enabled);
@@ -410,37 +413,29 @@ export default {
       subTabPanel?.classList.toggle('hidden', !enabled);
       subTabPanel?.style.setProperty('display', enabled ? '' : 'none', 'important');
 
-      if (!enabled && subTabPanel?.classList.contains('active') && typeof window.showForecastSubTab === 'function') {
-        window.showForecastSubTab('spritzfenster');
+      if (!enabled && subTabPanel?.classList.contains('active')) {
+        emit('switch-forecast-sub-tab', 'spritzfenster');
       }
     }
 
-    function toast(message) {
-      if (typeof window.toast === 'function') {
-        window.toast(message);
-      }
-    }
-
-    function installGlobalBridge() {
-      window.psmSettingsView = {
+    function installSettingsBridge() {
+      unregisterSettingsView = registerSettingsView({
         applyUserSettings(settings = {}) {
           localSave.value = settings.local_save !== undefined ? !!settings.local_save : localSave.value;
           userSettings.default_anwender = settings.default_anwender || userSettings.default_anwender;
           userSettings.default_verantwortlich = settings.default_verantwortlich || userSettings.default_verantwortlich;
           syncSaveMode();
         },
-      };
+      });
     }
 
     onMounted(() => {
-      installGlobalBridge();
+      installSettingsBridge();
       loadSettings();
     });
 
     onBeforeUnmount(() => {
-      if (window.psmSettingsView?.applyUserSettings) {
-        delete window.psmSettingsView;
-      }
+      unregisterSettingsView?.();
     });
 
     return {
