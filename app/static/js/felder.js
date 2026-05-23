@@ -243,7 +243,7 @@ function _eoResetMap() {
   if (_eoMap) _eoMap.setView(EO_MAP_DEFAULT, EO_MAP_DEFAULT_ZOOM);
 }
 
-function renderEinsatzorteList(items = einsatzorteItems) {
+function renderFelderList(items = einsatzorteItems) {
   const list = $("einsatzorte-list");
   if (!list) return;
 
@@ -278,15 +278,15 @@ function renderEinsatzorteList(items = einsatzorteItems) {
     .join("");
 }
 
-async function loadEinsatzorte() {
+async function loadFelder() {
   try {
-    /* wichtig: zuerst Stammdaten laden, dann Einsatzorte rendern */
+    /* wichtig: zuerst Stammdaten laden, dann Felder rendern */
     await Promise.all([loadOrte(), loadFieldKulturen()]);
 
     einsatzorteItems = await apiGet("/api/einsatzorte");
 
     const count = document.getElementById("eo-count");
-    renderEinsatzorteList();
+    renderFelderList();
 
     if (count) count.textContent = String(einsatzorteItems.length);
     if (typeof loadExportSelections === "function") {
@@ -415,7 +415,7 @@ async function saveEinsatzort() {
 
     closeModal("modal-einsatzort");
     await resetEinsatzortForm();
-    await loadEinsatzorte();
+    await loadFelder();
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);
@@ -428,7 +428,7 @@ async function removeEinsatzort(id) {
   try {
     await apiDelete(`/api/einsatzorte/${id}`);
     toast("✅ Feld gelöscht");
-    await loadEinsatzorte();
+    await loadFelder();
   } catch (err) {
     console.error(err);
     toast(`❌ ${err.message}`);

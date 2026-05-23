@@ -71,7 +71,7 @@
         </div>
 
         <div class="field">
-          <label>Einsatzort (optional, für Wetterfenster)</label>
+          <label>Feld (optional, für Wetterfenster)</label>
           <select id="beratung-ort-select" v-model="selectedOrtId">
             <option value="">— Kein Ort —</option>
             <option v-for="ort in orte" :key="ort.id" :value="String(ort.id)">

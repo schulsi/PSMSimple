@@ -1,6 +1,6 @@
 <template>
   <div class="modal">
-    <h3 id="modal-einsatzort-title">{{ isEditing ? 'Einsatzort bearbeiten' : 'Einsatzort hinzufügen' }}</h3>
+    <h3 id="modal-einsatzort-title">{{ isEditing ? 'Feld bearbeiten' : 'Feld hinzufügen' }}</h3>
 
     <div class="form-grid">
       <div class="field span-2">
@@ -105,7 +105,7 @@ const geoTypen = ['GPS-Koordinaten', 'Polygon', 'Schlagname'];
 const einheiten = ['m2', 'ha', 'ar'];
 
 export default {
-  name: 'EinsatzortModal',
+  name: 'FeldModal',
   props: {
     form: { type: Object, required: true },
     isEditing: { type: Boolean, default: false },

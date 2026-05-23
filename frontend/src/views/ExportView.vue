@@ -115,9 +115,9 @@
     </div>
 
     <div class="card export-section">
-      <h3>📍 Einsatzorte auswählen</h3>
+      <h3>📍 Felder auswählen</h3>
       <p class="export-help-text">Es werden nur Felder der ausgewählten Kulturen angezeigt.</p>
-      <div v-if="selectedKulturIds.length && filteredEinsatzorteItems.length" class="export-quick-select quick-select-row">
+      <div v-if="selectedKulturIds.length && filteredFelderItems.length" class="export-quick-select quick-select-row">
         <button
           type="button"
           class="btn btn-ghost"
@@ -138,19 +138,19 @@
       </div>
       <div id="exp-einsatzorte-list">
         <div v-if="!selectedKulturIds.length" class="empty">Bitte zuerst mindestens eine Kultur auswählen.</div>
-        <div v-else-if="!filteredEinsatzorteItems.length" class="empty">
+        <div v-else-if="!filteredFelderItems.length" class="empty">
           Keine Felder für diese Kulturen vorhanden.
         </div>
         <div
-          v-for="item in filteredEinsatzorteItems"
+          v-for="item in filteredFelderItems"
           :id="`exp-einsatzort-${item.id}`"
           :key="item.id"
           class="exp-item"
-          :class="{ selected: selectedEinsatzortIds.includes(item.id) }"
+          :class="{ selected: selectedFeldIds.includes(item.id) }"
         >
           <label class="exp-item-header">
             <input
-              v-model.number="selectedEinsatzortIds"
+              v-model.number="selectedFeldIds"
               type="checkbox"
               class="exp-einsatzort-check"
               :data-id="item.id"
@@ -245,7 +245,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, toRef, watch } fro
 import { registerExportView, toast } from '../app/appBridge.js';
 import { apiGet, apiPost, getCsrfToken } from '../app/api.js';
 
-const validationText = 'Bitte mindestens ein Pflanzenschutzmittel, einen Einsatzort, eine Kultur sowie Datum, Uhrzeit und Art der Verwendung auswählen. Aufwandsmenge und BBCH-Code sind erforderlich.';
+const validationText = 'Bitte mindestens ein Pflanzenschutzmittel, ein Feld, eine Kultur sowie Datum, Uhrzeit und Art der Verwendung auswählen. Aufwandsmenge und BBCH-Code sind erforderlich.';
 
 export default {
   name: 'ExportView',
@@ -254,7 +254,7 @@ export default {
       type: Array,
       default: () => [],
     },
-    einsatzorteItems: {
+    felderItems: {
       type: Array,
       default: () => [],
     },
@@ -269,11 +269,11 @@ export default {
   },
   setup(props) {
     const psmItems = toRef(props, 'psmItems');
-    const einsatzorteItems = toRef(props, 'einsatzorteItems');
+    const felderItems = toRef(props, 'felderItems');
     const kulturenItems = toRef(props, 'kulturenItems');
     const orteItems = toRef(props, 'orteItems');
     const selectedPsmIds = ref([]);
-    const selectedEinsatzortIds = ref([]);
+    const selectedFeldIds = ref([]);
     const selectedKulturIds = ref([]);
     const psmAmounts = reactive({});
     const kulturBbch = reactive({});
@@ -317,28 +317,28 @@ export default {
 
     const currentArtSubOptions = computed(() => artSubOptions[form.artHaupt] || []);
 
-    const filteredEinsatzorteItems = computed(() => {
+    const filteredFelderItems = computed(() => {
       if (!selectedKulturIds.value.length) return [];
 
       const kulturIds = new Set(selectedKulturIds.value.map(id => String(id)));
 
-      return einsatzorteItems.value.filter((item) => {
+      return felderItems.value.filter((item) => {
         return kulturIds.has(String(item.kultur_id ?? ''));
       });
     });
 
     const areAllVisibleFieldsSelected = computed(() => {
-      if (!filteredEinsatzorteItems.value.length) return false;
+      if (!filteredFelderItems.value.length) return false;
 
-      const selectedIds = new Set(selectedEinsatzortIds.value);
-      return filteredEinsatzorteItems.value.every(item => selectedIds.has(item.id));
+      const selectedIds = new Set(selectedFeldIds.value);
+      return filteredFelderItems.value.every(item => selectedIds.has(item.id));
     });
 
     const quickSelectGroups = computed(() => {
       const groups = new Map();
-      const selectedIds = new Set(selectedEinsatzortIds.value);
+      const selectedIds = new Set(selectedFeldIds.value);
 
-      filteredEinsatzorteItems.value.forEach((item) => {
+      filteredFelderItems.value.forEach((item) => {
         const ortKey = String(item.ort_id ?? '');
         if (!ortKey) return;
 
@@ -365,14 +365,14 @@ export default {
 
     const valid = computed(() => {
       const hasPsm = selectedPsmIds.value.length > 0;
-      const hasEinsatzort = selectedEinsatzortIds.value.length > 0;
+      const hasFeld = selectedFeldIds.value.length > 0;
       const hasKultur = selectedKulturIds.value.length > 0;
       const hasPsmAmount = hasPsm && selectedPsmIds.value.every(id => String(psmAmounts[id] ?? '').trim().length > 0);
       const hasKultBbch = hasKultur && selectedKulturIds.value.every(id => String(kulturBbch[id] ?? '').trim().length > 0);
 
       return (
         hasPsm &&
-        hasEinsatzort &&
+        hasFeld &&
         hasKultur &&
         !!form.datum &&
         !!form.uhrzeit &&
@@ -392,7 +392,7 @@ export default {
     watch(valid, () => syncValidation());
 
     watch(psmItems, items => pruneSelection(selectedPsmIds, items));
-    watch(filteredEinsatzorteItems, pruneSelectedEinsatzorte);
+    watch(filteredFelderItems, pruneSelectedFelder);
     watch(kulturenItems, items => pruneSelection(selectedKulturIds, items));
 
     function pruneSelection(selectionRef, items = []) {
@@ -400,9 +400,9 @@ export default {
       selectionRef.value = selectionRef.value.filter(id => ids.has(id));
     }
 
-    function pruneSelectedEinsatzorte() {
-      const visibleIds = new Set(filteredEinsatzorteItems.value.map(item => item.id));
-      selectedEinsatzortIds.value = selectedEinsatzortIds.value.filter(id => visibleIds.has(id));
+    function pruneSelectedFelder() {
+      const visibleIds = new Set(filteredFelderItems.value.map(item => item.id));
+      selectedFeldIds.value = selectedFeldIds.value.filter(id => visibleIds.has(id));
       syncValidation();
     }
 
@@ -412,7 +412,7 @@ export default {
     }
 
     function applyVisibleFieldSelection(nextSelection) {
-      selectedEinsatzortIds.value = filteredEinsatzorteItems.value
+      selectedFeldIds.value = filteredFelderItems.value
         .map(item => item.id)
         .filter(id => nextSelection.has(id));
       syncValidation();
@@ -420,19 +420,19 @@ export default {
 
     function quickSelectAllFields() {
       if (areAllVisibleFieldsSelected.value) {
-        selectedEinsatzortIds.value = [];
+        selectedFeldIds.value = [];
         syncValidation();
         return;
       }
 
-      applyVisibleFieldSelection(new Set(filteredEinsatzorteItems.value.map(item => item.id)));
+      applyVisibleFieldSelection(new Set(filteredFelderItems.value.map(item => item.id)));
     }
 
     function quickSelectFieldsByOrt(ortKey) {
-      const idsForOrt = filteredEinsatzorteItems.value
+      const idsForOrt = filteredFelderItems.value
         .filter(item => String(item.ort_id ?? '') === String(ortKey))
         .map(item => item.id);
-      const nextSelection = new Set(selectedEinsatzortIds.value);
+      const nextSelection = new Set(selectedFeldIds.value);
       const allForOrtSelected = idsForOrt.length > 0 && idsForOrt.every(id => nextSelection.has(id));
 
       idsForOrt.forEach((id) => {
@@ -475,7 +475,7 @@ export default {
           id,
           aufwandMenge: String(psmAmounts[id] ?? '').trim(),
         })),
-        einsatzort_ids: [...selectedEinsatzortIds.value],
+        einsatzort_ids: [...selectedFeldIds.value],
         kult_overrides: selectedKulturIds.value.map(id => ({
           id,
           bbchCode: String(kulturBbch[id] ?? '').trim(),
@@ -775,7 +775,7 @@ export default {
     }
 
     async function handleKulturToggle(kulturId) {
-      pruneSelectedEinsatzorte();
+      pruneSelectedFelder();
       syncValidation();
       if (!selectedKulturIds.value.includes(kulturId)) return;
 
@@ -842,7 +842,7 @@ export default {
       bbchDropdownStyle,
       bbchHints,
       currentArtSubOptions,
-      filteredEinsatzorteItems,
+      filteredFelderItems,
       form,
       getOrtName,
       handleBbchBlur,
@@ -864,7 +864,7 @@ export default {
       quickSelectFieldsByOrt,
       quickSelectGroups,
       refreshArtSubOptions,
-      selectedEinsatzortIds,
+      selectedFeldIds,
       selectedKulturIds,
       selectedPsmIds,
       syncValidation,

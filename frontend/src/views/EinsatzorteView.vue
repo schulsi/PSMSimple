@@ -1,19 +1,19 @@
 <template>
   <h2>
-    📍 Einsatzorte <span id="eo-count" class="badge">{{ items.length }}</span>
+    📍 Felder <span id="eo-count" class="badge">{{ items.length }}</span>
   </h2>
 
   <Button
     v-if="canWrite"
     type="button"
     class="btn btn-primary mb-1"
-    label="+ Neuer Einsatzort"
+    label="+ Neues Feld"
     @click="$emit('open-create')"
   />
 
   <div id="einsatzorte-list" class="item-list">
-    <div v-if="isLoading" class="empty">Einsatzorte werden geladen...</div>
-    <div v-else-if="!items.length" class="empty">Noch keine Einsatzorte vorhanden.</div>
+    <div v-if="isLoading" class="empty">Felder werden geladen...</div>
+    <div v-else-if="!items.length" class="empty">Noch keine Felder vorhanden.</div>
     <div v-for="item in items" v-else :key="item.id" class="item">
       <div class="item-info">
         <div class="name">{{ displayValue(item.name) }}</div>
@@ -49,7 +49,7 @@
 import Button from 'primevue/button';
 
 export default {
-  name: 'EinsatzorteView',
+  name: 'FelderView',
   components: {
     Button,
   },

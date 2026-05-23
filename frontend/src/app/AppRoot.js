@@ -4,9 +4,9 @@ import AppShell from '../components/AppShell.vue';
 import BeratungView from '../views/BeratungView.vue';
 import BetriebView from '../views/BetriebView.vue';
 import BetriebWizard from '../components/modals/BetriebWizard.vue';
-import EinsatzortMapModal from '../components/modals/EinsatzortMapModal.vue';
-import EinsatzortModal from '../components/modals/EinsatzortModal.vue';
-import EinsatzorteView from '../views/EinsatzorteView.vue';
+import FeldMapModal from '../components/modals/EinsatzortMapModal.vue';
+import FeldModal from '../components/modals/EinsatzortModal.vue';
+import FelderView from '../views/EinsatzorteView.vue';
 import ForecastView from '../views/ForecastView.vue';
 import HomeView from '../views/HomeView.vue';
 import HistoryView from '../views/HistoryView.vue';
@@ -70,7 +70,7 @@ const AppRoot = {
       },
       isBetriebSaving: false,
       isBetriebWizardSaving: false,
-      isEinsatzorteLoading: false,
+      isFelderLoading: false,
       isKulturenLoading: false,
       inventoryWarningCount: 0,
       isMobileNavOpen: false,
@@ -92,9 +92,9 @@ const AppRoot = {
       psmItems: [],
       psmSearchResults: [],
       psmSearchTimer: null,
-      einsatzorteItems: [],
-      einsatzortEditId: null,
-      einsatzortForm: {
+      felderItems: [],
+      feldEditId: null,
+      feldForm: {
         name: '',
         gpsRechtswert: '',
         gpsHochwert: '',
@@ -242,7 +242,7 @@ const AppRoot = {
 
     this.loadBetrieb();
     this.loadPSM();
-    this.loadEinsatzorte();
+    this.loadFelder();
     this.loadKulturen();
     this.loadVersionInfo();
   },
@@ -497,8 +497,8 @@ const AppRoot = {
       return ort?.name || ort?.bezeichnung || (ortId ? `Ort #${ortId}` : '-');
     },
 
-    applyEinsatzortForm(item = {}) {
-      this.einsatzortForm = {
+    applyFeldForm(item = {}) {
+      this.feldForm = {
         name: item.name || '',
         gpsRechtswert: String(item.gpsRechtswert ?? ''),
         gpsHochwert: String(item.gpsHochwert ?? ''),
@@ -511,23 +511,23 @@ const AppRoot = {
       };
     },
 
-    collectEinsatzortForm() {
+    collectFeldForm() {
       return {
-        name: this.einsatzortForm.name.trim(),
-        gpsRechtswert: this.einsatzortForm.gpsRechtswert.trim(),
-        gpsHochwert: this.einsatzortForm.gpsHochwert.trim(),
-        anwendungsbereich: this.einsatzortForm.anwendungsbereich.trim(),
-        geoTyp: this.einsatzortForm.geoTyp.trim(),
-        einheit: this.einsatzortForm.einheit.trim(),
-        flaecheVolumen: this.einsatzortForm.flaecheVolumen.trim(),
-        ort_id: this.einsatzortForm.ort_id,
-        kultur_id: this.einsatzortForm.kultur_id,
+        name: this.feldForm.name.trim(),
+        gpsRechtswert: this.feldForm.gpsRechtswert.trim(),
+        gpsHochwert: this.feldForm.gpsHochwert.trim(),
+        anwendungsbereich: this.feldForm.anwendungsbereich.trim(),
+        geoTyp: this.feldForm.geoTyp.trim(),
+        einheit: this.feldForm.einheit.trim(),
+        flaecheVolumen: this.feldForm.flaecheVolumen.trim(),
+        ort_id: this.feldForm.ort_id,
+        kultur_id: this.feldForm.kultur_id,
       };
     },
 
-    updateEinsatzortField(field, value) {
-      this.einsatzortForm = {
-        ...this.einsatzortForm,
+    updateFeldField(field, value) {
+      this.feldForm = {
+        ...this.feldForm,
         [field]: value,
       };
     },
@@ -542,38 +542,38 @@ const AppRoot = {
       }
     },
 
-    async loadEinsatzorte() {
+    async loadFelder() {
       try {
-        this.isEinsatzorteLoading = true;
+        this.isFelderLoading = true;
         await this.loadOrte();
         const items = await apiGet('/api/einsatzorte');
-        this.einsatzorteItems = Array.isArray(items) ? items : [];
+        this.felderItems = Array.isArray(items) ? items : [];
       } catch (err) {
         console.error(err);
-        this.toast('❌ Einsatzorte konnten nicht geladen werden');
+        this.toast('❌ Felder konnten nicht geladen werden');
       } finally {
-        this.isEinsatzorteLoading = false;
+        this.isFelderLoading = false;
       }
     },
 
-    async resetEinsatzortForm() {
-      this.einsatzortEditId = null;
-      this.applyEinsatzortForm();
+    async resetFeldForm() {
+      this.feldEditId = null;
+      this.applyFeldForm();
       await this.loadOrte();
       this.resetEinsatzortMap();
     },
 
-    async openEinsatzortModal() {
-      await this.resetEinsatzortForm();
+    async openFeldModal() {
+      await this.resetFeldForm();
       this.openModal('modal-einsatzort');
     },
 
-    async editEinsatzort(id) {
+    async editFeld(id) {
       try {
         const item = await apiGet(`/api/einsatzorte/${id}`);
-        this.einsatzortEditId = id;
+        this.feldEditId = id;
         await this.loadOrte();
-        this.applyEinsatzortForm(item);
+        this.applyFeldForm(item);
 
         const lat = parseFloat(item.gpsRechtswert);
         const lng = parseFloat(item.gpsHochwert);
@@ -586,9 +586,9 @@ const AppRoot = {
       }
     },
 
-    async saveEinsatzort() {
+    async saveFeld() {
       try {
-        const payload = this.collectEinsatzortForm();
+        const payload = this.collectFeldForm();
 
         if (!payload.name) {
           this.toast('❌ Bitte einen Namen eingeben');
@@ -600,30 +600,30 @@ const AppRoot = {
           return;
         }
 
-        if (this.einsatzortEditId) {
-          await apiPut(`/api/einsatzorte/${this.einsatzortEditId}`, payload);
-          this.toast('✅ Einsatzort gespeichert');
+        if (this.feldEditId) {
+          await apiPut(`/api/einsatzorte/${this.feldEditId}`, payload);
+          this.toast('✅ Feld gespeichert');
         } else {
           await apiPost('/api/einsatzorte', payload);
-          this.toast('✅ Einsatzort hinzugefügt');
+          this.toast('✅ Feld hinzugefügt');
         }
 
         this.closeModal('modal-einsatzort');
-        await this.resetEinsatzortForm();
-        await this.loadEinsatzorte();
+        await this.resetFeldForm();
+        await this.loadFelder();
       } catch (err) {
         console.error(err);
         this.toast(`❌ ${err.message}`);
       }
     },
 
-    async removeEinsatzort(id) {
-      if (!confirm('Diesen Einsatzort wirklich löschen?')) return;
+    async removeFeld(id) {
+      if (!confirm('Dieses Feld wirklich löschen?')) return;
 
       try {
         await apiDelete(`/api/einsatzorte/${id}`);
-        this.toast('✅ Einsatzort gelöscht');
-        await this.loadEinsatzorte();
+        this.toast('✅ Feld gelöscht');
+        await this.loadFelder();
       } catch (err) {
         console.error(err);
         this.toast(`❌ ${err.message}`);
@@ -658,8 +658,8 @@ const AppRoot = {
 
       this.eoMap.invalidateSize();
 
-      const lat = parseFloat(this.einsatzortForm.gpsRechtswert);
-      const lng = parseFloat(this.einsatzortForm.gpsHochwert);
+      const lat = parseFloat(this.feldForm.gpsRechtswert);
+      const lng = parseFloat(this.feldForm.gpsHochwert);
       if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
         this.setMapPoint(lat, lng);
       } else if (this.eoMapSelection) {
@@ -725,8 +725,8 @@ const AppRoot = {
     confirmMapSelection() {
       if (!this.eoMapSelection) return;
 
-      this.einsatzortForm = {
-        ...this.einsatzortForm,
+      this.feldForm = {
+        ...this.feldForm,
         gpsRechtswert: String(this.eoMapSelection.lat),
         gpsHochwert: String(this.eoMapSelection.lng),
       };
@@ -1308,15 +1308,15 @@ const AppRoot = {
         }),
       ]),
       h(Teleport, { to: '#tab-einsatzorte' }, [
-        h(EinsatzorteView, {
+        h(FelderView, {
           canWrite: !!this.permissions.can_write,
-          isLoading: this.isEinsatzorteLoading,
-          items: this.einsatzorteItems,
+          isLoading: this.isFelderLoading,
+          items: this.felderItems,
           kulturen: this.kulturenItems,
           orte: this.orteItems,
-          onEdit: id => this.editEinsatzort(id),
-          onOpenCreate: () => this.openEinsatzortModal(),
-          onRemove: id => this.removeEinsatzort(id),
+          onEdit: id => this.editFeld(id),
+          onOpenCreate: () => this.openFeldModal(),
+          onRemove: id => this.removeFeld(id),
         }),
       ]),
       h(Teleport, { to: '#tab-kulturen' }, [
@@ -1332,7 +1332,7 @@ const AppRoot = {
       h(Teleport, { to: '#tab-export' }, [
         h(ExportView, {
           psmItems: this.psmItems,
-          einsatzorteItems: this.einsatzorteItems,
+          felderItems: this.felderItems,
           kulturenItems: this.kulturenItems,
           orteItems: this.orteItems,
         }),
@@ -1413,19 +1413,19 @@ const AppRoot = {
         }),
       ]),
       h(Teleport, { to: '#modal-einsatzort' }, [
-        h(EinsatzortModal, {
-          form: this.einsatzortForm,
-          isEditing: !!this.einsatzortEditId,
+        h(FeldModal, {
+          form: this.feldForm,
+          isEditing: !!this.feldEditId,
           kulturen: this.kulturenItems,
           orte: this.orteItems,
           onCancel: () => this.closeModal('modal-einsatzort'),
           onOpenMap: () => this.openMapModal(),
-          onSave: () => this.saveEinsatzort(),
-          onUpdateField: (field, value) => this.updateEinsatzortField(field, value),
+          onSave: () => this.saveFeld(),
+          onUpdateField: (field, value) => this.updateFeldField(field, value),
         }),
       ]),
       h(Teleport, { to: '#modal-map' }, [
-        h(EinsatzortMapModal, {
+        h(FeldMapModal, {
           hasSelection: !!this.eoMapSelection,
           selectedLat: this.eoMapSelection?.lat ?? '-',
           selectedLng: this.eoMapSelection?.lng ?? '-',

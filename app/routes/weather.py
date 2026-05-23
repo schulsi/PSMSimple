@@ -367,14 +367,14 @@ def geocode():
 @login_required
 def spray_window_for_ort(ort_id: int):
     """
-    Spritzfenster für einen Einsatzort berechnen
+    Spritzfenster für ein Feld berechnen
     ---
     tags:
-      - Einsatzorte
+      - Felder
       - Weather
-    summary: Berechnet das beste Spritzfenster für einen gespeicherten Einsatzort
+    summary: Berechnet das beste Spritzfenster für ein gespeichertes Feld
     description: |
-      Nutzt die hinterlegten Koordinaten eines Einsatzortes und berechnet
+      Nutzt die hinterlegten Koordinaten eines Feldes und berechnet
       optimale Zeitfenster für Pflanzenschutz-Anwendungen.
 
       Kein lat/lon erforderlich – wird aus der Datenbank geladen.
@@ -387,7 +387,7 @@ def spray_window_for_ort(ort_id: int):
         in: path
         type: integer
         required: true
-        description: ID des Einsatzortes
+        description: ID des Feldes
       - in: body
         name: body
         required: false
@@ -440,7 +440,7 @@ def spray_window_for_ort(ort_id: int):
             evaluated_hours:
               type: array
       404:
-        description: Einsatzort nicht gefunden
+        description: Feld nicht gefunden
       502:
         description: Fehler bei Wetterdaten
     """
@@ -450,7 +450,7 @@ def spray_window_for_ort(ort_id: int):
     ort = get_ort_by_id(ort_id)
 
     if not ort:
-        return jsonify({"error": True, "message": "Einsatzort nicht gefunden"}), 404
+        return jsonify({"error": True, "message": "Feld nicht gefunden"}), 404
 
     temp = cord2plz(ort.get("plz"))
     gps = temp.get_json()

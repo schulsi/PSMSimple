@@ -50,7 +50,7 @@
               {{ item.datum || 'Ohne Datum' }}<template v-if="item.uhrzeit"> · {{ item.uhrzeit }}</template>
             </div>
             <div class="meta">{{ item.artVerwendung || '—' }}</div>
-            <div class="meta"><strong>Einsatzorte:</strong> {{ item.einsatzorte || '—' }}</div>
+            <div class="meta"><strong>Felder:</strong> {{ item.einsatzorte || '—' }}</div>
             <div class="meta"><strong>PSM:</strong> {{ item.psm_namen || '—' }}</div>
             <div class="meta"><strong>Kulturen:</strong> {{ item.kulturen || '—' }}</div>
           </div>
@@ -116,7 +116,7 @@
     />
 
     <div class="card">
-      <p class="text-muted-history">Übersicht über die Verwendung von Einsatzorten (Feldern).</p>
+      <p class="text-muted-history">Übersicht über die Verwendung von Feldern.</p>
       <div class="history-chart-wrap">
         <canvas id="fields-usage-chart" ref="fieldsChartCanvas" class="chart-canvas"></canvas>
       </div>
@@ -126,7 +126,7 @@
         <table v-else class="psm-usage-table">
           <thead>
             <tr>
-              <th>Einsatzort (Feld)</th>
+              <th>Feld</th>
               <th>Verwendungen</th>
               <th>Zuletzt verwendet</th>
               <th>Details</th>
@@ -313,9 +313,9 @@ const HistoryDetail = {
         ])),
       ]),
       h('div', { class: 'history-section' }, [
-        h('h4', 'Einsatzorte'),
-        this.listBlock(einsatzorte, 'Keine Einsatzorte vorhanden.', ort => h('div', { class: 'history-subitem' }, [
-          h('div', { class: 'history-subitem-title' }, ort.name || 'Unbenannter Einsatzort'),
+        h('h4', 'Felder'),
+        this.listBlock(einsatzorte, 'Keine Felder vorhanden.', ort => h('div', { class: 'history-subitem' }, [
+          h('div', { class: 'history-subitem-title' }, ort.name || 'Unbenanntes Feld'),
           h('div', { class: 'history-subitem-meta' }, `Bereich: ${ort.anwendungsbereich || '—'}`),
           h('div', { class: 'history-subitem-meta' }, `Fläche: ${ort.flaecheVolumen || '—'} ${ort.einheit || ''}`),
         ])),

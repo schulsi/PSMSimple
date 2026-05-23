@@ -27,7 +27,7 @@
 import Button from 'primevue/button';
 
 export default {
-  name: 'EinsatzortMapModal',
+  name: 'FeldMapModal',
   components: {
     Button,
   },
