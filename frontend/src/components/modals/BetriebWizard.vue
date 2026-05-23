@@ -70,7 +70,7 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 
-import { bundeslandOptions } from '../constants.js';
+import { bundeslandOptions } from '../../constants.js';
 
 export default {
   name: 'BetriebWizard',
