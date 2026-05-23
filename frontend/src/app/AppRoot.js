@@ -1,22 +1,22 @@
 import { h, nextTick, Teleport } from 'vue';
 
 import AppShell from '../components/AppShell.vue';
-import BeratungView from '../components/BeratungView.vue';
-import BetriebView from '../components/BetriebView.vue';
+import BeratungView from '../views/BeratungView.vue';
+import BetriebView from '../views/BetriebView.vue';
 import BetriebWizard from '../components/BetriebWizard.vue';
-import EinsatzortMapModal from '../components/EinsatzortMapModal.vue';
-import EinsatzortModal from '../components/EinsatzortModal.vue';
-import EinsatzorteView from '../components/EinsatzorteView.vue';
-import ForecastView from '../components/ForecastView.vue';
-import HomeView from '../components/HomeView.vue';
-import HistoryView from '../components/HistoryView.vue';
-import InventoryView from '../components/InventoryView.vue';
-import KulturModal from '../components/KulturModal.vue';
-import KulturenView from '../components/KulturenView.vue';
-import PsmModal from '../components/PsmModal.vue';
-import PsmView from '../components/PsmView.vue';
-import SettingsView from '../components/SettingsView.vue';
-import ExportView from '../components/ExportView.vue';
+import EinsatzortMapModal from '../components/modals/EinsatzortMapModal.vue';
+import EinsatzortModal from '../components/modals/EinsatzortModal.vue';
+import EinsatzorteView from '../views/EinsatzorteView.vue';
+import ForecastView from '../views/ForecastView.vue';
+import HomeView from '../views/HomeView.vue/index.js';
+import HistoryView from '../views/HistoryView.vue/index.js';
+import InventoryView from '../views/InventoryView.vue/index.js';
+import KulturModal from '../components/modals/KulturModal.vue/index.js';
+import KulturenView from '../views/KulturenView.vue/index.js';
+import PsmModal from '../components/modals/PsmModal.vue/index.js';
+import PsmView from '../views/PsmView.vue/index.js';
+import SettingsView from '../views/SettingsView.vue/index.js';
+import ExportView from '../views/ExportView.vue';
 import { useUiStore } from '../stores/uiStore.js';
 import {
   applyDefaultSettingsToExport,
