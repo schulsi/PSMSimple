@@ -175,7 +175,6 @@ def suche_mittel(eppo_code: str, schadorg_kode: str) -> list[PSMMittelInfo]:
         try:
             kennr = _get_awg_kennr(awg_id)
             if not kennr or kennr in gesehene_kennr:
-                print(f"Skippt Nr {kennr}")
                 continue
 
             mittel = _get_mittel_info(kennr)
