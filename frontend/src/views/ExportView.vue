@@ -44,39 +44,8 @@
     </div>
 
     <div class="card export-section">
-      <h3>📍 Einsatzorte auswählen</h3>
-      <div id="exp-einsatzorte-list">
-        <div v-if="!einsatzorteItems.length" class="empty">Keine Einträge vorhanden.</div>
-        <div
-          v-for="item in einsatzorteItems"
-          :id="`exp-einsatzort-${item.id}`"
-          :key="item.id"
-          class="exp-item"
-          :class="{ selected: selectedEinsatzortIds.includes(item.id) }"
-        >
-          <label class="exp-item-header">
-            <input
-              v-model.number="selectedEinsatzortIds"
-              type="checkbox"
-              class="exp-einsatzort-check"
-              :data-id="item.id"
-              :value="item.id"
-              @change="syncValidation"
-            />
-            <div>
-              <div class="ci-name">{{ item.name || '—' }}</div>
-              <div class="ci-meta">
-                {{ item.anwendungsbereich || '—' }} · {{ item.flaecheVolumen || '—' }} {{ item.einheit || '' }}
-              </div>
-            </div>
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <div class="card export-section">
       <h3>🌾 Kulturen & BBCH-Code</h3>
-      <p class="export-help-text">Kultur auswählen und BBCH-Code für diese Anwendung eingeben.</p>
+      <p class="export-help-text">Zuerst die Kultur auswählen. Danach werden nur passende Felder angezeigt.</p>
       <div id="exp-kulturen-list">
         <div v-if="!kulturenItems.length" class="empty">Keine Einträge vorhanden.</div>
         <div
@@ -109,6 +78,7 @@
                 class="exp-kultur-bbch"
                 :data-id="item.id"
                 :data-kultur-name="item.name || ''"
+                :disabled="!selectedKulturIds.includes(item.id)"
                 placeholder="Code oder Beschreibung suchen"
                 autocomplete="off"
                 @blur="handleBbchBlur(item.id)"
@@ -140,6 +110,61 @@
             </div>
             <div class="exp-kultur-bbch-hint text-muted" :data-id="item.id">{{ bbchHints[item.id] || '' }}</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card export-section">
+      <h3>📍 Einsatzorte auswählen</h3>
+      <p class="export-help-text">Es werden nur Felder der ausgewählten Kulturen angezeigt.</p>
+      <div v-if="selectedKulturIds.length && filteredEinsatzorteItems.length" class="export-quick-select quick-select-row">
+        <button
+          type="button"
+          class="btn btn-ghost"
+          @click="quickSelectAllFields"
+        >
+          {{ areAllVisibleFieldsSelected ? 'Alle Felder abwählen' : 'Alle Felder auswählen' }}
+        </button>
+        <button
+          v-for="group in quickSelectGroups"
+          :key="group.ortKey"
+          type="button"
+          class="btn btn-ghost"
+          @click="quickSelectFieldsByOrt(group.ortKey)"
+        >
+          Alle {{ group.count }} Feld{{ group.count === 1 ? '' : 'er' }} in {{ group.ortName }}
+          {{ group.allSelected ? 'abwählen' : 'auswählen' }}
+        </button>
+      </div>
+      <div id="exp-einsatzorte-list">
+        <div v-if="!selectedKulturIds.length" class="empty">Bitte zuerst mindestens eine Kultur auswählen.</div>
+        <div v-else-if="!filteredEinsatzorteItems.length" class="empty">
+          Keine Felder für diese Kulturen vorhanden.
+        </div>
+        <div
+          v-for="item in filteredEinsatzorteItems"
+          :id="`exp-einsatzort-${item.id}`"
+          :key="item.id"
+          class="exp-item"
+          :class="{ selected: selectedEinsatzortIds.includes(item.id) }"
+        >
+          <label class="exp-item-header">
+            <input
+              v-model.number="selectedEinsatzortIds"
+              type="checkbox"
+              class="exp-einsatzort-check"
+              :data-id="item.id"
+              :value="item.id"
+              @change="syncValidation"
+            />
+            <div>
+              <div class="ci-name">{{ item.name || '—' }}</div>
+              <div class="ci-meta">
+                {{ getOrtName(item.ort_id) }} ·
+                {{ item.anwendungsbereich || '—' }} · {{ item.flaecheVolumen || '—' }} {{ item.einheit || '' }}
+              </div>
+            </div>
+          </label>
         </div>
       </div>
     </div>
@@ -237,11 +262,16 @@ export default {
       type: Array,
       default: () => [],
     },
+    orteItems: {
+      type: Array,
+      default: () => [],
+    },
   },
   setup(props) {
     const psmItems = toRef(props, 'psmItems');
     const einsatzorteItems = toRef(props, 'einsatzorteItems');
     const kulturenItems = toRef(props, 'kulturenItems');
+    const orteItems = toRef(props, 'orteItems');
     const selectedPsmIds = ref([]);
     const selectedEinsatzortIds = ref([]);
     const selectedKulturIds = ref([]);
@@ -287,6 +317,52 @@ export default {
 
     const currentArtSubOptions = computed(() => artSubOptions[form.artHaupt] || []);
 
+    const filteredEinsatzorteItems = computed(() => {
+      if (!selectedKulturIds.value.length) return [];
+
+      const kulturIds = new Set(selectedKulturIds.value.map(id => String(id)));
+
+      return einsatzorteItems.value.filter((item) => {
+        return kulturIds.has(String(item.kultur_id ?? ''));
+      });
+    });
+
+    const areAllVisibleFieldsSelected = computed(() => {
+      if (!filteredEinsatzorteItems.value.length) return false;
+
+      const selectedIds = new Set(selectedEinsatzortIds.value);
+      return filteredEinsatzorteItems.value.every(item => selectedIds.has(item.id));
+    });
+
+    const quickSelectGroups = computed(() => {
+      const groups = new Map();
+      const selectedIds = new Set(selectedEinsatzortIds.value);
+
+      filteredEinsatzorteItems.value.forEach((item) => {
+        const ortKey = String(item.ort_id ?? '');
+        if (!ortKey) return;
+
+        if (!groups.has(ortKey)) {
+          groups.set(ortKey, {
+            ortKey,
+            ortName: getOrtName(item.ort_id),
+            count: 0,
+            ids: [],
+          });
+        }
+
+        groups.get(ortKey).count += 1;
+        groups.get(ortKey).ids.push(item.id);
+      });
+
+      return [...groups.values()]
+        .map(group => ({
+          ...group,
+          allSelected: group.ids.every(id => selectedIds.has(id)),
+        }))
+        .sort((a, b) => a.ortName.localeCompare(b.ortName, 'de'));
+    });
+
     const valid = computed(() => {
       const hasPsm = selectedPsmIds.value.length > 0;
       const hasEinsatzort = selectedEinsatzortIds.value.length > 0;
@@ -316,12 +392,58 @@ export default {
     watch(valid, () => syncValidation());
 
     watch(psmItems, items => pruneSelection(selectedPsmIds, items));
-    watch(einsatzorteItems, items => pruneSelection(selectedEinsatzortIds, items));
+    watch(filteredEinsatzorteItems, pruneSelectedEinsatzorte);
     watch(kulturenItems, items => pruneSelection(selectedKulturIds, items));
 
     function pruneSelection(selectionRef, items = []) {
       const ids = new Set(items.map(item => item.id));
       selectionRef.value = selectionRef.value.filter(id => ids.has(id));
+    }
+
+    function pruneSelectedEinsatzorte() {
+      const visibleIds = new Set(filteredEinsatzorteItems.value.map(item => item.id));
+      selectedEinsatzortIds.value = selectedEinsatzortIds.value.filter(id => visibleIds.has(id));
+      syncValidation();
+    }
+
+    function getOrtName(ortId) {
+      const ort = orteItems.value.find(item => String(item.id) === String(ortId));
+      return ort?.name || ort?.bezeichnung || (ortId ? `Ort #${ortId}` : 'Ohne Ort');
+    }
+
+    function applyVisibleFieldSelection(nextSelection) {
+      selectedEinsatzortIds.value = filteredEinsatzorteItems.value
+        .map(item => item.id)
+        .filter(id => nextSelection.has(id));
+      syncValidation();
+    }
+
+    function quickSelectAllFields() {
+      if (areAllVisibleFieldsSelected.value) {
+        selectedEinsatzortIds.value = [];
+        syncValidation();
+        return;
+      }
+
+      applyVisibleFieldSelection(new Set(filteredEinsatzorteItems.value.map(item => item.id)));
+    }
+
+    function quickSelectFieldsByOrt(ortKey) {
+      const idsForOrt = filteredEinsatzorteItems.value
+        .filter(item => String(item.ort_id ?? '') === String(ortKey))
+        .map(item => item.id);
+      const nextSelection = new Set(selectedEinsatzortIds.value);
+      const allForOrtSelected = idsForOrt.length > 0 && idsForOrt.every(id => nextSelection.has(id));
+
+      idsForOrt.forEach((id) => {
+        if (allForOrtSelected) {
+          nextSelection.delete(id);
+        } else {
+          nextSelection.add(id);
+        }
+      });
+
+      applyVisibleFieldSelection(nextSelection);
     }
 
     async function postResponse(url, data) {
@@ -653,6 +775,7 @@ export default {
     }
 
     async function handleKulturToggle(kulturId) {
+      pruneSelectedEinsatzorte();
       syncValidation();
       if (!selectedKulturIds.value.includes(kulturId)) return;
 
@@ -713,13 +836,15 @@ export default {
     return {
       activeBbchIndex,
       activeBbchKulturId,
+      areAllVisibleFieldsSelected,
       artHauptOptions,
       artVerwendung,
       bbchDropdownStyle,
       bbchHints,
       currentArtSubOptions,
-      einsatzorteItems,
+      filteredEinsatzorteItems,
       form,
+      getOrtName,
       handleBbchBlur,
       handleBbchInput,
       handleBbchKeydown,
@@ -735,6 +860,9 @@ export default {
       previewJson,
       psmAmounts,
       psmItems,
+      quickSelectAllFields,
+      quickSelectFieldsByOrt,
+      quickSelectGroups,
       refreshArtSubOptions,
       selectedEinsatzortIds,
       selectedKulturIds,

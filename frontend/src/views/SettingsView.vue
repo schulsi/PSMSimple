@@ -144,8 +144,8 @@
     <label class="settings-row-wrap">
       <input id="set-ai-advice-enabled" v-model="appSettings.aiEnabled" type="checkbox" class="inline-accent-checkbox" />
       <div>
-        <div class="settings-info-title">PSM Beratung anzeigen</div>
-        <div class="settings-info-sub">Zeigt den Tab für die PSM Beratung an</div>
+        <div class="settings-info-title">AI-Beratung aktivieren</div>
+        <div class="settings-info-sub">Schaltet nur die AI-Empfehlung in der PSM-Beratung ein</div>
       </div>
     </label>
     <p class="text-muted-history">
@@ -263,7 +263,6 @@ export default {
         warmupSchadorg.value = '';
       }
 
-      applyBeratungVisibility();
     }
 
     async function loadUserRoles() {
@@ -336,7 +335,6 @@ export default {
 
         applyExportDefaults(resultUser.settings || payloadUser);
         syncSaveMode();
-        applyBeratungVisibility();
         emit('settings-saved', resultApp.settings || payloadApp);
         toast('✅ Einstellungen gespeichert');
       } catch (error) {
@@ -401,21 +399,6 @@ export default {
 
     function applyExportDefaults(settings) {
       applyDefaultSettingsToExport(settings);
-    }
-
-    function applyBeratungVisibility() {
-      const enabled = !!appSettings.aiEnabled;
-      const subTabBtn = document.getElementById('forecast-subtab-beratung');
-      const subTabPanel = document.getElementById('forecast-sub-beratung');
-
-      subTabBtn?.classList.toggle('hidden', !enabled);
-      subTabBtn?.style.setProperty('display', enabled ? '' : 'none', 'important');
-      subTabPanel?.classList.toggle('hidden', !enabled);
-      subTabPanel?.style.setProperty('display', enabled ? '' : 'none', 'important');
-
-      if (!enabled && subTabPanel?.classList.contains('active')) {
-        emit('switch-forecast-sub-tab', 'spritzfenster');
-      }
     }
 
     function installSettingsBridge() {

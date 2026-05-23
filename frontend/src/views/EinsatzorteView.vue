@@ -19,6 +19,7 @@
         <div class="name">{{ displayValue(item.name) }}</div>
         <div class="meta">
           {{ displayValue(getOrtName(item.ort_id)) }} ·
+          {{ displayValue(getKulturName(item.kultur_id)) }} ·
           {{ displayValue(item.anwendungsbereich) }} ·
           {{ displayValue(item.geoTyp) }}
         </div>
@@ -56,6 +57,7 @@ export default {
     canWrite: { type: Boolean, default: false },
     isLoading: { type: Boolean, default: false },
     items: { type: Array, default: () => [] },
+    kulturen: { type: Array, default: () => [] },
     orte: { type: Array, default: () => [] },
   },
   emits: ['edit', 'open-create', 'remove'],
@@ -66,6 +68,10 @@ export default {
     getOrtName(ortId) {
       const ort = this.orte.find(item => String(item.id) === String(ortId));
       return ort?.name || ort?.bezeichnung || (ortId ? `Ort #${ortId}` : '-');
+    },
+    getKulturName(kulturId) {
+      const kultur = this.kulturen.find(item => String(item.id) === String(kulturId));
+      return kultur?.name || (kulturId ? `Kultur #${kulturId}` : '-');
     },
   },
 };

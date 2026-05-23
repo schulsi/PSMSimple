@@ -85,11 +85,11 @@
         <button
           type="button"
           class="btn btn-primary"
-          :disabled="!isLlmConfigured || isLoadingMittel || isRecommendationLoading"
-          :title="llmButtonTitle"
+          :disabled="isLoadingMittel || isRecommendationLoading"
+          :title="beratungButtonTitle"
           @click="startBeratung"
         >
-          {{ llmButtonText }}
+          {{ beratungButtonText }}
         </button>
       </div>
     </div>
@@ -120,7 +120,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div v-if="aiAdviceEnabled" class="card">
         <h3 class="section-title">🤖 Empfehlung</h3>
         <div id="beratung-empfehlung-loading" class="forecast-info-box" :class="{ hidden: !isRecommendationLoading }">
           Empfehlung wird erstellt...
@@ -166,6 +166,7 @@ export default {
     const searchError = ref('');
     const schadInput = ref(null);
     const dropdownStyle = reactive({});
+    const aiAdviceEnabled = ref(false);
     const isLlmConfigured = ref(true);
     const llmProvider = ref('');
     const isLoadingMittel = ref(false);
@@ -179,14 +180,14 @@ export default {
     let debounceTimer = null;
     let searchRequestId = 0;
 
-    const llmButtonText = computed(() => (
-      isLlmConfigured.value ? '🤖 Beratung starten' : '🤖 Beratung starten (nicht konfiguriert)'
+    const beratungButtonText = computed(() => (
+      aiAdviceEnabled.value ? '🤖 Beratung starten' : '🧪 Mittel suchen'
     ));
 
-    const llmButtonTitle = computed(() => {
-      if (isLlmConfigured.value) return '';
+    const beratungButtonTitle = computed(() => {
+      if (!aiAdviceEnabled.value || isLlmConfigured.value) return '';
       const provider = String(llmProvider.value || 'LLM').toUpperCase();
-      return `LLM nicht konfiguriert - bitte ${provider}_API_KEY setzen`;
+      return `AI-Beratung ist aktiviert, aber ${provider} ist nicht konfiguriert`;
     });
 
     const recommendationLines = computed(() => recommendationText.value.split('\n'));
@@ -222,9 +223,11 @@ export default {
       try {
         const result = await apiGet('/api/beratung/llm-status');
         isLlmConfigured.value = result?.configured !== false;
+        aiAdviceEnabled.value = result?.ai_enabled === true;
         llmProvider.value = result?.provider || '';
       } catch (error) {
         console.error('checkLLMStatus failed', error);
+        aiAdviceEnabled.value = false;
       }
     }
 
@@ -376,7 +379,10 @@ export default {
 
         mittel.value = Array.isArray(result.mittel) ? result.mittel : [];
         showMittel.value = true;
-        await loadRecommendation();
+
+        if (aiAdviceEnabled.value) {
+          await loadRecommendation();
+        }
       } catch (error) {
         isLoadingMittel.value = false;
         errorMessage.value = error?.message || 'Unbekannter Fehler.';
@@ -387,6 +393,12 @@ export default {
       recommendationError.value = '';
       recommendationText.value = '';
       recommendationMeta.value = '';
+
+      if (!isLlmConfigured.value) {
+        recommendationError.value = 'AI-Beratung ist aktiviert, aber nicht konfiguriert.';
+        return;
+      }
+
       isRecommendationLoading.value = true;
 
       try {
@@ -426,6 +438,9 @@ export default {
     });
 
     return {
+      aiAdviceEnabled,
+      beratungButtonText,
+      beratungButtonTitle,
       clearSchadorg,
       closeDropdown,
       dropdownItems,
@@ -438,8 +453,6 @@ export default {
       isResolvingPartial,
       isSearchLoading,
       kulturen,
-      llmButtonText,
-      llmButtonTitle,
       mittel,
       onSchadInput,
       openDropdown,

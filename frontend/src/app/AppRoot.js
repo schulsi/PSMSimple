@@ -103,6 +103,7 @@ const AppRoot = {
         einheit: 'm2',
         flaecheVolumen: '',
         ort_id: '',
+        kultur_id: '',
       },
       eoMap: null,
       eoMarker: null,
@@ -124,6 +125,13 @@ const AppRoot = {
       user: {
         username: user.username || '',
         avatar: user.avatar || '?',
+      },
+      versionInfo: {
+        appName: 'PSMSimple',
+        currentVersion: '',
+        latestVersion: '',
+        releaseUrl: '',
+        updateAvailable: false,
       },
     };
   },
@@ -236,6 +244,7 @@ const AppRoot = {
     this.loadPSM();
     this.loadEinsatzorte();
     this.loadKulturen();
+    this.loadVersionInfo();
   },
 
   beforeUnmount() {
@@ -443,6 +452,33 @@ const AppRoot = {
       }
     },
 
+    async loadVersionInfo() {
+      try {
+        const version = await apiGet('/version');
+        this.versionInfo = {
+          ...this.versionInfo,
+          appName: version.name || this.versionInfo.appName,
+          currentVersion: version.version || '',
+        };
+
+        try {
+          const check = await apiGet('/version/check');
+          this.versionInfo = {
+            ...this.versionInfo,
+            appName: check.app_name || this.versionInfo.appName,
+            currentVersion: check.current_version || this.versionInfo.currentVersion,
+            latestVersion: check.latest_version || '',
+            releaseUrl: check.release_url || '',
+            updateAvailable: !!check.update_available,
+          };
+        } catch (err) {
+          console.warn('[loadVersionInfo] Updateprüfung fehlgeschlagen:', err);
+        }
+      } catch (err) {
+        console.warn('[loadVersionInfo] Version konnte nicht geladen werden:', err);
+      }
+    },
+
     async removePSM(id) {
       if (!confirm('Dieses Pflanzenschutzmittel wirklich löschen?')) return;
 
@@ -471,6 +507,7 @@ const AppRoot = {
         einheit: item.einheit || 'm2',
         flaecheVolumen: String(item.flaecheVolumen ?? ''),
         ort_id: item.ort_id == null ? '' : String(item.ort_id),
+        kultur_id: item.kultur_id == null ? '' : String(item.kultur_id),
       };
     },
 
@@ -484,6 +521,7 @@ const AppRoot = {
         einheit: this.einsatzortForm.einheit.trim(),
         flaecheVolumen: this.einsatzortForm.flaecheVolumen.trim(),
         ort_id: this.einsatzortForm.ort_id,
+        kultur_id: this.einsatzortForm.kultur_id,
       };
     },
 
@@ -1237,6 +1275,7 @@ const AppRoot = {
         navSections: this.navSections,
         permissions: this.permissions,
         user: this.user,
+        versionInfo: this.versionInfo,
         inventoryWarningCount: this.inventoryWarningCount,
         onCloseMobileNav: () => this.closeMobileNav(),
         onLogout: () => this.logout(),
@@ -1273,6 +1312,7 @@ const AppRoot = {
           canWrite: !!this.permissions.can_write,
           isLoading: this.isEinsatzorteLoading,
           items: this.einsatzorteItems,
+          kulturen: this.kulturenItems,
           orte: this.orteItems,
           onEdit: id => this.editEinsatzort(id),
           onOpenCreate: () => this.openEinsatzortModal(),
@@ -1294,6 +1334,7 @@ const AppRoot = {
           psmItems: this.psmItems,
           einsatzorteItems: this.einsatzorteItems,
           kulturenItems: this.kulturenItems,
+          orteItems: this.orteItems,
         }),
       ]),
       h(Teleport, { to: '#tab-forecast' }, [
@@ -1375,6 +1416,7 @@ const AppRoot = {
         h(EinsatzortModal, {
           form: this.einsatzortForm,
           isEditing: !!this.einsatzortEditId,
+          kulturen: this.kulturenItems,
           orte: this.orteItems,
           onCancel: () => this.closeModal('modal-einsatzort'),
           onOpenMap: () => this.openMapModal(),

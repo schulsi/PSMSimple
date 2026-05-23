@@ -58,6 +58,7 @@ header .sub {
 .version-badge.has-update {
   border-color: rgba(255, 209, 102, .5);
   color: #fff;
+  background: var(--color-warning, #e6a817);
 }
 
 .version-update {
@@ -66,7 +67,7 @@ header .sub {
   min-height: 20px;
   padding: .16rem .4rem;
   border-radius: 999px;
-  background: var(--color-warning, #e6a817);
+  background: rgba(255, 255, 255, .9);
   color: #1b1604;
   font-size: .68rem;
   font-weight: 700;

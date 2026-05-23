@@ -12,6 +12,24 @@
       🌿 Pflanzen<span>schutz</span>
     </div>
     <div class="sub">Dokumentation &amp; JSON-Export</div>
+    <a
+      id="app-version-badge"
+      class="version-badge"
+      :class="{ 'has-update': versionInfo.updateAvailable, hidden: !versionInfo.currentVersion }"
+      :href="versionInfo.releaseUrl || null"
+      :target="versionInfo.releaseUrl ? '_blank' : null"
+      :rel="versionInfo.releaseUrl ? 'noopener noreferrer' : null"
+      :aria-label="versionAriaLabel"
+    >
+      <span id="app-version-label">{{ versionLabel }}</span>
+      <span
+        id="app-version-update"
+        class="version-update"
+        :class="{ hidden: !versionInfo.updateAvailable || !versionInfo.latestVersion }"
+      >
+        Neu: v{{ versionInfo.latestVersion }}
+      </span>
+    </a>
   </Teleport>
 
   <Teleport to="#psm-vue-overlay">
@@ -105,8 +123,31 @@ export default {
     navSections: { type: Array, required: true },
     permissions: { type: Object, required: true },
     user: { type: Object, required: true },
+    versionInfo: {
+      type: Object,
+      default: () => ({
+        appName: 'PSMSimple',
+        currentVersion: '',
+        latestVersion: '',
+        releaseUrl: '',
+        updateAvailable: false,
+      }),
+    },
     inventoryWarningCount: { type: Number, default: 0 },
   },
   emits: ['close-mobile-nav', 'logout', 'open-tab', 'toggle-mobile-nav', 'toggle-user-popup'],
+  computed: {
+    versionLabel() {
+      const appName = this.versionInfo.appName || 'PSMSimple';
+      return this.versionInfo.currentVersion ? `${appName} v${this.versionInfo.currentVersion}` : appName;
+    },
+    versionAriaLabel() {
+      if (this.versionInfo.updateAvailable && this.versionInfo.latestVersion) {
+        return `${this.versionLabel}, neue Version v${this.versionInfo.latestVersion} verfügbar`;
+      }
+
+      return this.versionLabel;
+    },
+  },
 };
 </script>

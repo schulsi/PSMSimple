@@ -80,6 +80,16 @@
           </option>
         </select>
       </div>
+
+      <div class="field">
+        <label for="eo-kultur_id">Kultur</label>
+        <select id="eo-kultur_id" :value="form.kultur_id" @change="updateField('kultur_id', $event.target.value)">
+          <option value="">Bitte Kultur wählen</option>
+          <option v-for="kultur in kulturen" :key="kultur.id" :value="String(kultur.id)">
+            {{ kultur.name || `Kultur ${kultur.id}` }}
+          </option>
+        </select>
+      </div>
     </div>
 
     <div class="modal-footer">
@@ -99,6 +109,7 @@ export default {
   props: {
     form: { type: Object, required: true },
     isEditing: { type: Boolean, default: false },
+    kulturen: { type: Array, default: () => [] },
     orte: { type: Array, default: () => [] },
   },
   emits: ['cancel', 'open-map', 'save', 'update-field'],

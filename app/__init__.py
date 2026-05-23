@@ -96,6 +96,16 @@ def create_app():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         entry = manifest.get(entry_name)
         if not entry:
+            entry = next(
+                (
+                    value
+                    for key, value in manifest.items()
+                    if key.replace("\\", "/").endswith(entry_name)
+                    or value.get("src", "").replace("\\", "/").endswith(entry_name)
+                ),
+                None,
+            )
+        if not entry:
             return ""
 
         return url_for("static", filename=f"vue/{entry['file']}")

@@ -323,7 +323,8 @@
   gap: .75rem;
   cursor: pointer;
 }
-.exp-item-header input[type=checkbox] {
+.exp-item-header input[type=checkbox],
+.exp-item-header input[type=radio] {
   accent-color: var(--green-mid);
   width: 16px;
   height: 16px;

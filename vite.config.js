@@ -16,10 +16,10 @@ export default defineConfig({
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {
-      input: [
-        fileURLToPath(new URL('./frontend/src/main.js', import.meta.url)),
-        fileURLToPath(new URL('./frontend/src/login.js', import.meta.url)),
-      ],
+      input: {
+        main: 'src/main.js',
+        login: 'src/login.js',
+      },
     },
   },
   server: {

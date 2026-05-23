@@ -22,6 +22,7 @@ from ..services.weather_service import fetch_forecast
 from ..utils.weather_utils import build_windows, SprayThresholds       
 from ..services.llm_service import llm_query, LLMError
 from ..services.permissions import login_required
+from ..repositories.settings_repo import get_setting
 from ..models import Kulturen
 
 bp = Blueprint("beratung", __name__)
@@ -339,10 +340,12 @@ def llm_status():
     
     is_ollama = "11434" in Config.OPENAI_BASE_URL or "ollama" in Config.OPENAI_BASE_URL.lower()
     configured = bool(Config.OPENAI_API_KEY) or bool(Config.ANTHROPIC_API_KEY) or (Config.LLM_PROVIDER=="openai" and is_ollama)
+    ai_enabled = get_setting("aiEnabled") in ("1", "true", "True", True)
 
     return jsonify({
         "ok": True,
         "configured": configured,
+        "ai_enabled": ai_enabled,
         "provider": provider,
     })
 
