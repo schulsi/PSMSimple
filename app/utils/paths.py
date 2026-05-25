@@ -40,10 +40,10 @@ def to_hectares(value: float, unit: str) -> float:
 
     try:
         value = float(value)
-    except TypeError:
-        raise ValueError(f"Ungültiger Zahlenwert: {value}")
-    except ValueError:
-        raise ValueError(f"Ungültiger Zahlenwert: {value}")
+    except TypeError as exc:
+        raise ValueError(f"Ungültiger Zahlenwert: {value}") from exc
+    except ValueError as exc:
+        raise ValueError(f"Ungültiger Zahlenwert: {value}") from exc
     unit = (unit or "").strip().lower()
 
     if unit == "ha":
