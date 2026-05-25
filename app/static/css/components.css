@@ -57,11 +57,10 @@
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   box-sizing: border-box;
-  height: 38px;
-  line-height: 38px;
   padding: 0 .8rem;
   border: 1.5px solid var(--cream-dark);
   border-radius: 7px;
@@ -73,8 +72,23 @@
   outline: none;
 }
 
+.field input,
+.field select {
+  height: 38px;
+  line-height: 38px;
+}
+
+.field textarea {
+  min-height: 96px;
+  padding-top: .65rem;
+  padding-bottom: .65rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.field textarea:focus {
   border-color: var(--green-light);
   background: #fff;
 }
@@ -451,6 +465,104 @@
   line-height: 1.35;
 }
 
+/* ─── Meldungen ───────────────────────────────────────────────────────────── */
+
+.meldungen-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.25fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.compact-section-head {
+  align-items: center;
+}
+
+.compact-section-head h3 {
+  margin-bottom: 0;
+}
+
+.meldung-list-item {
+  width: 100%;
+  text-align: left;
+}
+
+.meldung-list-item.selected {
+  border-color: var(--green-mid);
+  background: #f0faf5;
+}
+
+.meldung-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: .85rem;
+}
+
+.meldung-description {
+  color: var(--text);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.meldung-upload-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.meldung-upload-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.meldung-pending-files {
+  margin-top: .35rem;
+  color: var(--text-muted);
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+.meldung-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: .85rem;
+}
+
+.meldung-photo-card {
+  margin: 0;
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.meldung-photo-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--cream);
+}
+
+.meldung-photo-card figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .55rem;
+  font-size: .78rem;
+  color: var(--text-muted);
+}
+
+.meldung-photo-card figcaption span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ─── Modal ────────────────────────────────────────────────────────────────── */
 
 .modal-overlay {
@@ -731,6 +843,10 @@
 /* ─── Responsive: Tablet ───────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
+  .meldungen-layout {
+    grid-template-columns: 1fr;
+  }
+
   .form-grid.cols-3 {
     grid-template-columns: 1fr 1fr;
   }

@@ -13,6 +13,7 @@ import HistoryView from '../views/HistoryView.vue';
 import InventoryView from '../views/InventoryView.vue';
 import KulturModal from '../components/modals/KulturModal.vue';
 import KulturenView from '../views/KulturenView.vue';
+import MeldungenView from '../views/MeldungenView.vue';
 import OrtModal from '../components/modals/OrtModal.vue';
 import PsmModal from '../components/modals/PsmModal.vue';
 import PsmView from '../views/PsmView.vue';
@@ -207,6 +208,12 @@ const AppRoot = {
             },
           ],
         },
+        {
+          label: 'Meldungen',
+          items: [
+            { tab: 'meldungen', href: '/meldungen', icon: '🛠', label: 'Meldungen' },
+          ],
+        },
       );
 
       return sections;
@@ -226,6 +233,7 @@ const AppRoot = {
     document.getElementById('tab-history')?.replaceChildren();
     document.getElementById('tab-forecast')?.replaceChildren();
     document.getElementById('tab-inventory')?.replaceChildren();
+    document.getElementById('tab-meldungen')?.replaceChildren();
     document.getElementById('tab-settings')?.replaceChildren();
     document.getElementById('modal-psm')?.replaceChildren();
     document.getElementById('modal-einsatzort')?.replaceChildren();
@@ -1429,6 +1437,13 @@ const AppRoot = {
             this.inventoryWarningCount = count;
             this.uiStore?.setInventoryWarningCount(count);
           },
+        }),
+      ]),
+      h(Teleport, { to: '#tab-meldungen' }, [
+        h(MeldungenView, {
+          activeTab: this.activeTab,
+          canWrite: !!this.permissions.can_write,
+          felderItems: this.felderItems,
         }),
       ]),
       h(Teleport, { to: '#tab-settings' }, [
