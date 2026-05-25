@@ -413,7 +413,7 @@
   position: relative;
 }
 
-.exp-kultur-bbch-results {
+.autocomplete-results.exp-kultur-bbch-results {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
@@ -427,7 +427,7 @@
   max-height: 220px;
   overflow-y: auto;
 }
-.exp-kultur-bbch-results.show { display: block; }
+.autocomplete-results.exp-kultur-bbch-results.show { display: block; }
 
 .exp-bbch-item {
   display: block;
