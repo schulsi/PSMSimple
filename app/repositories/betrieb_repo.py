@@ -20,6 +20,7 @@ def save_betrieb(data):
         betrieb.plz = data["plz"]
         betrieb.ort = data["ort"]
         betrieb.bundesland = data["bundesland"]
+        db.session.commit()
     else:
         betrieb = Betrieb(
             firma=data["firma"],
