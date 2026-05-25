@@ -1,12 +1,12 @@
 import io
 from datetime import date, datetime
+from html import escape
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
-from xml.sax.saxutils import escape
 from reportlab.platypus import (
     HRFlowable,
     Paragraph,
