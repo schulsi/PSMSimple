@@ -20,4 +20,14 @@ __all__ = [
     "MELDUNG_TYPEN",
     "STATUS",
     "PRIORITAET",
+    "UserRole",
+    "Pflanzenschutzmittel",
+    "Ort",
+    "BBCHCode",
+    "Kulturen",
+    "Inventory",
+    "Felder",
+    "Betrieb",
+    "Applikation",
+    "ApplicationSetting"
 ]

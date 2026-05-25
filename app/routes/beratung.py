@@ -6,7 +6,6 @@ from ..models import Kulturen
 from ..services.psm_beratung_service import (
     PSMBeratungError,
     suche_mittel,
-    suche_schadorganismen,
     _get,
     _suche_schadorg_kodes,
     _get_kultur_awg_ids,
@@ -23,7 +22,6 @@ from ..utils.weather_utils import build_windows, SprayThresholds
 from ..services.llm_service import llm_query, LLMError
 from ..services.permissions import login_required
 from ..repositories.settings_repo import get_setting
-from ..models import Kulturen
 
 bp = Blueprint("beratung", __name__)
 

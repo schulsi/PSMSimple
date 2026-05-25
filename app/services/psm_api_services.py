@@ -49,9 +49,6 @@ def _get_bee_class(base: str, kennr: str) -> str:
 
     return ", ".join(sorted(bee_classes))
 
-import requests
-
-
 def _decode_code(base: str, table: str, field: str, code: str, sprache: str = "DE") -> str:
     code = (code or "").strip()
     if not code:

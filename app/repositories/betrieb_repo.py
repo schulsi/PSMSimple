@@ -4,7 +4,6 @@ import uuid
 
 
 def get_betrieb():
-    db = get_db()
     betrieb = Betrieb.query.first()
     return betrieb.to_dict() if betrieb else {}
 

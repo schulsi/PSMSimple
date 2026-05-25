@@ -4,11 +4,10 @@ import re
 
 from ..extensions import db, logger
 from ..models.user import User
-from ..services.permissions import build_permissions, require_admin, require_write_access
-from ..repositories.role_repo import get_role_id, get_role_name
+from ..services.permissions import build_permissions, require_admin
+from ..repositories.role_repo import get_role_id
 from ..services.settings_service import (
     get_user_settings_dict,
-    normalize_settings_payload,
     save_user_settings,
 )
 USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{2,50}$")

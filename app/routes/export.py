@@ -5,12 +5,12 @@ from ..models.UserSettings import UserSettings
 from ..extensions import logger
 from ..services.permissions import require_write_access
 from ..services.export_service import (
-    build_export_filename,
     build_output_for_current_betrieb,
     json_bytes,
     save_buffer_to_exports,
 )
 from ..services.pdf_service import generate_pdf
+from ..utils.paths import build_export_filename
 
 bp = Blueprint("export", __name__)
 

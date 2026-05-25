@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any
-from requests import request
 from datetime import datetime
 
 from app.services.weather_service import SprayThresholds

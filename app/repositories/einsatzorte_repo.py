@@ -19,7 +19,6 @@ def list_einsatzorte_by_ids(einsatzort_ids: list[int]):
     if not einsatzort_ids:
         return []
 
-    placeholders = ",".join("?" for _ in einsatzort_ids)
     db = get_db()
     objs = db.session.query(Felder).filter(Felder.id.in_(einsatzort_ids)).all()
     return [obj.to_dict() for obj in objs]

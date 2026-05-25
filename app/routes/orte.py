@@ -1,12 +1,10 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
-import requests
 
 from ..services.permissions import require_write_access
 from ..extensions import logger
 from ..repositories.orte_repo import (
     list_orte,
-    list_orte_by_ids,
     create_ort,
     delete_ort,
     get_ort_by_id,
