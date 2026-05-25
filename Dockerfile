@@ -1,3 +1,18 @@
+# Stage 1: Build Frontend with Vite
+FROM node:22-alpine AS frontend-builder
+
+WORKDIR /build
+
+COPY package.json package-lock.json* yarn.lock* ./
+
+RUN npm ci
+
+COPY frontend/ frontend/
+COPY vite.config.js .
+
+RUN npm run build:vue
+
+# Stage 2: Python Backend
 FROM python:3.14-slim
 
 WORKDIR /psmsimple
@@ -13,6 +28,9 @@ COPY app/ app/
 COPY migrations/ migrations/
 
 COPY run.py .
+
+# Copy built frontend from stage 1
+COPY --from=frontend-builder /build/app/static/vue app/static/vue/
 
 VOLUME ["/data"]
 
