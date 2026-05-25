@@ -15,6 +15,7 @@ from .orte import bp as orte_bp
 from .inventory import bp as inventory_bp
 from .beratung import bp as beratung_bp
 from .version import bp as version_bp
+from .meldungen import bp as meldungen_bp
 
 
 def register_blueprints(app):
@@ -35,3 +36,4 @@ def register_blueprints(app):
     app.register_blueprint(inventory_bp)
     app.register_blueprint(beratung_bp)
     app.register_blueprint(version_bp)
+    app.register_blueprint(meldungen_bp)

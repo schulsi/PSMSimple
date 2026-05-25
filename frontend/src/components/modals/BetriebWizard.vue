@@ -16,14 +16,19 @@
 
       <div class="field">
         <label for="wiz-bundesland">Bundesland</label>
-        <Select
-          input-id="wiz-bundesland"
-          :model-value="form.bundesland"
-          :options="bundeslandSelectOptions"
-          option-label="label"
-          option-value="value"
-          @update:model-value="$emit('update-field', 'bundesland', $event)"
-        />
+        <select
+          id="wiz-bundesland"
+          :value="form.bundesland"
+          @change="$emit('update-field', 'bundesland', $event.target.value)"
+        >
+          <option
+            v-for="option in bundeslandSelectOptions"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
       </div>
     </div>
 
@@ -68,7 +73,6 @@
 <script>
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import Select from 'primevue/select';
 
 import { bundeslandOptions } from '../../constants.js';
 
@@ -77,7 +81,6 @@ export default {
   components: {
     Button,
     InputText,
-    Select,
   },
   props: {
     form: {

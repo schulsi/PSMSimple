@@ -13,6 +13,7 @@ import HistoryView from '../views/HistoryView.vue';
 import InventoryView from '../views/InventoryView.vue';
 import KulturModal from '../components/modals/KulturModal.vue';
 import KulturenView from '../views/KulturenView.vue';
+import MeldungenView from '../views/MeldungenView.vue';
 import OrtModal from '../components/modals/OrtModal.vue';
 import PsmModal from '../components/modals/PsmModal.vue';
 import PsmView from '../views/PsmView.vue';
@@ -153,60 +154,41 @@ const AppRoot = {
           ],
         },
         {
-          label: 'Betrieb',
+          label: 'Stammdaten',
           items: [
             { tab: 'betrieb', href: '/betrieb', icon: '🏡', label: 'Betrieb' },
-          ],
-        },
-        {
-          label: 'Pflanzenschutz',
-          items: [
-            { tab: 'psm', href: '/psm', icon: '🧪', label: 'Pflanzenschutzmittel' },
+            { tab: 'psm', href: '/psm', icon: '🧪', label: 'PSM' },
             { tab: 'einsatzorte', href: '/fields', icon: '📍', label: 'Felder' },
             { tab: 'kulturen', href: '/cultures', icon: '🌾', label: 'Kulturen' },
-          ],
-        },
-      ];
-
-      if (this.permissions.can_export) {
-        sections.push({
-          label: 'Export',
-          items: [
-            {
-              tab: 'export',
-              href: '/export',
-              icon: '📄',
-              label: 'Applikation dokumentieren',
-            },
-          ],
-        });
-      }
-
-      sections.push(
-        {
-          label: 'Verlauf',
-          items: [
-            { tab: 'history', href: '/history', icon: '🕘', label: 'Übersicht Applikationen' },
-          ],
-        },
-        {
-          label: 'Vorhersage',
-          items: [
-            { tab: 'forecast', href: '/prediction', icon: '📈', label: 'Beratung' },
-          ],
-        },
-        {
-          label: 'Lager',
-          items: [
             {
               tab: 'inventory',
               href: '/inventory',
               icon: '📦',
-              label: 'Lagerbestand',
+              label: 'Lager',
               warningBadge: true,
             },
           ],
         },
+      ];
+
+      const dokumentationItems = [];
+      if (this.permissions.can_export) {
+        dokumentationItems.push({
+          tab: 'export',
+          href: '/export',
+          icon: '📄',
+          label: 'Dokumentieren',
+        });
+      }
+
+      dokumentationItems.push(
+        { tab: 'meldungen', href: '/meldungen', icon: '🛠', label: 'Meldungen' },
+        { tab: 'history', href: '/history', icon: '🕘', label: 'Verlauf' },
+      );
+
+      sections.push(
+        { label: 'Dokumentation', items: dokumentationItems },
+        { label: 'Beratung', items: [{ tab: 'forecast', href: '/prediction', icon: '📈', label: 'Beratung' }] },
       );
 
       return sections;
@@ -226,6 +208,7 @@ const AppRoot = {
     document.getElementById('tab-history')?.replaceChildren();
     document.getElementById('tab-forecast')?.replaceChildren();
     document.getElementById('tab-inventory')?.replaceChildren();
+    document.getElementById('tab-meldungen')?.replaceChildren();
     document.getElementById('tab-settings')?.replaceChildren();
     document.getElementById('modal-psm')?.replaceChildren();
     document.getElementById('modal-einsatzort')?.replaceChildren();
@@ -735,6 +718,9 @@ const AppRoot = {
         this.setMapPoint(lat, lng);
       } else if (this.eoMapSelection) {
         this.setMapPoint(this.eoMapSelection.lat, this.eoMapSelection.lng);
+      } else {
+        const { center, zoom } = await this.getInitialMapView();
+        this.eoMap.setView(center, zoom);
       }
     },
 
@@ -1429,6 +1415,13 @@ const AppRoot = {
             this.inventoryWarningCount = count;
             this.uiStore?.setInventoryWarningCount(count);
           },
+        }),
+      ]),
+      h(Teleport, { to: '#tab-meldungen' }, [
+        h(MeldungenView, {
+          activeTab: this.activeTab,
+          canWrite: !!this.permissions.can_write,
+          felderItems: this.felderItems,
         }),
       ]),
       h(Teleport, { to: '#tab-settings' }, [

@@ -10,10 +10,16 @@ from .Felder import Felder
 from .Betrieb import Betrieb
 from .Applikationen import Applikation
 from .ApplicationSetting import ApplicationSetting
+from .Meldungen import MELDUNG_TYPEN, PRIORITAET, STATUS, Meldung, MeldungFoto
 
 __all__ = [
     "User",
     "UserSettings",
+    "Meldung",
+    "MeldungFoto",
+    "MELDUNG_TYPEN",
+    "STATUS",
+    "PRIORITAET",
     "UserRole",
     "Pflanzenschutzmittel",
     "Ort",

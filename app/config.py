@@ -40,8 +40,40 @@ class Config:
     PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
     BASE_DIR = BASE_DIR
     LOG_DIR = LOG_DIR
-    SWAGGER = {"title": "PSM API", "uiversion": 3, "securityDefinitions": {"cookieAuth": {"type": "apiKey", "in": "cookie", "name": "session"}}
-               }
+    WTF_CSRF_CHECK_DEFAULT = False
+    SWAGGER_AUTH_DEFINITIONS = {
+        "basicAuth": {
+            "type": "basic",
+            "description": "Mit Benutzername und Passwort anmelden.",
+        },
+        "sessionAuth": {
+            "type": "apiKey",
+            "in": "cookie",
+            "name": "session",
+        },
+        "cookieAuth": {
+            "type": "apiKey",
+            "in": "cookie",
+            "name": "session",
+        },
+    }
+    SWAGGER = {
+        "title": "PSM API",
+        "uiversion": 3,
+        "securityDefinitions": SWAGGER_AUTH_DEFINITIONS,
+    }
+    SWAGGER_TEMPLATE = {
+        "swagger": "2.0",
+        "info": {
+            "title": "PSM API",
+            "version": "1.0",
+        },
+        "securityDefinitions": SWAGGER_AUTH_DEFINITIONS,
+        "security": [
+            {"basicAuth": []},
+            {"sessionAuth": []},
+        ],
+    }
     OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
     OPEN_METEO_GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
     LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "anthropic")

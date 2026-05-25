@@ -16,6 +16,7 @@ const routes = [
   { path: tabToPath.settings, name: 'settings', component: routeComponent },
   { path: tabToPath.forecast, name: 'forecast', component: routeComponent },
   { path: tabToPath.inventory, name: 'inventory', component: routeComponent },
+  { path: tabToPath.meldungen, name: 'meldungen', component: routeComponent },
   { path: '/:pathMatch(.*)*', redirect: tabToPath.home },
 ];
 

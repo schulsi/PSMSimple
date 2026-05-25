@@ -9,6 +9,7 @@ export const tabToPath = {
   settings: '/settings',
   forecast: '/prediction',
   inventory: '/inventory',
+  meldungen: '/meldungen',
 };
 
 const pathToTab = {
@@ -24,6 +25,7 @@ const pathToTab = {
   settings: 'settings',
   prediction: 'forecast',
   inventory: 'inventory',
+  meldungen: 'meldungen',
 };
 
 export const eoMapDefault = [51.1657, 10.4515];

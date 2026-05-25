@@ -555,6 +555,12 @@ main {
   border: 1px solid rgba(230, 168, 23, 0.28);
 }
 
+.badge-info {
+  background: rgba(49, 130, 206, 0.16);
+  color: #1d5f99;
+  border: 1px solid rgba(49, 130, 206, 0.28);
+}
+
 .badge-critical {
   background: rgba(214, 69, 69, 0.16);
   color: #a12626;
