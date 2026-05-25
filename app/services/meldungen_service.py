@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -32,7 +32,7 @@ def get_meldung_metadata() -> dict:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(datetime.UTC).isoformat()
 
 
 def _optional_int(value) -> int | None:

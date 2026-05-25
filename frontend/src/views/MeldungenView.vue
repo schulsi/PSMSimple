@@ -2,12 +2,12 @@
   <h2>🛠 Meldungen</h2>
 
   <div class="meldungen-layout">
-    <section class="meldungen-list-panel">
-      <div class="card mb-085">
+    <aside class="meldungen-filter-panel">
+      <div class="card meldungen-filter-card">
         <div class="section-head compact-section-head">
           <div>
-            <h3>Meldungen</h3>
-            <p class="section-subtitle">Schäden, Beobachtungen und freie Notizen zu Feldern.</p>
+            <h3>Filter</h3>
+            <p class="section-subtitle">Meldungen eingrenzen.</p>
           </div>
           <button v-if="canWrite" type="button" class="btn btn-primary" @click="openCreateForm">
             + Neue Meldung
@@ -46,7 +46,9 @@
           </div>
         </div>
       </div>
+    </aside>
 
+    <section class="meldungen-list-panel">
       <div id="meldungen-list" class="item-list">
         <div v-if="isLoading" class="empty">Meldungen werden geladen...</div>
         <div v-else-if="!items.length" class="empty">Noch keine Meldungen vorhanden.</div>
@@ -144,7 +146,7 @@
             <label for="meldung-fotos">Fotos</label>
             <div class="meldungen-file-inputs">
               <label class="btn btn-ghost">
-                Galerie auswählen
+                <span class="meldung-button-linebreak">Galerie<br />auswählen</span>
                 <input id="meldung-fotos" type="file" accept="image/*" multiple @change="stageFormFotos" />
               </label>
               <button v-if="hasCamera" type="button" class="btn btn-ghost" @click="startCameraCapture">
@@ -162,17 +164,6 @@
           <button type="submit" class="btn btn-primary" :disabled="isSaving">
             {{ isSaving ? 'Speichern...' : 'Speichern' }}
           </button>
-        </div>
-
-        <div v-if="showCameraCapture" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);z-index:1200;">
-          <div style="background:#fff;padding:16px;max-width:420px;width:100%;border-radius:12px;box-shadow:0 0 24px rgba(0,0,0,0.35);text-align:center;">
-            <video ref="cameraVideo" autoplay playsinline muted style="width:100%;height:auto;background:#000;border-radius:8px;"></video>
-            <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:12px;flex-wrap:wrap;">
-              <button type="button" class="btn btn-primary" @click="takeCameraPhoto">Foto machen</button>
-              <button type="button" class="btn btn-ghost" @click="stopCameraCapture">Abbrechen</button>
-            </div>
-            <div v-if="cameraError" style="color:#b71c1c;margin-top:12px;">{{ cameraError }}</div>
-          </div>
         </div>
       </form>
 
@@ -217,10 +208,9 @@
               Foto hochladen
               <input type="file" accept="image/*" multiple @change="uploadFoto" />
             </label>
-            <label v-if="hasCamera" class="btn btn-ghost meldung-upload-button">
+            <button v-if="hasCamera" type="button" class="btn btn-ghost" @click="startCameraCapture">
               Foto aufnehmen
-              <input type="file" accept="image/*" capture="environment" @change="uploadFoto" />
-            </label>
+            </button>
           </div>
         </div>
 
@@ -243,6 +233,17 @@
         Wähle eine Meldung aus oder erstelle eine neue.
       </div>
     </section>
+  </div>
+
+  <div v-if="showCameraCapture" class="meldung-camera-overlay">
+    <div class="meldung-camera-dialog">
+      <video ref="cameraVideo" autoplay playsinline muted class="meldung-camera-video"></video>
+      <div class="meldung-camera-actions">
+        <button type="button" class="btn btn-primary" @click="takeCameraPhoto">Foto machen</button>
+        <button type="button" class="btn btn-ghost" @click="stopCameraCapture">Abbrechen</button>
+      </div>
+      <div v-if="cameraError" class="meldung-camera-error">{{ cameraError }}</div>
+    </div>
   </div>
 </template>
 
@@ -603,9 +604,27 @@ export default {
         }
 
         const file = new File([blob], `meldung-camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
-        pendingFotos.value.push(file);
-        toast('✅ Foto aufgenommen');
-        stopCameraCapture();
+        if (showForm.value) {
+          pendingFotos.value.push(file);
+          toast('✅ Foto aufgenommen');
+          stopCameraCapture();
+          return;
+        }
+
+        if (selectedMeldung.value) {
+          uploadFilesToMeldung(selectedMeldung.value.id, [file])
+            .then(async () => {
+              toast('✅ Foto hochgeladen');
+              await loadFotos();
+            })
+            .catch(error => {
+              console.error(error);
+              toast(`❌ ${error.message || 'Foto konnte nicht hochgeladen werden'}`);
+            })
+            .finally(() => {
+              stopCameraCapture();
+            });
+        }
       }, 'image/jpeg', 0.92);
     }
 

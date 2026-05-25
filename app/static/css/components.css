@@ -469,9 +469,43 @@
 
 .meldungen-layout {
   display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.25fr);
-  gap: 1rem;
+  grid-template-columns: minmax(220px, 280px) minmax(420px, 640px) minmax(360px, 520px);
+  gap: 1.25rem;
   align-items: start;
+  justify-content: start;
+  width: 100%;
+}
+
+main:has(#tab-meldungen.active) {
+  max-width: none;
+}
+
+.meldungen-filter-panel,
+.meldungen-list-panel,
+.meldungen-detail-panel {
+  min-width: 0;
+}
+
+.meldungen-filter-card {
+  position: sticky;
+  top: 1rem;
+}
+
+.meldungen-list-panel {
+  width: 100%;
+}
+
+.meldungen-filter-panel .filter-grid {
+  grid-template-columns: 1fr;
+}
+
+.meldungen-filter-panel .section-head {
+  align-items: stretch;
+}
+
+.meldungen-filter-panel .btn {
+  width: 100%;
+  justify-content: center;
 }
 
 .compact-section-head {
@@ -485,6 +519,18 @@
 .meldung-list-item {
   width: 100%;
   text-align: left;
+  gap: .85rem;
+  align-items: flex-start;
+}
+
+.meldung-list-item .item-info {
+  min-width: 0;
+}
+
+.meldung-list-item .item-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  max-width: 220px;
 }
 
 .meldung-list-item.selected {
@@ -510,6 +556,42 @@
   overflow: hidden;
 }
 
+.meldungen-file-inputs,
+.meldung-upload-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  min-width: 0;
+}
+
+.meldungen-file-inputs .btn,
+.meldung-upload-buttons .btn,
+.meldung-detail-card .item-actions .btn,
+.modal-footer .btn {
+  max-width: 100%;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.meldungen-file-inputs .btn,
+.meldung-upload-buttons .btn {
+  flex: 1 1 160px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meldung-button-linebreak {
+  display: inline-block;
+  line-height: 1.15;
+  white-space: normal;
+  text-align: center;
+}
+
+.meldung-button-linebreak::first-line {
+  line-height: 1.15;
+}
+
 .meldung-upload-button input {
   position: absolute;
   inset: 0;
@@ -522,6 +604,56 @@
   color: var(--text-muted);
   font-size: .78rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.meldung-camera-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, .7);
+}
+
+.meldung-camera-dialog {
+  width: min(420px, 100%);
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 0 24px rgba(0, 0, 0, .35);
+  text-align: center;
+}
+
+.meldung-camera-video {
+  display: block;
+  width: 100%;
+  max-height: min(60dvh, 420px);
+  background: #000;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.meldung-camera-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .75rem;
+  margin-top: .75rem;
+}
+
+.meldung-camera-actions .btn {
+  flex: 1 1 150px;
+  justify-content: center;
+}
+
+.meldung-camera-error {
+  margin-top: .75rem;
+  color: #b71c1c;
 }
 
 .meldung-photo-grid {
@@ -550,6 +682,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: .5rem;
   padding: .55rem;
   font-size: .78rem;
@@ -842,9 +975,29 @@
 
 /* ─── Responsive: Tablet ───────────────────────────────────────────────────── */
 
+@media (max-width: 1280px) {
+  .meldungen-layout {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 720px);
+    justify-content: start;
+  }
+
+  .meldungen-detail-panel {
+    grid-column: 2;
+    width: 100%;
+  }
+}
+
 @media (max-width: 900px) {
   .meldungen-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 720px);
+  }
+
+  .meldungen-filter-card {
+    position: static;
+  }
+
+  .meldungen-detail-panel {
+    grid-column: auto;
   }
 
   .form-grid.cols-3 {
@@ -958,6 +1111,24 @@
     gap: .6rem;
   }
   .item-actions { flex-wrap: wrap; }
+
+  .meldung-list-item .item-actions {
+    justify-content: flex-start;
+    max-width: none;
+    width: 100%;
+  }
+
+  .meldung-detail-card .compact-section-head .item-actions,
+  .meldung-upload-buttons,
+  .meldungen-file-inputs {
+    width: 100%;
+  }
+
+  .meldung-detail-card .compact-section-head .item-actions .btn,
+  .meldung-upload-buttons .btn,
+  .meldungen-file-inputs .btn {
+    flex: 1 1 150px;
+  }
 
   /* Modal als Bottom Sheet */
   .modal-overlay {
