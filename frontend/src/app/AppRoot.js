@@ -154,66 +154,41 @@ const AppRoot = {
           ],
         },
         {
-          label: 'Betrieb',
+          label: 'Stammdaten',
           items: [
             { tab: 'betrieb', href: '/betrieb', icon: '🏡', label: 'Betrieb' },
-          ],
-        },
-        {
-          label: 'Pflanzenschutz',
-          items: [
-            { tab: 'psm', href: '/psm', icon: '🧪', label: 'Pflanzenschutzmittel' },
+            { tab: 'psm', href: '/psm', icon: '🧪', label: 'PSM' },
             { tab: 'einsatzorte', href: '/fields', icon: '📍', label: 'Felder' },
             { tab: 'kulturen', href: '/cultures', icon: '🌾', label: 'Kulturen' },
-          ],
-        },
-      ];
-
-      if (this.permissions.can_export) {
-        sections.push({
-          label: 'Export',
-          items: [
-            {
-              tab: 'export',
-              href: '/export',
-              icon: '📄',
-              label: 'Applikation dokumentieren',
-            },
-          ],
-        });
-      }
-
-      sections.push(
-        {
-          label: 'Verlauf',
-          items: [
-            { tab: 'history', href: '/history', icon: '🕘', label: 'Übersicht Applikationen' },
-          ],
-        },
-        {
-          label: 'Vorhersage',
-          items: [
-            { tab: 'forecast', href: '/prediction', icon: '📈', label: 'Beratung' },
-          ],
-        },
-        {
-          label: 'Lager',
-          items: [
             {
               tab: 'inventory',
               href: '/inventory',
               icon: '📦',
-              label: 'Lagerbestand',
+              label: 'Lager',
               warningBadge: true,
             },
           ],
         },
-        {
-          label: 'Meldungen',
-          items: [
-            { tab: 'meldungen', href: '/meldungen', icon: '🛠', label: 'Meldungen' },
-          ],
-        },
+      ];
+
+      const dokumentationItems = [];
+      if (this.permissions.can_export) {
+        dokumentationItems.push({
+          tab: 'export',
+          href: '/export',
+          icon: '📄',
+          label: 'Dokumentieren',
+        });
+      }
+
+      dokumentationItems.push(
+        { tab: 'meldungen', href: '/meldungen', icon: '🛠', label: 'Meldungen' },
+        { tab: 'history', href: '/history', icon: '🕘', label: 'Verlauf' },
+      );
+
+      sections.push(
+        { label: 'Dokumentation', items: dokumentationItems },
+        { label: 'Beratung', items: [{ tab: 'forecast', href: '/prediction', icon: '📈', label: 'Beratung' }] },
       );
 
       return sections;
