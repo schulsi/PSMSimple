@@ -182,7 +182,7 @@ def generate_pdf(data: dict) -> io.BytesIO:
     for eo in einsatzorte:
         gps = f"{eo.get('gpsRechtswert', '')} / {eo.get('gpsHochwert', '')}".replace(".", ",")
         eo_rows = [
-            ("Einsatzort", eo.get("name", "")),
+            ("Feld", eo.get("name", "")),
             ("Anwendungsbereich", eo.get("anwendungsbereich", "")),
             ("Größe", f"{eo.get('flaecheVolumen', '')} {eo.get('einheit', '')}"),
             ("GPS-Koordinaten", gps),

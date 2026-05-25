@@ -19,13 +19,13 @@ bp = Blueprint("einsatzorte", __name__)
 @login_required
 def api_get_einsatzorte():
     """
-    Alle Einsatzorte abrufen
+    Alle Felder abrufen
     ---
     tags:
-      - Einsatzorte
+      - Felder
     responses:
       200:
-        description: Liste aller Einsatzorte (Felder)
+        description: Liste aller Felder
         schema:
           type: array
           items:
@@ -63,10 +63,10 @@ def api_get_einsatzorte():
 @require_write_access
 def api_add_einsatzort():
     """
-    Neuen Einsatzort hinzufügen
+    Neues Feld hinzufügen
     ---
     tags:
-      - Einsatzorte
+      - Felder
     parameters:
       - in: body
         name: body
@@ -75,7 +75,7 @@ def api_add_einsatzort():
           properties:
             name:
               type: string
-              description: Name des Einsatzortes
+              description: Name des Feldes
             gpsRechtswert:
               type: number
               description: GPS-Breitengrad (Latitude)
@@ -100,7 +100,7 @@ def api_add_einsatzort():
               description: Optionale ID der Kultur auf diesem Feld
     responses:
       201:
-        description: Einsatzort erfolgreich erstellt
+        description: Feld erfolgreich erstellt
       401:
         description: Nicht authentifiziert
       403:
@@ -109,7 +109,7 @@ def api_add_einsatzort():
     data = request.get_json(silent=True) or {}
     result = create_einsatzort(data)
     logger.info(
-        f"Einsatzort '{data.get('name', 'unknown')}' created by user: {current_user.username} from IP: {request.remote_addr}")
+        f"Feld '{data.get('name', 'unknown')}' created by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify(result)
 
 
@@ -117,19 +117,19 @@ def api_add_einsatzort():
 @login_required
 def api_get_einsatzort_by_id(eid):
     """
-    Einsatzort nach ID abrufen
+    Feld nach ID abrufen
     ---
     tags:
-      - Einsatzorte
+      - Felder
     parameters:
       - in: path
         name: eid
         type: integer
         required: true
-        description: Einsatzort-ID
+        description: Feld-ID
     responses:
       200:
-        description: Einsatzort-Details
+        description: Feld-Details
         schema:
           type: object
           properties:
@@ -157,13 +157,13 @@ def api_get_einsatzort_by_id(eid):
       401:
         description: Nicht eingeloggt
       404:
-        description: Einsatzort nicht gefunden
+        description: Feld nicht gefunden
     """
     item = get_einsatzort_by_id(eid)
     if not item:
-        return jsonify({"ok": False, "error": "Einsatzort nicht gefunden."}), 404
+        return jsonify({"ok": False, "error": "Feld nicht gefunden."}), 404
     logger.info(
-        f"Einsatzort with ID '{eid}' retrieved by user: {current_user.username} from IP: {request.remote_addr}")
+        f"Feld with ID '{eid}' retrieved by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify(item)
 
 
@@ -172,10 +172,10 @@ def api_get_einsatzort_by_id(eid):
 @require_write_access
 def api_update_einsatzort(eid):
     """
-    Einsatzort aktualisieren
+    Feld aktualisieren
     ---
     tags:
-      - Einsatzorte
+      - Felder
     parameters:
       - in: path
         name: eid
@@ -216,7 +216,7 @@ def api_update_einsatzort(eid):
     data = request.get_json(silent=True) or {}
     update_einsatzort(eid, data)
     logger.info(
-        f"Einsatzort with ID '{eid}' updated by user: {current_user.username} from IP: {request.remote_addr}")
+        f"Feld with ID '{eid}' updated by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True})
 
 
@@ -225,16 +225,16 @@ def api_update_einsatzort(eid):
 @require_write_access
 def api_delete_einsatzort(eid):
     """
-    Einsatzort löschen
+    Feld löschen
     ---
     tags:
-      - Einsatzorte
+      - Felder
     parameters:
       - in: path
         name: eid
         type: integer
         required: true
-        description: Einsatzort-ID
+        description: Feld-ID
     responses:
       200:
         description: Erfolgreich gelöscht
@@ -245,7 +245,7 @@ def api_delete_einsatzort(eid):
     """
     delete_einsatzort(eid)
     logger.info(
-        f"Einsatzort with ID '{eid}' deleted by user: {current_user.username} from IP: {request.remote_addr}")
+        f"Feld with ID '{eid}' deleted by user: {current_user.username} from IP: {request.remote_addr}")
     return jsonify({"ok": True})
 
 

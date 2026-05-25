@@ -2,29 +2,31 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <meta name="csp-nonce" content="{{ csp_nonce }}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pflanzenschutz · Login</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
-
+<div id="login-vue-controller" hidden></div>
+<div>
 <header>
-  <button class="nav-toggle" data-action="toggleMobileNav" aria-label="Menü öffnen">☰</button>
+  <button class="nav-toggle" id="login-nav-toggle" type="button" aria-label="Menü öffnen">☰</button>
   <div class="logo">Pflanzen<span>schutz</span></div>
   <span class="sub">· Dokumentation</span>
 </header>
 
-<div class="nav-overlay" id="nav-overlay" data-action="closeMobileNav"></div>
+<div class="nav-overlay" id="nav-overlay"></div>
 
 <div class="app">
-  <nav>
+  <nav id="login-nav">
     <div class="section-label">Konto</div>
-    <a class="active" data-action="showPanelAuth" data-panel="login" id="nav-login">
+    <a href="#" class="active" id="nav-login" data-panel="login">
       <span class="ico">🔑</span> Login
     </a>
     {% if registration_allowed == "1" %}
-    <a data-action="showPanelAuth" data-panel="register" id="nav-register">
+    <a href="#" id="nav-register" data-panel="register">
       <span class="ico">✏️</span> Registrieren
     </a>
     {% endif %}
@@ -63,7 +65,7 @@
         </form>
         {% if registration_allowed == "1" %}
         <div class="divider">oder</div>
-        <button class="btn btn-ghost" data-action="showPanelAuth" data-panel="register">✏️ Neues Konto erstellen</button>
+        <button class="btn btn-ghost" type="button" data-panel="register">✏️ Neues Konto erstellen</button>
         {% endif %}
       </div>
 
@@ -91,16 +93,16 @@
         </form>
 
         <div class="divider">oder</div>
-        <button class="btn btn-ghost" data-action="showPanelAuth" data-panel="login">← Zurück zum Login</button>
+        <button class="btn btn-ghost" type="button" data-panel="login">← Zurück zum Login</button>
       </div>
       {% endif %}
 
     </div>
   </main>
 </div>
+</div>
 
-<script src="{{ url_for('static', filename='js/login.js') }}"></script>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script type="module" src="{{ vite_asset('src/login.js') }}"></script>
 
 </body>
 </html>

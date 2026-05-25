@@ -1,0 +1,331 @@
+name: Security CI/CD Pipeline
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main", "master", "develop"]
+  schedule:
+    - cron: "0 3 * * 1" # jeden Montag 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  pull-requests: read
+
+jobs:
+  # security-scanning:
+  #   name: Security Scanning
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+
+  #     # -----------------------------
+  #     # Python Setup
+  #     # -----------------------------
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
+
+  #     - name: Install project dependencies
+  #       run: |
+  #         python -m pip install --upgrade pip
+
+  #         if [ -f requirements.txt ]; then
+  #           pip install -r requirements.txt
+  #         fi
+
+  #         pip install bandit pip-audit semgrep safety
+
+  #     # -----------------------------
+  #     # Secret Scanning
+  #     # -----------------------------
+  #     - name: Secret scanning with Gitleaks
+  #       uses: gitleaks/gitleaks-action@v2
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  #     # -----------------------------
+  #     # Python SAST - Bandit
+  #     # -----------------------------
+  #     - name: Run Bandit SAST scan
+  #       run: |
+  #         bandit -r . \
+  #           -f json \
+  #           -o bandit-report.json \
+  #           --exclude .venv,venv,__pycache__,tests
+
+  #       continue-on-error: true
+
+  #     - name: Upload Bandit report
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: bandit-report
+  #         path: bandit-report.json
+
+  #     # -----------------------------
+  #     # Semgrep OWASP Scan
+  #     # -----------------------------
+  #     - name: Run Semgrep OWASP Top 10 scan
+  #       run: |
+  #         semgrep scan \
+  #           --config p/owasp-top-ten \
+  #           --json \
+  #           --output semgrep-report.json
+
+  #       continue-on-error: true
+
+  #     - name: Upload Semgrep report
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: semgrep-report
+  #         path: semgrep-report.json
+
+  #     # -----------------------------
+  #     # Dependency Vulnerability Scanning
+  #     # -----------------------------
+  #     - name: Run pip-audit
+  #       run: |
+  #         pip-audit \
+  #           --format=json \
+  #           --output=pip-audit-report.json
+
+  #       continue-on-error: true
+
+  #     - name: Upload pip-audit report
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: pip-audit-report
+  #         path: pip-audit-report.json
+
+  #     - name: Run Safety dependency scan
+  #       run: |
+  #         safety check \
+  #           --json \
+  #           --output safety-report.json
+
+  #       continue-on-error: true
+
+  #     - name: Upload Safety report
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: safety-report
+  #         path: safety-report.json
+
+  #     # -----------------------------
+  #     # Docker Image Build
+  #     # -----------------------------
+  #     - name: Build Docker image
+  #       run: |
+  #         docker build -t myapp:security-scan .
+
+  #     # -----------------------------
+  #     # Docker Image Vulnerability Scan
+  #     # -----------------------------
+  #     - name: Scan Docker image with Trivy
+  #       uses: aquasecurity/trivy-action@master
+  #       with:
+  #         image-ref: myapp:security-scan
+  #         format: json
+  #         output: trivy-report.json
+  #         severity: CRITICAL,HIGH,MEDIUM
+  #         ignore-unfixed: true
+
+  #     - name: Upload Trivy report
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: trivy-report
+  #         path: trivy-report.json
+
+  #     # -----------------------------
+  #     # Filesystem / IaC / Secret Scan
+  #     # -----------------------------
+  #     - name: Trivy filesystem scan
+  #       uses: aquasecurity/trivy-action@master
+  #       with:
+  #         scan-type: fs
+  #         scan-ref: .
+  #         format: json
+  #         output: trivy-fs-report.json
+  #         scanners: vuln,secret,misconfig
+  #         severity: CRITICAL,HIGH,MEDIUM
+
+  #     - name: Upload Trivy filesystem report
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: trivy-filesystem-report
+  #         path: trivy-fs-report.json
+
+  dast-zap-scan:
+    name: OWASP ZAP DAST Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t myapp:dast .
+          
+      - name: Fix workspace permissions
+        run: chmod -R 777 .
+      
+      - name: Create Secret Key
+        run: |
+          secret_key="$(openssl rand -hex 32)"
+          echo "::add-mask::$secret_key"
+          echo "SECRET_KEY=$secret_key" >> "$GITHUB_ENV"
+
+      - name: Run application container
+        run: |
+          docker run -d \
+            --name myapp \
+            -p 80:80 \
+            -e SECRET_KEY="$SECRET_KEY" \
+            -e RATELIMIT_STORAGE_URI="memory://" \
+            myapp:dast
+
+      - name: Wait for application startup
+        run: |
+          for i in {1..30}; do
+            http_code="$(curl -sS -o /dev/null -w "%{http_code}" http://localhost:80/ || true)"
+            if [ "$http_code" != "000" ]; then
+              echo "Application is reachable with HTTP $http_code."
+              exit 0
+            fi
+            echo "Waiting for application startup... attempt $i/30"
+            sleep 2
+          done
+
+          docker logs myapp
+          docker ps -a
+          echo "Application did not start within expected time."
+          exit 1
+
+      - name: Create ZAP test user
+        env:
+          ZAP_USERNAME: ${{ secrets.ZAP_USERNAME }}
+          ZAP_PASSWORD: ${{ secrets.ZAP_PASSWORD }}
+        run: |
+          if [ -z "$ZAP_USERNAME" ] || [ -z "$ZAP_PASSWORD" ]; then
+            echo "ZAP_USERNAME and ZAP_PASSWORD GitHub secrets must be set."
+            exit 1
+          fi
+
+          docker exec \
+            -e PSM_CI_USERNAME="$ZAP_USERNAME" \
+            -e PSM_CI_PASSWORD="$ZAP_PASSWORD" \
+            -e PSM_CI_ROLE="user" \
+            myapp flask ensure-user
+
+      - name: Login ZAP test user
+        env:
+          ZAP_USERNAME: ${{ secrets.ZAP_USERNAME }}
+          ZAP_PASSWORD: ${{ secrets.ZAP_PASSWORD }}
+        run: |
+          if [ -z "$ZAP_USERNAME" ] || [ -z "$ZAP_PASSWORD" ]; then
+            echo "ZAP_USERNAME and ZAP_PASSWORD GitHub secrets must be set."
+            exit 1
+          fi
+
+          curl -fsS \
+            -c zap-cookies.txt \
+            http://localhost:80/login \
+            -o zap-login.html
+
+          csrf_token="$(grep -o 'name="csrf_token" value="[^"]*"' zap-login.html | head -n 1 | sed 's/.*value="\([^"]*\)"/\1/')"
+          if [ -z "$csrf_token" ]; then
+            echo "CSRF token not found on login page."
+            head -n 40 zap-login.html
+            exit 1
+          fi
+
+          login_status="$(curl -sS -L \
+            -w "%{http_code}" \
+            -b zap-cookies.txt \
+            -c zap-cookies.txt \
+            --data-urlencode "csrf_token=$csrf_token" \
+            --data-urlencode "username=$ZAP_USERNAME" \
+            --data-urlencode "password=$ZAP_PASSWORD" \
+            http://localhost:80/login \
+            -o zap-login-result.html)"
+
+          if [ "$login_status" != "200" ]; then
+            echo "Login request failed with HTTP $login_status."
+            docker logs myapp
+            exit 1
+          fi
+
+          auth_status="$(curl -sS \
+            -w "%{http_code}" \
+            -b zap-cookies.txt \
+            http://localhost:80/api/me \
+            -o zap-auth-check.json)"
+
+          if [ "$auth_status" != "200" ] || ! grep -q '"ok":true' zap-auth-check.json; then
+            echo "Authenticated check failed with HTTP $auth_status."
+            cat zap-auth-check.json
+            docker logs myapp
+            exit 1
+          fi
+
+          session_cookie="$(awk '$6 == "session" {print $7}' zap-cookies.txt | tail -n 1)"
+          if [ -z "$session_cookie" ]; then
+            echo "Session cookie not found after login."
+            exit 1
+          fi
+
+          echo "::add-mask::$session_cookie"
+          {
+            echo "ZAP_AUTH_HEADER=Cookie"
+            echo "ZAP_AUTH_HEADER_VALUE=session=$session_cookie"
+            echo "ZAP_AUTH_HEADER_SITE=localhost"
+          } >> "$GITHUB_ENV"
+
+      - name: Show container logs
+        run: |
+          docker logs myapp
+      - name: Show running containers
+        run: docker ps -a
+      # -----------------------------
+      # OWASP ZAP Baseline Scan
+      # -----------------------------
+      - name: Run OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "http://localhost:80"
+          cmd_options: "-a"
+          fail_action: false
+          artifact_name: "zap-scan"
+          allow_issue_writing: false
+          
+      - name: Run OWASP ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.10.0
+        with:
+          target: "http://localhost:80/apispec_1.json"
+          format: openapi
+          fail_action: false
+          artifact_name: "zap-api-scan"
+          allow_issue_writing: false
+      
+      - name: Debug app on failure
+        if: failure()
+        run: |
+          docker logs myapp || true
+          docker ps -a || true
+          test -f zap-auth-check.json && cat zap-auth-check.json || true
+          test -f zap-login-result.html && head -n 80 zap-login-result.html || true
+
+      - name: Stop application container
+        if: always()
+        run: |
+          docker stop myapp || true
+          docker rm myapp || true

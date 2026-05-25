@@ -58,6 +58,7 @@ header .sub {
 .version-badge.has-update {
   border-color: rgba(255, 209, 102, .5);
   color: #fff;
+  background: var(--color-warning, #e6a817);
 }
 
 .version-update {
@@ -66,7 +67,7 @@ header .sub {
   min-height: 20px;
   padding: .16rem .4rem;
   border-radius: 999px;
-  background: var(--color-warning, #e6a817);
+  background: rgba(255, 255, 255, .9);
   color: #1b1604;
   font-size: .68rem;
   font-weight: 700;
@@ -199,6 +200,8 @@ nav .ico {
 .nav-user-popup {
   display: none;
   position: fixed;
+  left: 1rem;
+  bottom: 76px;
   width: 212px;
   background: #fff;
   border-radius: 10px;
@@ -322,6 +325,16 @@ main {
   transform: translateY(6px);
 }
 
+.nav-overlay-button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
 /* Beratung Bubbles */
 .beratung-bubble-grid {
   display: flex;
@@ -405,6 +418,15 @@ main {
   gap: 0.5rem;
 }
 
+.beratung-dropdown button.beratung-dropdown-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
 .beratung-dropdown-item:hover { background: var(--surface-alt, #f5f5f5); }
 .beratung-dropdown-loading,
 .beratung-dropdown-empty { color: var(--text-muted); cursor: default; }
@@ -445,7 +467,10 @@ main {
 }
 
 .beratung-dropdown {
-  position: fixed;  /* statt absolute */
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
   background: #fff;
   border: 1.5px solid var(--cream-dark);
   border-radius: 8px;

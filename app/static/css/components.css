@@ -33,6 +33,29 @@
   letter-spacing: .5px;
 }
 
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .65rem;
+}
+
+.inline-action {
+  border: 0;
+  background: transparent;
+  color: var(--green);
+  cursor: pointer;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: 0;
+}
+
+.inline-action:hover {
+  color: var(--green-deep);
+  text-decoration: underline;
+}
+
 .field input,
 .field select {
   width: 100%;
@@ -323,7 +346,8 @@
   gap: .75rem;
   cursor: pointer;
 }
-.exp-item-header input[type=checkbox] {
+.exp-item-header input[type=checkbox],
+.exp-item-header input[type=radio] {
   accent-color: var(--green-mid);
   width: 16px;
   height: 16px;
@@ -389,12 +413,11 @@
   position: relative;
 }
 
-/*
- * position: fixed — damit das Dropdown aus dem modal overflow:auto herauskommt.
- * top/left/width werden per JS in positionBBCHDropdown() gesetzt.
- */
-.exp-kultur-bbch-results {
-  position: fixed;
+.autocomplete-results.exp-kultur-bbch-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
   z-index: 99999;
   display: none;
   background: #fff;
@@ -404,7 +427,7 @@
   max-height: 220px;
   overflow-y: auto;
 }
-.exp-kultur-bbch-results.show { display: block; }
+.autocomplete-results.exp-kultur-bbch-results.show { display: block; }
 
 .exp-bbch-item {
   display: block;
@@ -455,6 +478,7 @@
 }
 
 #modal-einsatzort .modal { width: 680px; }
+#modal-ort .modal { width: 460px; }
 
 @keyframes popIn {
   from { transform: scale(.95); opacity: 0; }

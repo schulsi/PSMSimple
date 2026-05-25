@@ -1,0 +1,60 @@
+<template>
+  <h2>
+    🌾 Kulturen <span id="kult-count" class="badge">{{ items.length }}</span>
+  </h2>
+
+  <Button
+    v-if="canWrite"
+    type="button"
+    class="btn btn-primary mb-1"
+    label="+ Neue Kultur"
+    @click="$emit('open-create')"
+  />
+
+  <div id="kulturen-list" class="item-list">
+    <div v-if="isLoading" class="empty">Kulturen werden geladen...</div>
+    <div v-else-if="!items.length" class="empty">Noch keine Kulturen vorhanden.</div>
+    <div v-for="item in items" v-else :key="item.id" class="item">
+      <div class="item-info">
+        <div class="name">{{ displayValue(item.name) }}</div>
+        <div class="meta">EPPO-Code: {{ displayValue(item.eppoCode) }}</div>
+      </div>
+      <div v-if="canWrite" class="item-actions">
+        <Button
+          type="button"
+          class="btn btn-sm btn-ghost p-button-secondary"
+          label="Bearbeiten"
+          @click="$emit('edit', item.id)"
+        />
+        <Button
+          type="button"
+          class="btn btn-sm btn-danger p-button-danger"
+          label="Löschen"
+          @click="$emit('remove', item.id)"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import Button from 'primevue/button';
+
+export default {
+  name: 'KulturenView',
+  components: {
+    Button,
+  },
+  props: {
+    canWrite: { type: Boolean, default: false },
+    isLoading: { type: Boolean, default: false },
+    items: { type: Array, default: () => [] },
+  },
+  emits: ['edit', 'open-create', 'remove'],
+  methods: {
+    displayValue(value) {
+      return value || '-';
+    },
+  },
+};
+</script>
