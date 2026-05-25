@@ -743,6 +743,9 @@ const AppRoot = {
         this.setMapPoint(lat, lng);
       } else if (this.eoMapSelection) {
         this.setMapPoint(this.eoMapSelection.lat, this.eoMapSelection.lng);
+      } else {
+        const { center, zoom } = await this.getInitialMapView();
+        this.eoMap.setView(center, zoom);
       }
     },
 

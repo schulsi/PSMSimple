@@ -142,7 +142,15 @@
 
           <div class="field span-2">
             <label for="meldung-fotos">Fotos</label>
-            <input id="meldung-fotos" type="file" accept="image/*" multiple @change="stageFormFotos" />
+            <div class="meldungen-file-inputs">
+              <label class="btn btn-ghost">
+                Galerie auswählen
+                <input id="meldung-fotos" type="file" accept="image/*" multiple @change="stageFormFotos" />
+              </label>
+              <button v-if="hasCamera" type="button" class="btn btn-ghost" @click="startCameraCapture">
+                Foto aufnehmen
+              </button>
+            </div>
             <div v-if="pendingFotoNames.length" class="meldung-pending-files">
               {{ pendingFotoNames.join(', ') }}
             </div>
@@ -154,6 +162,17 @@
           <button type="submit" class="btn btn-primary" :disabled="isSaving">
             {{ isSaving ? 'Speichern...' : 'Speichern' }}
           </button>
+        </div>
+
+        <div v-if="showCameraCapture" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);z-index:1200;">
+          <div style="background:#fff;padding:16px;max-width:420px;width:100%;border-radius:12px;box-shadow:0 0 24px rgba(0,0,0,0.35);text-align:center;">
+            <video ref="cameraVideo" autoplay playsinline muted style="width:100%;height:auto;background:#000;border-radius:8px;"></video>
+            <div style="display:flex;gap:0.75rem;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary" @click="takeCameraPhoto">Foto machen</button>
+              <button type="button" class="btn btn-ghost" @click="stopCameraCapture">Abbrechen</button>
+            </div>
+            <div v-if="cameraError" style="color:#b71c1c;margin-top:12px;">{{ cameraError }}</div>
+          </div>
         </div>
       </form>
 
@@ -193,10 +212,16 @@
             <h3>Fotos</h3>
             <p class="section-subtitle">{{ fotos.length }} Bild{{ fotos.length === 1 ? '' : 'er' }}</p>
           </div>
-          <label v-if="canWrite" class="btn btn-ghost meldung-upload-button">
-            Foto hochladen
-            <input type="file" accept="image/*" multiple @change="uploadFoto" />
-          </label>
+          <div class="meldung-upload-buttons" v-if="canWrite">
+            <label class="btn btn-ghost meldung-upload-button">
+              Foto hochladen
+              <input type="file" accept="image/*" multiple @change="uploadFoto" />
+            </label>
+            <label v-if="hasCamera" class="btn btn-ghost meldung-upload-button">
+              Foto aufnehmen
+              <input type="file" accept="image/*" capture="environment" @change="uploadFoto" />
+            </label>
+          </div>
         </div>
 
         <div v-if="isFotosLoading" class="empty">Fotos werden geladen...</div>
@@ -222,7 +247,7 @@
 </template>
 
 <script>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 
 import { toast } from '../app/appBridge.js';
 import { apiDelete, apiGet, apiPost, apiPut, getCsrfToken } from '../app/api.js';
@@ -299,6 +324,11 @@ export default {
       typ: '',
     });
     const form = reactive(resetFormState());
+    const hasCamera = ref(!!(navigator.mediaDevices?.getUserMedia));
+    const showCameraCapture = ref(false);
+    const cameraVideo = ref(null);
+    const cameraStream = ref(null);
+    const cameraError = ref('');
 
     const pendingFotoNames = computed(() => pendingFotos.value.map(file => file.name));
 
@@ -434,12 +464,14 @@ export default {
       selectedMeldung.value = null;
       fotos.value = [];
       applyForm();
+      fillCoordinatesFromDevice();
       showForm.value = true;
     }
 
     function openEditForm() {
       if (!selectedMeldung.value) return;
       applyForm(selectedMeldung.value);
+      fillCoordinatesFromDevice();
       showForm.value = true;
     }
 
@@ -478,6 +510,103 @@ export default {
         latitude: form.latitude || null,
         longitude: form.longitude || null,
       };
+    }
+
+    function setFormCoordinates(latitude, longitude) {
+      const lat = Number(latitude);
+      const lon = Number(longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        form.latitude = String(parseFloat(lat.toFixed(6)));
+        form.longitude = String(parseFloat(lon.toFixed(6)));
+      }
+    }
+
+    function fillCoordinatesFromDevice() {
+      if (!navigator.geolocation) return;
+      if (form.latitude || form.longitude) return;
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const { latitude, longitude } = position.coords;
+          setFormCoordinates(latitude, longitude);
+        },
+        error => {
+          console.warn('Geolocation nicht verfügbar:', error.message);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000,
+        },
+      );
+    }
+
+    async function detectCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        hasCamera.value = !!(navigator.mediaDevices?.getUserMedia);
+        return;
+      }
+
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        hasCamera.value = devices.some(device => device.kind === 'videoinput') || !!(navigator.mediaDevices.getUserMedia);
+      } catch (error) {
+        console.warn('Kameraerkennung fehlgeschlagen:', error);
+        hasCamera.value = !!(navigator.mediaDevices?.getUserMedia);
+      }
+    }
+
+    async function startCameraCapture() {
+      cameraError.value = '';
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        cameraError.value = 'Kamera nicht verfügbar';
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        cameraStream.value = stream;
+        showCameraCapture.value = true;
+
+        await nextTick();
+        if (cameraVideo.value) {
+          cameraVideo.value.srcObject = stream;
+          cameraVideo.value.play().catch(() => {});
+        }
+      } catch (error) {
+        cameraError.value = error.message || 'Kamerazugriff fehlgeschlagen';
+      }
+    }
+
+    function stopCameraCapture() {
+      if (cameraStream.value) {
+        cameraStream.value.getTracks().forEach(track => track.stop());
+        cameraStream.value = null;
+      }
+      showCameraCapture.value = false;
+    }
+
+    function takeCameraPhoto() {
+      if (!cameraVideo.value) return;
+      const video = cameraVideo.value;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(blob => {
+        if (!blob) {
+          cameraError.value = 'Foto konnte nicht aufgenommen werden';
+          return;
+        }
+
+        const file = new File([blob], `meldung-camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        pendingFotos.value.push(file);
+        toast('✅ Foto aufgenommen');
+        stopCameraCapture();
+      }, 'image/jpeg', 0.92);
     }
 
     function stageFormFotos(event) {
@@ -589,8 +718,13 @@ export default {
     }
 
     onMounted(async () => {
+      await detectCamera();
       await loadMeta();
       await loadMeldungen();
+    });
+
+    onUnmounted(() => {
+      stopCameraCapture();
     });
 
     watch(() => props.activeTab, (tab) => {
@@ -606,6 +740,10 @@ export default {
       fotoUrl,
       fotos,
       getFeldName,
+      hasCamera,
+      showCameraCapture,
+      cameraVideo,
+      cameraError,
       isFotosLoading,
       isLoading,
       isSaving,
@@ -623,6 +761,9 @@ export default {
       selectMeldung,
       selectedMeldung,
       stageFormFotos,
+      startCameraCapture,
+      stopCameraCapture,
+      takeCameraPhoto,
       showForm,
       statusClass,
       statusLabel,
