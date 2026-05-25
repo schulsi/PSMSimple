@@ -45,7 +45,6 @@ def _start_warmup_cache(app):
                 # logger = logging.getLogger(__name__)
                 alle_awg_ids: set[str] = set()
                 alle_kodes: set[str] = set()
-                alle_kennrn: set[str] = set()
 
                 # --- 1. Kulturen vorläden ---
                 kulturen = Kulturen.query.filter(

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from .sqlite import get_db
 from ..models.ApplicationSetting import ApplicationSetting
 

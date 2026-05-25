@@ -44,7 +44,7 @@ def _get_all_items(path: str, params: dict | None = None) -> list[dict]:
         items.extend(data.get("items", []))
         params = None  # nur beim ersten Request, danach next-Link nutzen
         next_link = next(
-            (l["href"] for l in data.get("links", []) if l["rel"] == "next"),
+            (li["href"] for li in data.get("links", []) if li["rel"] == "next"),
             None
         )
         url = next_link if data.get("hasMore") else None
