@@ -53,7 +53,8 @@ jobs:
       # -----------------------------
       - name: Run Bandit SAST scan
         run: |
-          bandit -r . \
+          bandit -c bandit.yaml \ 
+            -r . \
             -f json \
             -o bandit-report.json \
             --exclude .venv,venv,__pycache__,tests
