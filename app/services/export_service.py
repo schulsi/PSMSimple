@@ -5,7 +5,7 @@ from ..repositories.betrieb_repo import get_betrieb
 from ..repositories.einsatzorte_repo import list_einsatzorte_by_ids
 from ..repositories.kulturen_repo import list_kulturen_by_ids
 from ..repositories.psm_repo import list_psm_by_ids
-from ..utils.paths import create_save_path, build_export_filename
+from ..utils.paths import create_save_path
 
 def build_output(payload: dict, betrieb: dict) -> dict:
     psm_overrides = {

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from ..services.permissions import login_required, require_write_access, require_admin
+from ..services.permissions import login_required, require_write_access
 from app.services.inventory_service import (
     create_manual_stock_movement,
     get_inventory_overview,

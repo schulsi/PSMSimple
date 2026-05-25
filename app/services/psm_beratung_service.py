@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any
 
 import requests
 
@@ -45,7 +44,7 @@ def _get_all_items(path: str, params: dict | None = None) -> list[dict]:
         items.extend(data.get("items", []))
         params = None  # nur beim ersten Request, danach next-Link nutzen
         next_link = next(
-            (l["href"] for l in data.get("links", []) if l["rel"] == "next"),
+            (li["href"] for li in data.get("links", []) if li["rel"] == "next"),
             None
         )
         url = next_link if data.get("hasMore") else None
@@ -347,7 +346,6 @@ def suche_schadorganismen_partial(suchbegriff: str, eppo_code: str | None = None
 
         for item in schad_data:
             kode = item["kode"]
-            cache_key = f"flask_cache_suche_schadorg_{kode}"
 
             # Prüfen ob dieser Kode bereits im Cache ist
             cached = cache.get(f"_get_schad_awg_ids_{kode}")

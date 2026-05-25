@@ -2,7 +2,7 @@ import json
 import secrets
 from pathlib import Path
 
-from flask import Flask, jsonify, request, render_template, flash, redirect, url_for, g
+from flask import Flask, jsonify, request, flash, redirect, url_for, g
 from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix

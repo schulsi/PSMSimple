@@ -14,4 +14,14 @@ from .ApplicationSetting import ApplicationSetting
 __all__ = [
     "User",
     "UserSettings",
+    "UserRole",
+    "Pflanzenschutzmittel",
+    "Ort",
+    "BBCHCode",
+    "Kulturen",
+    "Inventory",
+    "Felder",
+    "Betrieb",
+    "Applikation",
+    "ApplicationSetting"
 ]

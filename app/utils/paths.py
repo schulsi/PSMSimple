@@ -1,15 +1,11 @@
 from datetime import datetime
 from pathlib import Path
 import re
-import os
-from pathlib import Path
 
 from ..config import Config
 
 EXPORT_DIR =Path(Config.EXPORTS_DIR)  
 BASE_DIR =Path(__file__).resolve().parents[2]
-
-from ..config import Config
 
 BASE_DIR = Config.BASE_DIR
 EXPORT_DIR = Config.EXPORTS_DIR
@@ -44,9 +40,10 @@ def to_hectares(value: float, unit: str) -> float:
 
     try:
         value = float(value)
-    except (TypeError, ValueError):
-        raise ValueError(f"Ungültiger Zahlenwert: {value}")
-
+    except TypeError as exc:
+        raise ValueError(f"Ungültiger Zahlenwert: {value}") from exc
+    except ValueError as exc:
+        raise ValueError(f"Ungültiger Zahlenwert: {value}") from exc
     unit = (unit or "").strip().lower()
 
     if unit == "ha":

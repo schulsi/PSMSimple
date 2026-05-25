@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 
 from ..repositories.settings_repo import get_setting, set_setting, get_settings
-from ..services.permissions import require_write_access, require_admin
+from ..services.permissions import require_admin
 from ..extensions import logger
 
 settings_bp = Blueprint("settings", __name__)

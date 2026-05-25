@@ -3,17 +3,11 @@ from ..services.psm_beratung_service import (
     _get_kultur_awg_ids,
     _get_schad_awg_ids,
     _suche_schadorg_kodes,
-    _get_awg_kennr,
-    _get_mittel_info,
-    _get_wirkstoffe,
-    _get_wartezeit,
-    _get_aufwand,
 )
 from ..repositories.settings_repo import get_setting
 from ..extensions import logger
 
 import json
-import logging
 import threading
 import time
 
@@ -51,7 +45,6 @@ def _start_warmup_cache(app):
                 # logger = logging.getLogger(__name__)
                 alle_awg_ids: set[str] = set()
                 alle_kodes: set[str] = set()
-                alle_kennrn: set[str] = set()
 
                 # --- 1. Kulturen vorläden ---
                 kulturen = Kulturen.query.filter(
