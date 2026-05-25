@@ -62,15 +62,20 @@
 
       <div class="field span-2">
         <label for="psm-bienen">Bienengefährlichkeit</label>
-        <Select
-          input-id="psm-bienen"
+        <select
+          id="psm-bienen"
           class="small-select"
-          :model-value="form.bienen"
-          :options="beeSelectOptions"
-          option-label="label"
-          option-value="value"
-          @update:model-value="$emit('update-field', 'bienen', $event)"
-        />
+          :value="form.bienen"
+          @change="$emit('update-field', 'bienen', $event.target.value)"
+        >
+          <option
+            v-for="option in beeSelectOptions"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
       </div>
 
       <div v-for="field in inventoryFields" :key="field.key" class="field">
@@ -102,7 +107,6 @@
 <script>
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import Select from 'primevue/select';
 
 const beeOptions = [
   ['B1', '(B1) Bienengefährlich'],
@@ -116,7 +120,6 @@ export default {
   components: {
     Button,
     InputText,
-    Select,
   },
   props: {
     form: { type: Object, required: true },

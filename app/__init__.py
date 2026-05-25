@@ -1,7 +1,8 @@
 import json
+import secrets
 from pathlib import Path
 
-from flask import Flask, jsonify, request, render_template, flash, redirect, url_for
+from flask import Flask, jsonify, request, render_template, flash, redirect, url_for, g
 from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -52,6 +53,14 @@ def create_app():
         flash("Zu viele Anfragen. Bitte später erneut versuchen.", "error")
         return redirect(url_for("auth.login"))
 
+    @app.before_request
+    def create_csp_nonce():
+        g.csp_nonce = secrets.token_urlsafe(16)
+
+    @app.context_processor
+    def inject_csp_nonce():
+        return {"csp_nonce": getattr(g, "csp_nonce", "")}
+
     @app.after_request
     def add_security_headers(response):
         response.headers["X-Frame-Options"] = "DENY"
@@ -73,10 +82,11 @@ def create_app():
                 "form-action 'self'"
             )
         else:
+            style_nonce = getattr(g, "csp_nonce", "")
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
                 "script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
-                "style-src 'self' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; "
+                f"style-src 'self' 'nonce-{style_nonce}' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; "
                 "connect-src 'self' https://psm-api.bvl.bund.de https://cdn.jsdelivr.net https://api.open-meteo.com https://geocoding-api.open-meteo.com; "

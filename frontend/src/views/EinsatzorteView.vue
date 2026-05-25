@@ -18,10 +18,7 @@
       <div class="item-info">
         <div class="name">{{ displayValue(item.name) }}</div>
         <div class="meta">
-          {{ displayValue(getOrtName(item.ort_id)) }} ·
-          {{ displayValue(getKulturName(item.kultur_id)) }} ·
-          {{ displayValue(item.anwendungsbereich) }} ·
-          {{ displayValue(item.geoTyp) }}
+          {{ getMetaParts(item).join(' · ') }}
         </div>
         <div class="meta">
           {{ displayValue(item.flaecheVolumen) }} {{ displayValue(item.einheit, '') }}
@@ -72,6 +69,14 @@ export default {
     getKulturName(kulturId) {
       const kultur = this.kulturen.find(item => String(item.id) === String(kulturId));
       return kultur?.name || (kulturId ? `Kultur #${kulturId}` : '-');
+    },
+    getMetaParts(item) {
+      return [
+        this.displayValue(this.getOrtName(item.ort_id)),
+        item.kultur_id ? this.displayValue(this.getKulturName(item.kultur_id)) : '',
+        this.displayValue(item.anwendungsbereich),
+        this.displayValue(item.geoTyp),
+      ].filter(Boolean);
     },
   },
 };

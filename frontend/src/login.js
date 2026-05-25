@@ -2,6 +2,7 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import PrimeVue from 'primevue/config';
 
+import { getPrimeVueOptions } from './app/primevueConfig.js';
 import './styles/primevue.css';
 
 const LoginApp = {
@@ -67,6 +68,6 @@ const LoginApp = {
 const app = createApp(LoginApp);
 
 app.use(createPinia());
-app.use(PrimeVue, { unstyled: true });
+app.use(PrimeVue, getPrimeVueOptions());
 
 app.mount('#login-vue-controller');

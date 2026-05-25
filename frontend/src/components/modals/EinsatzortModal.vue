@@ -72,11 +72,21 @@
       </div>
 
       <div class="field">
-        <label for="eo-ort_id">Ort</label>
+        <div class="field-label-row">
+          <label for="eo-ort_id">Ort</label>
+          <button
+            v-if="canManageOrte"
+            type="button"
+            class="inline-action"
+            @click="$emit('open-ort')"
+          >
+            + Neuer Ort
+          </button>
+        </div>
         <select id="eo-ort_id" :value="form.ort_id" @change="updateField('ort_id', $event.target.value)">
           <option value="">Bitte Ort wählen</option>
           <option v-for="ort in orte" :key="ort.id" :value="String(ort.id)">
-            {{ ort.name || ort.bezeichnung || `Ort ${ort.id}` }}
+            {{ formatOrt(ort) }}
           </option>
         </select>
       </div>
@@ -84,9 +94,9 @@
       <div class="field">
         <label for="eo-kultur_id">Kultur</label>
         <select id="eo-kultur_id" :value="form.kultur_id" @change="updateField('kultur_id', $event.target.value)">
-          <option value="">Bitte Kultur wählen</option>
+          <option value="">Keine Kultur</option>
           <option v-for="kultur in kulturen" :key="kultur.id" :value="String(kultur.id)">
-            {{ kultur.name || `Kultur ${kultur.id}` }}
+            {{ formatKultur(kultur) }}
           </option>
         </select>
       </div>
@@ -108,12 +118,23 @@ export default {
   name: 'FeldModal',
   props: {
     form: { type: Object, required: true },
+    canManageOrte: { type: Boolean, default: false },
     isEditing: { type: Boolean, default: false },
     kulturen: { type: Array, default: () => [] },
     orte: { type: Array, default: () => [] },
   },
-  emits: ['cancel', 'open-map', 'save', 'update-field'],
+  emits: ['cancel', 'open-map', 'open-ort', 'save', 'update-field'],
   setup(_props, { emit }) {
+    function formatKultur(kultur) {
+      const name = kultur.name || `Kultur ${kultur.id}`;
+      return kultur.eppoCode ? `${name} (${kultur.eppoCode})` : name;
+    }
+
+    function formatOrt(ort) {
+      const name = ort.name || ort.bezeichnung || `Ort ${ort.id}`;
+      return ort.plz ? `${name} (${ort.plz})` : name;
+    }
+
     function updateField(field, value) {
       emit('update-field', field, value);
     }
@@ -121,6 +142,8 @@ export default {
     return {
       anwendungsbereiche,
       einheiten,
+      formatKultur,
+      formatOrt,
       geoTypen,
       updateField,
     };

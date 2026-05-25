@@ -13,6 +13,7 @@ import HistoryView from '../views/HistoryView.vue';
 import InventoryView from '../views/InventoryView.vue';
 import KulturModal from '../components/modals/KulturModal.vue';
 import KulturenView from '../views/KulturenView.vue';
+import OrtModal from '../components/modals/OrtModal.vue';
 import PsmModal from '../components/modals/PsmModal.vue';
 import PsmView from '../views/PsmView.vue';
 import SettingsView from '../views/SettingsView.vue';
@@ -118,6 +119,12 @@ const AppRoot = {
       bbchOverviewItems: [],
       bbchTempRowId: 0,
       orteItems: [],
+      ortEditId: null,
+      ortForm: {
+        name: '',
+        plz: '',
+      },
+      isOrtSaving: false,
       showPsmSearchResults: false,
       toastTimer: null,
       removeToastHandler: null,
@@ -238,7 +245,6 @@ const AppRoot = {
     this.applyUserPopupClasses();
 
     document.addEventListener('click', this.onDocumentClick);
-    window.addEventListener('resize', this.onResize);
 
     this.loadBetrieb();
     this.loadPSM();
@@ -250,7 +256,6 @@ const AppRoot = {
   beforeUnmount() {
     this.removeToastHandler?.();
     document.removeEventListener('click', this.onDocumentClick);
-    window.removeEventListener('resize', this.onResize);
   },
 
   watch: {
@@ -539,6 +544,72 @@ const AppRoot = {
       } catch (err) {
         console.error(err);
         this.toast('❌ Orte konnten nicht geladen werden');
+      }
+    },
+
+    resetOrtForm() {
+      this.ortEditId = null;
+      this.ortForm = {
+        name: '',
+        plz: '',
+      };
+    },
+
+    openOrtModal() {
+      this.resetOrtForm();
+      this.openModal('modal-ort');
+    },
+
+    updateOrtField(field, value) {
+      this.ortForm = {
+        ...this.ortForm,
+        [field]: value,
+      };
+    },
+
+    collectOrtForm() {
+      return {
+        name: this.ortForm.name.trim(),
+        plz: this.ortForm.plz.trim(),
+      };
+    },
+
+    async saveOrt() {
+      try {
+        const payload = this.collectOrtForm();
+
+        if (!payload.name) {
+          this.toast('❌ Bitte einen Ortsnamen eingeben');
+          return;
+        }
+
+        if (!payload.plz) {
+          this.toast('❌ Bitte eine PLZ eingeben');
+          return;
+        }
+
+        this.isOrtSaving = true;
+
+        if (this.ortEditId) {
+          await apiPut(`/api/orte/${this.ortEditId}`, payload);
+          this.toast('✅ Ort gespeichert');
+        } else {
+          const result = await apiPost('/api/orte', payload);
+          this.toast('✅ Ort hinzugefügt');
+
+          if (result?.id) {
+            this.updateFeldField('ort_id', String(result.id));
+          }
+        }
+
+        this.closeModal('modal-ort');
+        this.resetOrtForm();
+        await this.loadOrte();
+      } catch (err) {
+        console.error(err);
+        this.toast(`❌ ${err.message}`);
+      } finally {
+        this.isOrtSaving = false;
       }
     },
 
@@ -1178,10 +1249,6 @@ const AppRoot = {
     toggleUserPopup() {
       this.isUserPopupOpen = !this.isUserPopupOpen;
       this.applyUserPopupClasses();
-
-      if (this.isUserPopupOpen) {
-        nextTick(() => this.positionUserPopup());
-      }
     },
 
     closeUserPopup() {
@@ -1194,20 +1261,6 @@ const AppRoot = {
       document.getElementById('user-btn')?.classList.toggle('open', this.isUserPopupOpen);
     },
 
-    positionUserPopup() {
-      const popup = document.getElementById('user-popup');
-      const button = document.getElementById('user-btn');
-      if (!popup || !button) return;
-
-      const rect = button.getBoundingClientRect();
-      const popupWidth = 212;
-      const top = rect.top - 8 - popup.offsetHeight;
-
-      popup.style.left = `${Math.max(8, rect.left)}px`;
-      popup.style.top = `${Math.max(8, top)}px`;
-      popup.style.width = `${popupWidth}px`;
-    },
-
     onDocumentClick(event) {
       const popup = document.getElementById('user-popup');
       const button = document.getElementById('user-btn');
@@ -1217,12 +1270,6 @@ const AppRoot = {
       const clickedButton = button.contains(event.target);
       if (!clickedInsidePopup && !clickedButton) {
         this.closeUserPopup();
-      }
-    },
-
-    onResize() {
-      if (this.isUserPopupOpen) {
-        this.positionUserPopup();
       }
     },
 
@@ -1414,14 +1461,26 @@ const AppRoot = {
       ]),
       h(Teleport, { to: '#modal-einsatzort' }, [
         h(FeldModal, {
+          canManageOrte: !!this.permissions.can_write,
           form: this.feldForm,
           isEditing: !!this.feldEditId,
           kulturen: this.kulturenItems,
           orte: this.orteItems,
           onCancel: () => this.closeModal('modal-einsatzort'),
           onOpenMap: () => this.openMapModal(),
+          onOpenOrt: () => this.openOrtModal(),
           onSave: () => this.saveFeld(),
           onUpdateField: (field, value) => this.updateFeldField(field, value),
+        }),
+      ]),
+      h(Teleport, { to: '#modal-ort' }, [
+        h(OrtModal, {
+          form: this.ortForm,
+          isEditing: !!this.ortEditId,
+          isSaving: this.isOrtSaving,
+          onCancel: () => this.closeModal('modal-ort'),
+          onSave: () => this.saveOrt(),
+          onUpdateField: (field, value) => this.updateOrtField(field, value),
         }),
       ]),
       h(Teleport, { to: '#modal-map' }, [

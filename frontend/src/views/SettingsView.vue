@@ -41,17 +41,6 @@
         </div>
       </div>
     </div>
-
-    <div class="card">
-      <h3 class="section-title">👤 Benutzername ändern</h3>
-      <div class="popup-rename">
-        <label>Benutzername ändern</label>
-        <div class="popup-rename-row">
-          <input id="rename-input" v-model="renameInput" type="text" :placeholder="username" />
-          <button type="button" @click="renameUser">Speichern</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div v-if="canManageUsers" class="history-sub-tab" :class="{ active: activeSettingsTab === 'users' }">
@@ -95,6 +84,16 @@
               Löschen
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="section-title">👤 Benutzername ändern</h3>
+      <div class="popup-rename">
+        <label>Benutzername ändern</label>
+        <div class="popup-rename-row">
+          <input id="rename-input" v-model="renameInput" type="text" :placeholder="username" />
+          <button type="button" @click="renameUser">Speichern</button>
         </div>
       </div>
     </div>

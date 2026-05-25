@@ -37,7 +37,6 @@
               id="beratung-schad-dropdown"
               class="beratung-dropdown"
               :class="{ hidden: !isDropdownOpen }"
-              :style="dropdownStyle"
             >
               <div v-if="isSearchLoading" class="beratung-dropdown-item beratung-dropdown-loading">Suche...</div>
               <div v-else-if="searchError" class="beratung-dropdown-item beratung-dropdown-empty">{{ searchError }}</div>
@@ -146,7 +145,7 @@
 </template>
 
 <script>
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { apiGet, apiPost } from '../app/api.js';
 
@@ -165,7 +164,6 @@ export default {
     const isResolvingPartial = ref(false);
     const searchError = ref('');
     const schadInput = ref(null);
-    const dropdownStyle = reactive({});
     const aiAdviceEnabled = ref(false);
     const isLlmConfigured = ref(true);
     const llmProvider = ref('');
@@ -231,20 +229,8 @@ export default {
       }
     }
 
-    function positionDropdown() {
-      const rect = schadInput.value?.getBoundingClientRect?.();
-      if (!rect) return;
-
-      Object.assign(dropdownStyle, {
-        top: `${rect.bottom + 4}px`,
-        left: `${rect.left}px`,
-        width: `${rect.width}px`,
-      });
-    }
-
     function openDropdown() {
       if (schadQuery.value.trim().length < 2 && !dropdownItems.value.length) return;
-      positionDropdown();
       isDropdownOpen.value = true;
     }
 
@@ -270,7 +256,6 @@ export default {
         return;
       }
 
-      positionDropdown();
       isDropdownOpen.value = true;
       debounceTimer = window.setTimeout(() => searchSchadorganismen(query), 350);
     }
@@ -281,7 +266,6 @@ export default {
       isResolvingPartial.value = false;
       searchError.value = '';
       dropdownItems.value = [];
-      positionDropdown();
       isDropdownOpen.value = true;
 
       const params = new URLSearchParams({ q: query });
@@ -425,7 +409,6 @@ export default {
 
     onMounted(() => {
       document.addEventListener('click', onDocumentClick);
-      window.addEventListener('resize', positionDropdown);
       loadKulturen();
       loadOrte();
       checkLLMStatus();
@@ -434,7 +417,6 @@ export default {
     onBeforeUnmount(() => {
       clearTimeout(debounceTimer);
       document.removeEventListener('click', onDocumentClick);
-      window.removeEventListener('resize', positionDropdown);
     });
 
     return {
@@ -444,7 +426,6 @@ export default {
       clearSchadorg,
       closeDropdown,
       dropdownItems,
-      dropdownStyle,
       errorMessage,
       isDropdownOpen,
       isLlmConfigured,

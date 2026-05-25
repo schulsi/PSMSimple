@@ -200,6 +200,8 @@ nav .ico {
 .nav-user-popup {
   display: none;
   position: fixed;
+  left: 1rem;
+  bottom: 76px;
   width: 212px;
   background: #fff;
   border-radius: 10px;
@@ -465,7 +467,10 @@ main {
 }
 
 .beratung-dropdown {
-  position: fixed;  /* statt absolute */
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
   background: #fff;
   border: 1.5px solid var(--cream-dark);
   border-radius: 8px;

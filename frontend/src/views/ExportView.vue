@@ -82,15 +82,14 @@
                 placeholder="Code oder Beschreibung suchen"
                 autocomplete="off"
                 @blur="handleBbchBlur(item.id)"
-                @focus="openBbchDropdown(item.id, $event)"
-                @input="handleBbchInput(item.id, $event)"
+                @focus="openBbchDropdown(item.id)"
+                @input="handleBbchInput(item.id)"
                 @keydown="handleBbchKeydown(item.id, $event)"
               />
               <div
                 class="autocomplete-results exp-kultur-bbch-results"
                 :class="{ show: activeBbchKulturId === item.id }"
                 :data-id="item.id"
-                :style="activeBbchKulturId === item.id ? bbchDropdownStyle : null"
               >
                 <div v-if="!getBbchMatches(item.id).length" class="autocomplete-empty">
                   Keine passenden BBCH-Codes gefunden
@@ -282,7 +281,6 @@ export default {
     const bbchHints = reactive({});
     const activeBbchKulturId = ref(null);
     const activeBbchIndex = ref(-1);
-    const bbchDropdownStyle = reactive({});
     const form = reactive({
       datum: '',
       uhrzeit: '',
@@ -669,21 +667,9 @@ export default {
       return bbchMatches[kulturId] || [];
     }
 
-    function positionBbchDropdown(event) {
-      const rect = event?.target?.getBoundingClientRect?.();
-      if (!rect) return;
-
-      Object.assign(bbchDropdownStyle, {
-        top: `${rect.bottom + 4}px`,
-        left: `${rect.left}px`,
-        width: `${rect.width}px`,
-      });
-    }
-
-    async function openBbchDropdown(kulturId, event) {
+    async function openBbchDropdown(kulturId) {
       activeBbchKulturId.value = kulturId;
       activeBbchIndex.value = -1;
-      positionBbchDropdown(event);
 
       try {
         const items = await getBBCHOptionsForKultur(kulturId);
@@ -694,9 +680,8 @@ export default {
       }
     }
 
-    async function handleBbchInput(kulturId, event) {
+    async function handleBbchInput(kulturId) {
       syncValidation();
-      positionBbchDropdown(event);
       activeBbchKulturId.value = kulturId;
       activeBbchIndex.value = -1;
       if (!String(kulturBbch[kulturId] || '').trim()) {
@@ -839,7 +824,6 @@ export default {
       areAllVisibleFieldsSelected,
       artHauptOptions,
       artVerwendung,
-      bbchDropdownStyle,
       bbchHints,
       currentArtSubOptions,
       filteredFelderItems,

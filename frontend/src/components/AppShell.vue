@@ -27,7 +27,7 @@
         class="version-update"
         :class="{ hidden: !versionInfo.updateAvailable || !versionInfo.latestVersion }"
       >
-        Neu: v{{ versionInfo.latestVersion }}
+        Update verfügbar (v{{ versionInfo.latestVersion }})
       </span>
     </a>
   </Teleport>
