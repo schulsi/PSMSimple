@@ -7,6 +7,7 @@ from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_migrate import Migrate, upgrade
+from werkzeug.security import check_password_hash
 
 from .config import Config
 from .utils.warmup import _start_warmup_cache
@@ -23,12 +24,34 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+@login_manager.request_loader
+def load_user_from_request(request):
+    auth = request.authorization
+    if not auth or (auth.type or "").lower() != "basic":
+        return None
+
+    username = (auth.username or "").strip()
+    password = auth.password or ""
+    user = User.query.filter_by(username=username).first()
+
+    if user and check_password_hash(user.password, password):
+        return user
+
+    return None
+
+
+def _is_basic_auth_request():
+    auth = request.authorization
+    return bool(auth and (auth.type or "").lower() == "basic")
+
+
 def create_app():
     
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config.from_object(Config)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
+    swagger.template = app.config.get("SWAGGER_TEMPLATE")
     swagger.init_app(app)
     migrate = Migrate()
     migrate.init_app(app, db)
@@ -52,6 +75,16 @@ def create_app():
             return jsonify({"ok": False, "error": "Zu viele Anfragen. Bitte später erneut versuchen."}), 429
         flash("Zu viele Anfragen. Bitte später erneut versuchen.", "error")
         return redirect(url_for("auth.login"))
+
+    @app.before_request
+    def protect_csrf():
+        if request.method in {"GET", "HEAD", "OPTIONS", "TRACE"}:
+            return
+
+        if request.path.startswith("/api/") and _is_basic_auth_request():
+            return
+
+        csrf.protect()
 
     @app.before_request
     def create_csp_nonce():
