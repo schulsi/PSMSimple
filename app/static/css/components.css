@@ -757,7 +757,10 @@ main:has(#tab-meldungen.active) {
 
 .autocomplete-results {
   display: none;
-  position: fixed;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
   background: #fff;
   border: 1.5px solid var(--cream-dark);
   border-radius: 8px;
@@ -769,8 +772,14 @@ main:has(#tab-meldungen.active) {
 .autocomplete-results.show { display: block; }
 
 .autocomplete-item {
+  display: block;
+  width: 100%;
+  border: 0;
   padding: .55rem .75rem;
   font-size: .84rem;
+  font-family: 'DM Sans', sans-serif;
+  text-align: left;
+  background: #fff;
   cursor: pointer;
   border-bottom: 1px solid var(--cream-dark);
 }

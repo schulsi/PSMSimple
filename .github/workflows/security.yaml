@@ -54,7 +54,6 @@ jobs:
       - name: Run Bandit SAST scan
         run: |
           bandit -c bandit.yaml -f json -o bandit-report.json -r .
-        continue-on-error: true
 
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4
@@ -72,7 +71,6 @@ jobs:
             --json \
             --output semgrep-report.json
 
-        continue-on-error: true
 
       - name: Upload Semgrep report
         uses: actions/upload-artifact@v4
@@ -88,8 +86,6 @@ jobs:
           pip-audit \
             --format=json \
             --output=pip-audit-report.json
-
-        continue-on-error: true
 
       - name: Upload pip-audit report
         uses: actions/upload-artifact@v4
