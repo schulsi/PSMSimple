@@ -12,152 +12,152 @@ permissions:
   pull-requests: read
 
 jobs:
-  # security-scanning:
-  #   name: Security Scanning
-  #   runs-on: ubuntu-latest
+  security-scanning:
+    name: Security Scanning
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     # -----------------------------
-  #     # Python Setup
-  #     # -----------------------------
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.12"
+      # -----------------------------
+      # Python Setup
+      # -----------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-  #     - name: Install project dependencies
-  #       run: |
-  #         python -m pip install --upgrade pip
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade pip
 
-  #         if [ -f requirements.txt ]; then
-  #           pip install -r requirements.txt
-  #         fi
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
 
-  #         pip install bandit pip-audit semgrep safety
+          pip install bandit pip-audit semgrep safety
 
-  #     # -----------------------------
-  #     # Secret Scanning
-  #     # -----------------------------
-  #     - name: Secret scanning with Gitleaks
-  #       uses: gitleaks/gitleaks-action@v2
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # -----------------------------
+      # Secret Scanning
+      # -----------------------------
+      - name: Secret scanning with Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  #     # -----------------------------
-  #     # Python SAST - Bandit
-  #     # -----------------------------
-  #     - name: Run Bandit SAST scan
-  #       run: |
-  #         bandit -r . \
-  #           -f json \
-  #           -o bandit-report.json \
-  #           --exclude .venv,venv,__pycache__,tests
+      # -----------------------------
+      # Python SAST - Bandit
+      # -----------------------------
+      - name: Run Bandit SAST scan
+        run: |
+          bandit -r . \
+            -f json \
+            -o bandit-report.json \
+            --exclude .venv,venv,__pycache__,tests
 
-  #       continue-on-error: true
+        continue-on-error: true
 
-  #     - name: Upload Bandit report
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: bandit-report
-  #         path: bandit-report.json
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
 
-  #     # -----------------------------
-  #     # Semgrep OWASP Scan
-  #     # -----------------------------
-  #     - name: Run Semgrep OWASP Top 10 scan
-  #       run: |
-  #         semgrep scan \
-  #           --config p/owasp-top-ten \
-  #           --json \
-  #           --output semgrep-report.json
+      # -----------------------------
+      # Semgrep OWASP Scan
+      # -----------------------------
+      - name: Run Semgrep OWASP Top 10 scan
+        run: |
+          semgrep scan \
+            --config p/owasp-top-ten \
+            --json \
+            --output semgrep-report.json
 
-  #       continue-on-error: true
+        continue-on-error: true
 
-  #     - name: Upload Semgrep report
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: semgrep-report
-  #         path: semgrep-report.json
+      - name: Upload Semgrep report
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-report
+          path: semgrep-report.json
 
-  #     # -----------------------------
-  #     # Dependency Vulnerability Scanning
-  #     # -----------------------------
-  #     - name: Run pip-audit
-  #       run: |
-  #         pip-audit \
-  #           --format=json \
-  #           --output=pip-audit-report.json
+      # -----------------------------
+      # Dependency Vulnerability Scanning
+      # -----------------------------
+      - name: Run pip-audit
+        run: |
+          pip-audit \
+            --format=json \
+            --output=pip-audit-report.json
 
-  #       continue-on-error: true
+        continue-on-error: true
 
-  #     - name: Upload pip-audit report
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: pip-audit-report
-  #         path: pip-audit-report.json
+      - name: Upload pip-audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
 
-  #     - name: Run Safety dependency scan
-  #       run: |
-  #         safety check \
-  #           --json \
-  #           --output safety-report.json
+      - name: Run Safety dependency scan
+        run: |
+          safety check \
+            --json \
+            --output safety-report.json
 
-  #       continue-on-error: true
+        continue-on-error: true
 
-  #     - name: Upload Safety report
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: safety-report
-  #         path: safety-report.json
+      - name: Upload Safety report
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-report
+          path: safety-report.json
 
-  #     # -----------------------------
-  #     # Docker Image Build
-  #     # -----------------------------
-  #     - name: Build Docker image
-  #       run: |
-  #         docker build -t myapp:security-scan .
+      # -----------------------------
+      # Docker Image Build
+      # -----------------------------
+      - name: Build Docker image
+        run: |
+          docker build -t myapp:security-scan .
 
-  #     # -----------------------------
-  #     # Docker Image Vulnerability Scan
-  #     # -----------------------------
-  #     - name: Scan Docker image with Trivy
-  #       uses: aquasecurity/trivy-action@master
-  #       with:
-  #         image-ref: myapp:security-scan
-  #         format: json
-  #         output: trivy-report.json
-  #         severity: CRITICAL,HIGH,MEDIUM
-  #         ignore-unfixed: true
+      # -----------------------------
+      # Docker Image Vulnerability Scan
+      # -----------------------------
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: myapp:security-scan
+          format: json
+          output: trivy-report.json
+          severity: CRITICAL,HIGH,MEDIUM
+          ignore-unfixed: true
 
-  #     - name: Upload Trivy report
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: trivy-report
-  #         path: trivy-report.json
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-report.json
 
-  #     # -----------------------------
-  #     # Filesystem / IaC / Secret Scan
-  #     # -----------------------------
-  #     - name: Trivy filesystem scan
-  #       uses: aquasecurity/trivy-action@master
-  #       with:
-  #         scan-type: fs
-  #         scan-ref: .
-  #         format: json
-  #         output: trivy-fs-report.json
-  #         scanners: vuln,secret,misconfig
-  #         severity: CRITICAL,HIGH,MEDIUM
+      # -----------------------------
+      # Filesystem / IaC / Secret Scan
+      # -----------------------------
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: trivy-fs-report.json
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH,MEDIUM
 
-  #     - name: Upload Trivy filesystem report
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: trivy-filesystem-report
-  #         path: trivy-fs-report.json
+      - name: Upload Trivy filesystem report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-filesystem-report
+          path: trivy-fs-report.json
 
   dast-zap-scan:
     name: OWASP ZAP DAST Scan
