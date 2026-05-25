@@ -4,7 +4,6 @@ from flask import jsonify
 from flask_login import current_user, login_required
 
 from ..extensions import db
-from ..models.user import User
 from ..models.UserRole import UserRole
 from ..repositories.role_repo import get_role_id, get_role_name
 

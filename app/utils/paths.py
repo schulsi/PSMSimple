@@ -1,15 +1,11 @@
 from datetime import datetime
 from pathlib import Path
 import re
-import os
-from pathlib import Path
 
 from ..config import Config
 
 EXPORT_DIR =Path(Config.EXPORTS_DIR)  
 BASE_DIR =Path(__file__).resolve().parents[2]
-
-from ..config import Config
 
 BASE_DIR = Config.BASE_DIR
 EXPORT_DIR = Config.EXPORTS_DIR

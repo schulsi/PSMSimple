@@ -3,7 +3,6 @@ from flask_login import login_required
 from packaging.version import parse as parse_version
 import requests
 
-from ..services.permissions import build_permissions
 from ..version import APP_NAME, APP_VERSION, GITHUB_OWNER, GITHUB_REPO
 
 bp = Blueprint("version", __name__)
@@ -49,7 +48,7 @@ def check_updates():
             "changelog": release.get("body"),
         })
 
-    except Exception as e:
+    except Exception:
         return jsonify({
             "app_name": APP_NAME,
             "current_version": APP_VERSION,

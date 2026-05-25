@@ -9,7 +9,7 @@ def insert_applikation(datum: str, json_data: str) -> int:
     obj = ApplicationSetting(
         datum = datum,
         json_data = json_data,
-        created_at = datetime.now(timezone.utc)
+        created_at = datetime.now(datetime.UTC)
     )
     db.session.add(obj)
     db.session.commit()

@@ -16,7 +16,6 @@ def list_orte_by_ids(ort_ids: list[int]):
     if not ort_ids:
         return []
 
-    placeholders = ",".join("?" for _ in ort_ids)
     db = get_db()
     return [ort.to_dict() for ort in db.session.query(Ort).filter(Ort.id.in_(ort_ids)).all()]
 

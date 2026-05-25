@@ -40,4 +40,5 @@ __all__ = [
     "build_permissions",
     "require_admin",
     "require_write_access", 
+    "seed_roles",
 ]

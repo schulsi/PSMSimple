@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from ..config import Config
 from dataclasses import dataclass
-from openai import OpenAI, APIConnectionError, APIError, APITimeoutError
+from openai import OpenAI, APIConnectionError, APIError, APITimeoutError, OpenAIError
 import anthropic
 
 
@@ -62,7 +62,7 @@ def _call_openai(system: str, user: str, model: str, max_tokens: int) -> LLMResp
         raise LLMError(f"LLM-API-Fehler: {e}") from e
     except Exception as e:
         raise LLMError(f"Unerwarteter LLM-Fehler: {e}") from e
-    except Exception as exc:
+    except OpenAIError as exc:
         raise LLMError(f"OpenAI Fehler: {exc}") from exc
 
 
