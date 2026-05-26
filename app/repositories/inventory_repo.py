@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy import func, case
 
 from .sqlite import get_db
@@ -108,7 +108,7 @@ def insert_inventory_movement(
     quelle: str | None,
 ) -> dict:
     db = get_db()
-    now = datetime.now(datetime.UTC)
+    now = datetime.now(UTC)
 
     movement = Inventory(
         psm_id=psm_id,

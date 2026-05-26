@@ -76,7 +76,77 @@
     </section>
 
     <section class="meldungen-detail-panel">
-      <form v-if="showForm" class="card" @submit.prevent="saveMeldung">
+      <div v-if="selectedMeldung" class="card meldung-detail-card">
+        <div class="section-head compact-section-head">
+          <div>
+            <h3>{{ selectedMeldung.titel }}</h3>
+            <p class="section-subtitle">
+              {{ selectedMeldung.datum }} · {{ typeLabel(selectedMeldung.typ) }} · {{ getFeldName(selectedMeldung.flaeche_id) }}
+            </p>
+          </div>
+          <div class="item-actions">
+            <button v-if="canWrite" type="button" class="btn btn-sm btn-ghost" @click="openEditForm">Bearbeiten</button>
+            <button v-if="canWrite" type="button" class="btn btn-sm btn-danger" @click="removeMeldung">Löschen</button>
+          </div>
+        </div>
+
+        <div class="meldung-badges">
+          <span class="badge-status" :class="statusClass(selectedMeldung.status)">
+            {{ statusLabel(selectedMeldung.status) }}
+          </span>
+          <span class="badge-status" :class="priorityClass(selectedMeldung.prioritaet)">
+            {{ priorityLabel(selectedMeldung.prioritaet) }}
+          </span>
+        </div>
+
+        <p class="meldung-description">{{ selectedMeldung.beschreibung || 'Keine Beschreibung hinterlegt.' }}</p>
+
+        <div v-if="selectedMeldung.latitude || selectedMeldung.longitude" class="meta mb-085">
+          Koordinaten: {{ selectedMeldung.latitude || '—' }}, {{ selectedMeldung.longitude || '—' }}
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="section-head compact-section-head">
+          <div>
+            <h3>Fotos</h3>
+            <p class="section-subtitle">{{ fotos.length }} Bild{{ fotos.length === 1 ? '' : 'er' }}</p>
+          </div>
+          <div class="meldung-upload-buttons" v-if="canWrite">
+            <label class="btn btn-ghost meldung-upload-button">
+              Foto hochladen
+              <input type="file" accept="image/*" multiple @change="uploadFoto" />
+            </label>
+            <button v-if="hasCamera" type="button" class="btn btn-ghost" @click="startCameraCapture">
+              Foto aufnehmen
+            </button>
+          </div>
+        </div>
+
+        <div v-if="isFotosLoading" class="empty">Fotos werden geladen...</div>
+        <div v-else-if="!fotos.length" class="empty">Noch keine Fotos vorhanden.</div>
+        <div v-else class="meldung-photo-grid">
+          <figure v-for="foto in fotos" :key="foto.id" class="meldung-photo-card">
+            <img :src="fotoUrl(foto.id)" :alt="foto.filename" />
+            <figcaption>
+              <span>{{ foto.filename }}</span>
+              <button v-if="canWrite" type="button" class="btn btn-sm btn-danger" @click="removeFoto(foto.id)">
+                Löschen
+              </button>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div v-else class="card empty meldungen-empty-detail">
+        Wähle eine Meldung aus oder erstelle eine neue.
+      </div>
+    </section>
+  </div>
+
+  <Teleport to="body">
+    <div v-if="showForm" class="modal-overlay open" @click.self="cancelForm">
+      <form class="modal" @submit.prevent="saveMeldung">
         <h3>{{ form.id ? 'Meldung bearbeiten' : 'Neue Meldung' }}</h3>
 
         <div class="form-grid">
@@ -145,7 +215,7 @@
           <div class="field span-2">
             <label for="meldung-fotos">Fotos</label>
             <div class="meldungen-file-inputs">
-              <label class="btn btn-ghost">
+              <label class="btn btn-ghost meldung-upload-button">
                 <span class="meldung-button-linebreak">Galerie<br />auswählen</span>
                 <input id="meldung-fotos" type="file" accept="image/*" multiple @change="stageFormFotos" />
               </label>
@@ -166,74 +236,8 @@
           </button>
         </div>
       </form>
-
-      <div v-else-if="selectedMeldung" class="card meldung-detail-card">
-        <div class="section-head compact-section-head">
-          <div>
-            <h3>{{ selectedMeldung.titel }}</h3>
-            <p class="section-subtitle">
-              {{ selectedMeldung.datum }} · {{ typeLabel(selectedMeldung.typ) }} · {{ getFeldName(selectedMeldung.flaeche_id) }}
-            </p>
-          </div>
-          <div class="item-actions">
-            <button v-if="canWrite" type="button" class="btn btn-sm btn-ghost" @click="openEditForm">Bearbeiten</button>
-            <button v-if="canWrite" type="button" class="btn btn-sm btn-danger" @click="removeMeldung">Löschen</button>
-          </div>
-        </div>
-
-        <div class="meldung-badges">
-          <span class="badge-status" :class="statusClass(selectedMeldung.status)">
-            {{ statusLabel(selectedMeldung.status) }}
-          </span>
-          <span class="badge-status" :class="priorityClass(selectedMeldung.prioritaet)">
-            {{ priorityLabel(selectedMeldung.prioritaet) }}
-          </span>
-        </div>
-
-        <p class="meldung-description">{{ selectedMeldung.beschreibung || 'Keine Beschreibung hinterlegt.' }}</p>
-
-        <div v-if="selectedMeldung.latitude || selectedMeldung.longitude" class="meta mb-085">
-          Koordinaten: {{ selectedMeldung.latitude || '—' }}, {{ selectedMeldung.longitude || '—' }}
-        </div>
-
-        <div class="section-divider"></div>
-
-        <div class="section-head compact-section-head">
-          <div>
-            <h3>Fotos</h3>
-            <p class="section-subtitle">{{ fotos.length }} Bild{{ fotos.length === 1 ? '' : 'er' }}</p>
-          </div>
-          <div class="meldung-upload-buttons" v-if="canWrite">
-            <label class="btn btn-ghost meldung-upload-button">
-              Foto hochladen
-              <input type="file" accept="image/*" multiple @change="uploadFoto" />
-            </label>
-            <button v-if="hasCamera" type="button" class="btn btn-ghost" @click="startCameraCapture">
-              Foto aufnehmen
-            </button>
-          </div>
-        </div>
-
-        <div v-if="isFotosLoading" class="empty">Fotos werden geladen...</div>
-        <div v-else-if="!fotos.length" class="empty">Noch keine Fotos vorhanden.</div>
-        <div v-else class="meldung-photo-grid">
-          <figure v-for="foto in fotos" :key="foto.id" class="meldung-photo-card">
-            <img :src="fotoUrl(foto.id)" :alt="foto.filename" />
-            <figcaption>
-              <span>{{ foto.filename }}</span>
-              <button v-if="canWrite" type="button" class="btn btn-sm btn-danger" @click="removeFoto(foto.id)">
-                Löschen
-              </button>
-            </figcaption>
-          </figure>
-        </div>
-      </div>
-
-      <div v-else class="card empty meldungen-empty-detail">
-        Wähle eine Meldung aus oder erstelle eine neue.
-      </div>
-    </section>
-  </div>
+    </div>
+  </Teleport>
 
   <div v-if="showCameraCapture" class="meldung-camera-overlay">
     <div class="meldung-camera-dialog">

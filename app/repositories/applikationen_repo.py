@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from .sqlite import get_db
 from ..models.ApplicationSetting import ApplicationSetting
 
@@ -9,7 +9,7 @@ def insert_applikation(datum: str, json_data: str) -> int:
     obj = ApplicationSetting(
         datum = datum,
         json_data = json_data,
-        created_at = datetime.now(datetime.UTC)
+        created_at = datetime.now(UTC)
     )
     db.session.add(obj)
     db.session.commit()
