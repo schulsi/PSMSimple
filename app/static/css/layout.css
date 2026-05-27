@@ -303,30 +303,39 @@ main {
 
 /* Fortschrittsbalken-Wrapper */
 .beratung-progress-wrap {
-  padding: 12px 0 16px;
+  padding: .85rem 0 1rem;
   width: 100%;
 }
 
+.beratung-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .45rem;
+  color: var(--green-deep);
+  font-size: .82rem;
+  font-weight: 600;
+}
+
 .beratung-progress-bar-track {
-  height: 6px;
-  background: var(--color-border, #e2e8f0);
+  height: 8px;
+  background: var(--cream-dark);
   border-radius: 99px;
   overflow: hidden;
-  margin-bottom: 8px;
-  --pct: 0%;  /* Default hier setzen */
+  margin-bottom: .45rem;
 }
 
 .beratung-progress-bar-fill {
   height: 100%;
-  background: var(--color-primary, #3b82f6);
+  background: var(--green-mid);
   border-radius: 99px;
   transition: width 0.3s ease;
-  width: var(--pct, 0%);
 }
 
 .beratung-progress-label {
-  font-size: 0.8rem;
-  color: var(--color-text-muted, #64748b);
+  font-size: .8rem;
+  color: var(--text-muted);
 }
 
 /* Einblend-Animation für neue Karten */
