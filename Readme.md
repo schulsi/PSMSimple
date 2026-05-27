@@ -31,6 +31,16 @@ A web app for creating and managing plant protection application records in JSON
 | **Spray Window Forecast**     | Calculate optimal spray windows based on weather data (Open-Meteo)                              |
 | **PSM Advisory**              | AI-powered product recommendations based on BVL approval data, weather, and application history |
 | **Inventory**                 | Track stock levels of plant protection products with movement history                           |
+| **Notifications / Reports**   | Manage operational reports with status, type, field assignment, notes, and filtering            |
+| **BBCH Management**           | Create, edit, assign, and search BBCH stages per crop                                           |
+| **User Management**           | First registered user becomes admin; registration is disabled automatically afterwards           |
+| **Role Management**           | Admins can manage user roles and remove users                                                   |
+| **Personal Defaults**         | Per-user defaults for application exports, such as applicator and responsible person            |
+| **App Settings**              | Admin settings for registration, advisory, forecast thresholds, and inventory defaults           |
+| **Inventory Warnings**        | Configurable warning and minimum stock levels with a sidebar badge                              |
+| **Version & Update Check**    | Shows the installed version and checks GitHub releases for available updates                    |
+| **Secure Sessions**           | CSRF protection, secure cookies, rate limiting, and security headers for safer deployments       |
+| **Docker Deployment**         | Docker/Compose setup with internal Redis support and a trimmed Docker build context             |
 
 ---
 
