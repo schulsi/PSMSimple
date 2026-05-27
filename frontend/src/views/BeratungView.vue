@@ -97,10 +97,10 @@
       <div class="card mb-085">
         <h3 class="section-title">🧪 Zugelassene Mittel <span id="beratung-mittel-count" class="badge">{{ mittel.length }}</span></h3>
         <p class="text-muted-history">Alle aktuell zugelassenen Mittel laut BVL für die gewählte Kombination.</p>
-        <div v-if="isLoadingMittel || progressTotal > 0" class="beratung-progress-wrap">
+        <div v-if="isLoadingMittel || awgTotal > 0 || detailTotal > 0" class="beratung-progress-wrap">
           <div class="beratung-progress-meta">
             <span>Gefunden: <strong>{{ progressFound }}</strong></span>
-            <span>Geladen: <strong>{{ progressLoaded }}</strong><template v-if="progressTotal"> / {{ progressTotal }}</template></span>
+            <span>Mittel geladen: <strong>{{ detailLoaded }}</strong><template v-if="detailTotal"> / {{ detailTotal }}</template></span>
           </div>
           <div class="beratung-progress-bar-track">
             <div class="beratung-progress-bar-fill" :style="{ width: `${progressPercent}%` }"></div>
@@ -108,7 +108,7 @@
           <div class="beratung-progress-label">{{ progressLabel }}</div>
         </div>
         <div id="beratung-mittel-list" class="beratung-bubble-grid">
-          <div v-if="isLoadingMittel && !mittel.length" class="empty">Mittel werden geladen...</div>
+          <div v-if="isLoadingMittel && !mittel.length" class="empty">{{ emptyLoadingText }}</div>
           <div v-else-if="!mittel.length" class="empty">Keine zugelassenen Mittel gefunden.</div>
           <div
             v-for="item in mittel"
@@ -150,7 +150,6 @@
       </div>
     </div>
 
-    <div id="beratung-loading" class="forecast-info-box" :class="{ hidden: !isLoadingMittel }">Mittel werden geladen...</div>
     <div id="beratung-error" class="forecast-error-box" :class="{ hidden: !errorMessage }">{{ errorMessage }}</div>
   </div>
 </template>
@@ -182,8 +181,10 @@ export default {
     const errorMessage = ref('');
     const mittel = ref([]);
     const showMittel = ref(false);
-    const progressLoaded = ref(0);
-    const progressTotal = ref(0);
+    const awgLoaded = ref(0);
+    const awgTotal = ref(0);
+    const detailLoaded = ref(0);
+    const detailTotal = ref(0);
     const progressFound = computed(() => mittel.value.length);
     const isRecommendationLoading = ref(false);
     const recommendationError = ref('');
@@ -205,18 +206,23 @@ export default {
 
     const recommendationLines = computed(() => recommendationText.value.split('\n'));
     const progressPercent = computed(() => {
-      if (!progressTotal.value) return isLoadingMittel.value ? 8 : 0;
-      return Math.min(100, Math.round((progressLoaded.value / progressTotal.value) * 100));
+      if (detailTotal.value) return Math.min(100, Math.round((detailLoaded.value / detailTotal.value) * 100));
+      if (awgTotal.value) return Math.min(95, Math.round((awgLoaded.value / awgTotal.value) * 100));
+      return isLoadingMittel.value ? 8 : 0;
     });
     const progressLabel = computed(() => {
       if (isLoadingMittel.value) {
-        return progressTotal.value
-          ? `Lade zugelassene Mittel (${progressPercent.value}%)`
-          : 'Suche zugelassene Mittel...';
+        if (detailTotal.value) return `Lade Mitteldetails (${progressPercent.value}%)`;
+        if (awgTotal.value) return `Prüfe Anwendungen (${awgLoaded.value} / ${awgTotal.value})`;
+        return 'Suche zugelassene Mittel...';
       }
-      if (!progressTotal.value) return 'Suche abgeschlossen';
       return `Abgeschlossen: ${progressFound.value} Mittel gefunden`;
     });
+    const emptyLoadingText = computed(() => (
+      awgTotal.value && !detailTotal.value
+        ? 'Passende Anwendungen werden geprüft...'
+        : 'Mittel werden geladen...'
+    ));
 
     watch(selectedKulturId, () => {
       selectedSchadorg.value = null;
@@ -357,8 +363,10 @@ export default {
       closeMittelStream();
       mittel.value = [];
       showMittel.value = false;
-      progressLoaded.value = 0;
-      progressTotal.value = 0;
+      awgLoaded.value = 0;
+      awgTotal.value = 0;
+      detailLoaded.value = 0;
+      detailTotal.value = 0;
       recommendationError.value = '';
       recommendationText.value = '';
       recommendationMeta.value = '';
@@ -405,8 +413,13 @@ export default {
         }
 
         if (data.type === 'progress') {
-          progressLoaded.value = Number(data.loaded || 0);
-          progressTotal.value = Number(data.total || 0);
+          if (data.phase === 'kennr') {
+            awgLoaded.value = Number(data.loaded || 0);
+            awgTotal.value = Number(data.total || 0);
+          } else {
+            detailLoaded.value = Number(data.loaded || 0);
+            detailTotal.value = Number(data.total || 0);
+          }
           return;
         }
 
@@ -492,7 +505,10 @@ export default {
       clearSchadorg,
       closeDropdown,
       dropdownItems,
+      detailLoaded,
+      detailTotal,
       errorMessage,
+      emptyLoadingText,
       isDropdownOpen,
       isLlmConfigured,
       isLoadingMittel,
@@ -504,11 +520,11 @@ export default {
       onSchadInput,
       openDropdown,
       orte,
+      awgLoaded,
+      awgTotal,
       progressFound,
       progressLabel,
-      progressLoaded,
       progressPercent,
-      progressTotal,
       recommendationError,
       recommendationLines,
       recommendationMeta,
