@@ -143,6 +143,13 @@ nav .ico {
   position: relative;
 }
 
+header .nav-user {
+  border-top: 0;
+  padding: 0;
+  margin-left: .25rem;
+  flex: 0 1 auto;
+}
+
 .nav-user-btn {
   display: flex;
   align-items: center;
@@ -155,6 +162,13 @@ nav .ico {
   cursor: pointer;
   transition: background .15s;
   color: var(--green-pale);
+}
+
+header .nav-user-btn {
+  width: auto;
+  max-width: min(240px, 26vw);
+  min-height: 40px;
+  padding: .45rem .65rem;
 }
 
 .nav-user-btn:hover {
@@ -200,9 +214,9 @@ nav .ico {
 .nav-user-popup {
   display: none;
   position: fixed;
-  left: 1rem;
-  bottom: 76px;
-  width: 212px;
+  top: 72px;
+  right: 2rem;
+  width: 232px;
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, .22);
@@ -219,7 +233,7 @@ nav .ico {
 @keyframes popUp {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(-6px);
   }
   to {
     opacity: 1;
@@ -832,6 +846,19 @@ main {
     display: none;
   }
 
+  header .nav-user-btn {
+    max-width: none;
+    width: 42px;
+    height: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  header .nav-user-name,
+  header .nav-user-caret {
+    display: none;
+  }
+
   .nav-toggle {
     display: flex;
     align-items: center;
@@ -900,9 +927,9 @@ main {
   }
 
   .nav-user-popup {
-    bottom: 70px !important;
-    left: 8px !important;
-    width: calc(240px - 16px) !important;
+    top: 64px !important;
+    right: 8px !important;
+    width: min(232px, calc(100vw - 16px)) !important;
   }
 }
 
