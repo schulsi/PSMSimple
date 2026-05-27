@@ -202,7 +202,6 @@ http://localhost:8080/apidocs
 
 ## Security Notes
 
-- `SESSION_COOKIE_SECURE` and `REMEMBER_COOKIE_SECURE` are currently commented out in `config.py`. For production deployments behind HTTPS (recommended), these should be enabled.
 - The `SECRET_KEY` should be at least 32 random bytes long — use `openssl rand -hex 32` to generate one.
 - For production, the app should be run behind a reverse proxy (e.g. nginx or Traefik) with TLS termination.
 - API keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) should be stored in the `.env` file and never committed to version control.
