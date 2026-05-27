@@ -951,6 +951,36 @@ main:has(#tab-meldungen.active) {
   flex-wrap: wrap;
   flex-shrink: 0;
 }
+
+.user-item-actions select {
+  min-width: 128px;
+  height: 36px;
+  padding: 0 2rem 0 .75rem;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 7px;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--green-deep) 50%) calc(100% - 14px) 50% / 6px 6px no-repeat,
+    linear-gradient(135deg, var(--green-deep) 50%, transparent 50%) calc(100% - 9px) 50% / 6px 6px no-repeat,
+    #fff;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  transition: border-color .15s, box-shadow .15s, background-color .15s;
+}
+
+.user-item-actions select:hover {
+  border-color: var(--green-light);
+  background-color: var(--cream);
+}
+
+.user-item-actions select:focus {
+  border-color: var(--green-light);
+  box-shadow: 0 0 0 3px rgba(82, 183, 136, .18);
+}
 .user-item-empty { color: #999; padding: 1rem; text-align: center; }
 .user-item-error { color: #b00020; padding: 1rem; text-align: center; }
 
