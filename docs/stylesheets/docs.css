@@ -5,14 +5,15 @@ body,
   --psm-green-mid: #2d6a4f;
   --psm-green-light: #52b788;
   --psm-green-pale: #b7e4c7;
-  --psm-cream: #f8f5ee;
+  --psm-cream: #fff;
   --psm-cream-dark: #ede9df;
   --psm-text: #1c2b22;
   --psm-text-muted: #5a7060;
   --psm-danger: #c0392b;
   --psm-surface: #fff;
   --psm-surface-soft: #fcfbf7;
-  --psm-shadow: 0 2px 16px rgba(26, 58, 42, 0.10);
+  --psm-border: rgba(45, 106, 79, 0.22);
+  --psm-shadow: none;
 
   --md-primary-fg-color: var(--psm-green-deep);
   --md-primary-fg-color--light: var(--psm-green-mid);
@@ -24,7 +25,7 @@ body,
 
   --md-default-fg-color: var(--psm-text);
   --md-default-fg-color--light: var(--psm-text-muted);
-  --md-default-bg-color: var(--psm-cream);
+  --md-default-bg-color: #fff;
   --md-typeset-color: var(--psm-text);
   --md-typeset-a-color: var(--psm-green-mid);
 
@@ -38,7 +39,7 @@ body,
 
 body,
 .md-main {
-  background: var(--psm-cream);
+  background: #fff;
   color: var(--psm-text);
 }
 
@@ -63,9 +64,7 @@ body,
 
 .md-content {
   background: var(--psm-surface);
-  border: 1px solid var(--psm-cream-dark);
-  border-radius: 10px;
-  box-shadow: var(--psm-shadow);
+  box-shadow: none;
   margin-top: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -89,7 +88,7 @@ body,
 }
 
 .md-typeset h2 {
-  border-bottom: 1px solid var(--psm-cream-dark);
+  border-bottom: 1px solid var(--psm-border);
   padding-bottom: .35rem;
 }
 
@@ -113,9 +112,9 @@ body,
 
 .md-typeset table:not([class]) {
   background: var(--psm-surface);
-  border: 1px solid var(--psm-cream-dark);
+  border: 1px solid var(--psm-border);
   border-radius: 10px;
-  box-shadow: var(--psm-shadow);
+  box-shadow: none;
 }
 
 .md-typeset table:not([class]) th {
@@ -125,7 +124,7 @@ body,
 
 .md-typeset table:not([class]) td,
 .md-typeset table:not([class]) th {
-  border-color: var(--psm-cream-dark);
+  border-color: var(--psm-border);
 }
 
 .md-nav__link--active,
@@ -164,7 +163,7 @@ body,
 .md-typeset details {
   background: var(--psm-surface);
   border-color: var(--psm-green-light);
-  box-shadow: var(--psm-shadow);
+  box-shadow: none;
 }
 
 .md-typeset .admonition-title,
