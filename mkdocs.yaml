@@ -1,0 +1,46 @@
+site_name: PSM Simple Guide
+site_url: https://docs.psm.schulsi.org
+
+theme:
+  name: material
+  language: de
+  palette:
+    scheme: default
+    primary: custom
+    accent: custom
+  features:
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+  logo: assets/logo.png
+  favicon: assets/favicon.png
+
+extra_css:
+  - stylesheets/docs.css
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: de
+          default: true
+          name: Deutsch
+          build: true
+        - locale: en
+          name: English
+          build: true
+
+nav:
+  - Start: index.md
+  - Erste Schritte: erste-schritte.md
+  - Arbeiten mit PSMSimple:
+      - Anwendung dokumentieren: anwendung-dokumentieren.md
+      - Export: export.md
+      - Historie: historie.md
+  - Stammdaten:
+      - Betrieb: betrieb.md
+      - Einsatzorte und Felder: einsatzorte.md
+      - Kulturen und BBCH: kulturen-und-bbch.md
+      - Pflanzenschutzmittel: pflanzenschutzmittel.md
