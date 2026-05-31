@@ -2,7 +2,7 @@ import json
 import secrets
 from pathlib import Path
 
-from flask import Flask, jsonify, request, flash, redirect, url_for, g
+from flask import Flask, jsonify, request, flash, redirect, url_for, render_template, g
 from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -61,6 +61,22 @@ def create_app():
     login_manager.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template("errors/403.html"), 403
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def server_error(e):
+        return render_template("errors/500.html"), 500
+
+    @app.errorhandler(503)
+    def service_unavailable(e):
+        return render_template("errors/503.html"), 503
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):

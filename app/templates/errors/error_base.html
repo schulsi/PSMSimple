@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ error_code }} - {{ error_title }} | PSM</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/errors.css') }}">
+</head>
+<body>
+<div class="page-wrap">
+  <header class="site-header">
+    <a href="/" class="site-logo">PSM</a>
+    <div class="header-sep"></div>
+    <span class="header-nav">Dashboard · Aufgaben · Berichte</span>
+  </header>
+
+  <main class="error-main">
+    <div class="error-bg-number" aria-hidden="true">{{ error_code }}</div>
+
+    <div class="error-content">
+      <span class="badge {{ badge_class }}">{{ error_code }}</span>
+
+      <h1 class="error-title">{{ error_title }}</h1>
+
+      <div class="error-divider"></div>
+
+      <p class="error-description">{{ error_description }}</p>
+
+      {% if info_label and info_text %}
+      <div class="info-box {{ 'danger' if is_danger else '' }}">
+        <strong>{{ info_label }}</strong> {{ info_text }}
+      </div>
+      {% endif %}
+
+      <div class="actions">
+        {% block actions %}
+        <a href="/" class="btn btn-primary">Zur Startseite</a>
+        {% endblock %}
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <span class="footer-status">
+      <span class="status-dot {{ status_dot_class }}"></span>
+      {{ status_text }}
+    </span>
+    <span class="footer-code">Fehlercode: HTTP {{ error_code }}</span>
+  </footer>
+</div>
+</body>
+</html>
