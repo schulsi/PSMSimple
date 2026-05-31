@@ -31,6 +31,29 @@ plugins:
         - locale: en
           name: English
           build: true
+          nav_translations:
+            Start: Home
+            Erste Schritte: Getting Started
+            Arbeiten mit PSMSimple: Working with PSMSimple
+            Anwendung dokumentieren: Documenting an Application
+            Export: Export
+            Historie: History
+            Stammdaten: Master Data
+            Betrieb: Farm
+            Einsatzorte und Felder: Application Sites and Fields
+            Kulturen und BBCH: Crops and BBCH
+            Pflanzenschutzmittel: Plant Protection Products
+            Weitere Funktionen: Additional Features
+            Lager: Inventory
+            Meldungen: Reports
+            Wetter und Prognose: Weather and Forecast
+            Beratung: Advisory
+            Administration: Administration
+            Einstellungen: Settings
+            Benutzer und Rollen: Users and Roles
+            Hilfe: Help
+            FAQ: FAQ
+            Fehlerbehebung: Troubleshooting
 
 nav:
   - Start: index.md
