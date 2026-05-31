@@ -44,3 +44,14 @@ nav:
       - Einsatzorte und Felder: einsatzorte.md
       - Kulturen und BBCH: kulturen-und-bbch.md
       - Pflanzenschutzmittel: pflanzenschutzmittel.md
+  - Weitere Funktionen:
+      - Lager: lager.md
+      - Meldungen: meldungen.md
+      - Wetter und Prognose: wetter-und-prognose.md
+      - Beratung: beratung.md
+  - Administration:
+      - Einstellungen: einstellungen.md
+      - Benutzer und Rollen: benutzer-und-rollen.md
+  - Hilfe:
+      - FAQ: faq.md
+      - Fehlerbehebung: fehlerbehebung.md
