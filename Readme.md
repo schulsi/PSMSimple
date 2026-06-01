@@ -102,7 +102,7 @@ For running without Docker Compose (e.g. without Redis):
 ```bash
 docker run -d \
   --name psmsimple \
-  -p 8080:80 \
+  -p 8080:8000 \
   -v $(pwd)/data:/data \
   -e SECRET_KEY="your-secret-key" \
   ghcr.io/schulsi/psmsimple:latest

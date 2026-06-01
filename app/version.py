@@ -1,4 +1,4 @@
-APP_VERSION = "0.0.7"
+APP_VERSION = "0.0.8"
 APP_NAME = "PSMSimple"
 GITHUB_OWNER = "schulsi"
 GITHUB_REPO = "PSMSimple"
