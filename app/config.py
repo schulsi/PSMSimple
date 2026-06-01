@@ -17,10 +17,10 @@ DB = os.path.join(DB_DIR, "app.db")
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
- #   SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
- #   REMEMBER_COOKIE_SECURE = True
+    REMEMBER_COOKIE_SECURE = True
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SAMESITE = "Lax"
     RATELIMIT_STORAGE_URI = os.environ.get(

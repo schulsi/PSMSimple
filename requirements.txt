@@ -14,3 +14,4 @@ flasgger
 openai
 anthropic
 packaging
+defusedxml

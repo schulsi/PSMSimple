@@ -97,11 +97,22 @@
       <div class="card mb-085">
         <h3 class="section-title">🧪 Zugelassene Mittel <span id="beratung-mittel-count" class="badge">{{ mittel.length }}</span></h3>
         <p class="text-muted-history">Alle aktuell zugelassenen Mittel laut BVL für die gewählte Kombination.</p>
+        <div v-if="isLoadingMittel || progressTotal > 0" class="beratung-progress-wrap">
+          <div class="beratung-progress-meta">
+            <span>Gefunden: <strong>{{ progressFound }}</strong></span>
+            <span>Geprüft: <strong>{{ progressLoaded }}</strong><template v-if="progressTotal"> / {{ progressTotal }}</template></span>
+          </div>
+          <div class="beratung-progress-bar-track">
+            <div class="beratung-progress-bar-fill" :style="{ width: `${progressPercent}%` }"></div>
+          </div>
+          <div class="beratung-progress-label">{{ progressLabel }}</div>
+        </div>
         <div id="beratung-mittel-list" class="beratung-bubble-grid">
-          <div v-if="!mittel.length" class="empty">Keine zugelassenen Mittel gefunden.</div>
+          <div v-if="isLoadingMittel && !mittel.length" class="empty">{{ emptyLoadingText }}</div>
+          <div v-else-if="!mittel.length" class="empty">Keine zugelassenen Mittel gefunden.</div>
           <div
             v-for="item in mittel"
-            :key="`${item.mittelname}-${item.zul_ende || ''}`"
+            :key="`${item.kennr || item.mittelname}-${item.awg_id || item.zul_ende || ''}`"
             class="beratung-bubble-card"
             :class="{ 'beratung-bubble-low-risk': item.geringes_risiko }"
           >
@@ -139,7 +150,6 @@
       </div>
     </div>
 
-    <div id="beratung-loading" class="forecast-info-box" :class="{ hidden: !isLoadingMittel }">Mittel werden geladen...</div>
     <div id="beratung-error" class="forecast-error-box" :class="{ hidden: !errorMessage }">{{ errorMessage }}</div>
   </div>
 </template>
@@ -171,12 +181,16 @@ export default {
     const errorMessage = ref('');
     const mittel = ref([]);
     const showMittel = ref(false);
+    const progressLoaded = ref(0);
+    const progressTotal = ref(0);
+    const progressFound = computed(() => mittel.value.length);
     const isRecommendationLoading = ref(false);
     const recommendationError = ref('');
     const recommendationText = ref('');
     const recommendationMeta = ref('');
     let debounceTimer = null;
     let searchRequestId = 0;
+    let mittelEventSource = null;
 
     const beratungButtonText = computed(() => (
       aiAdviceEnabled.value ? '🤖 Beratung starten' : '🧪 Mittel suchen'
@@ -189,6 +203,18 @@ export default {
     });
 
     const recommendationLines = computed(() => recommendationText.value.split('\n'));
+    const progressPercent = computed(() => {
+      if (progressTotal.value) return Math.min(100, Math.round((progressLoaded.value / progressTotal.value) * 100));
+      return isLoadingMittel.value ? 8 : 0;
+    });
+    const progressLabel = computed(() => {
+      if (isLoadingMittel.value) {
+        if (progressTotal.value) return `Prüfe Anwendungen (${progressLoaded.value} / ${progressTotal.value})`;
+        return 'Suche zugelassene Mittel...';
+      }
+      return `Abgeschlossen: ${progressFound.value} Mittel gefunden`;
+    });
+    const emptyLoadingText = computed(() => 'Mittel werden geladen...');
 
     watch(selectedKulturId, () => {
       selectedSchadorg.value = null;
@@ -326,11 +352,21 @@ export default {
     }
 
     function clearResult() {
+      closeMittelStream();
       mittel.value = [];
       showMittel.value = false;
+      progressLoaded.value = 0;
+      progressTotal.value = 0;
       recommendationError.value = '';
       recommendationText.value = '';
       recommendationMeta.value = '';
+    }
+
+    function closeMittelStream() {
+      if (mittelEventSource) {
+        mittelEventSource.close();
+        mittelEventSource = null;
+      }
     }
 
     async function startBeratung() {
@@ -347,30 +383,57 @@ export default {
       clearResult();
       errorMessage.value = '';
       isLoadingMittel.value = true;
+      showMittel.value = true;
 
-      try {
-        const result = await apiPost('/api/beratung/mittel', {
-          kultur_id: Number.parseInt(selectedKulturId.value, 10),
-          schadorg_kode: selectedSchadorg.value.kode,
-        });
+      const params = new URLSearchParams({
+        kultur_id: selectedKulturId.value,
+        schadorg_kode: selectedSchadorg.value.kode,
+      });
 
-        isLoadingMittel.value = false;
+      closeMittelStream();
+      mittelEventSource = new EventSource(`/api/beratung/mittel/stream?${params.toString()}`);
 
-        if (!result?.ok) {
-          errorMessage.value = result?.message || 'Fehler beim Laden der Mittel.';
+      mittelEventSource.onmessage = async (event) => {
+        let data;
+        try {
+          data = JSON.parse(event.data);
+        } catch (error) {
+          console.error('beratung stream parse failed', error);
           return;
         }
 
-        mittel.value = Array.isArray(result.mittel) ? result.mittel : [];
-        showMittel.value = true;
-
-        if (aiAdviceEnabled.value) {
-          await loadRecommendation();
+        if (data.type === 'progress') {
+          progressLoaded.value = Number(data.loaded || 0);
+          progressTotal.value = Number(data.total || 0);
+          return;
         }
-      } catch (error) {
+
+        if (data.type === 'mittel' && data.mittel) {
+          mittel.value.push(data.mittel);
+          return;
+        }
+
+        if (data.type === 'done') {
+          isLoadingMittel.value = false;
+          closeMittelStream();
+          if (aiAdviceEnabled.value) {
+            await loadRecommendation();
+          }
+          return;
+        }
+
+        if (data.type === 'error') {
+          isLoadingMittel.value = false;
+          errorMessage.value = data.message || 'Fehler beim Laden der Mittel.';
+          closeMittelStream();
+        }
+      };
+
+      mittelEventSource.onerror = () => {
         isLoadingMittel.value = false;
-        errorMessage.value = error?.message || 'Unbekannter Fehler.';
-      }
+        errorMessage.value = 'Verbindung zum Mittel-Stream unterbrochen.';
+        closeMittelStream();
+      };
     }
 
     async function loadRecommendation() {
@@ -416,6 +479,7 @@ export default {
 
     onBeforeUnmount(() => {
       clearTimeout(debounceTimer);
+      closeMittelStream();
       document.removeEventListener('click', onDocumentClick);
     });
 
@@ -427,6 +491,7 @@ export default {
       closeDropdown,
       dropdownItems,
       errorMessage,
+      emptyLoadingText,
       isDropdownOpen,
       isLlmConfigured,
       isLoadingMittel,
@@ -438,6 +503,11 @@ export default {
       onSchadInput,
       openDropdown,
       orte,
+      progressFound,
+      progressLoaded,
+      progressLabel,
+      progressPercent,
+      progressTotal,
       recommendationError,
       recommendationLines,
       recommendationMeta,

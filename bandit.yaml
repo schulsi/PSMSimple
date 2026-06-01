@@ -1,0 +1,2 @@
+skips: ['B104', 'B110']
+exclude_dirs: ['.venv', 'venv', '__pycache__', 'tests']

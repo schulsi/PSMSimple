@@ -32,6 +32,20 @@ def get_app_setting():
     setting = get_settings()
     return jsonify(setting)
 
+
+@settings_bp.route("/api/app/settings/inventory-defaults", methods=["GET"])
+@login_required
+def get_inventory_defaults():
+    """
+    Lager-Standardwerte für normale Formularnutzung abrufen.
+    """
+    settings = get_settings()
+    return jsonify({
+        "inventory_min_default": settings.get("inventory_min_default", ""),
+        "inventory_warn_default": settings.get("inventory_warn_default", ""),
+    })
+
+
 @settings_bp.route("/api/app/settings/<term>", methods=["GET"])
 @login_required
 @require_admin

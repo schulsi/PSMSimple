@@ -218,10 +218,10 @@
         💾 Speichern
       </button>
       <button
+        v-if="isDownloadMode"
         id="btn-download"
         type="button"
         class="btn btn-export"
-        :class="{ hidden: isLocalSaveMode }"
         :disabled="!valid || isSubmitting"
         @click="handleDownload"
       >
@@ -314,6 +314,7 @@ export default {
     });
 
     const currentArtSubOptions = computed(() => artSubOptions[form.artHaupt] || []);
+    const isDownloadMode = computed(() => !isLocalSaveMode.value);
 
     const filteredFelderItems = computed(() => {
       if (!selectedKulturIds.value.length) return [];
@@ -786,6 +787,21 @@ export default {
       isLocalSaveMode.value = !!localSave;
     }
 
+    async function loadSaveMode() {
+      try {
+        const settings = await apiGet('/api/user/settings');
+        if (settings.browser_download !== undefined) {
+          isLocalSaveMode.value = !settings.browser_download;
+          return;
+        }
+        if (settings.local_save !== undefined) {
+          isLocalSaveMode.value = !!settings.local_save;
+        }
+      } catch (error) {
+        console.error('[loadSaveMode] Export-Einstellung konnte nicht geladen werden:', error);
+      }
+    }
+
     function installExportBridge() {
       unregisterExportView = registerExportView({
         applyDefaultSettingsToExport: applyDefaultSettings,
@@ -811,6 +827,7 @@ export default {
       const saveToggle = document.getElementById('save-mode-toggle');
       isLocalSaveMode.value = saveToggle ? saveToggle.checked : true;
       installExportBridge();
+      loadSaveMode();
       syncValidation();
     });
 
@@ -836,6 +853,7 @@ export default {
       handleKulturToggle,
       handlePreview,
       handleSave,
+      isDownloadMode,
       isLocalSaveMode,
       isSubmitting,
       kulturBbch,

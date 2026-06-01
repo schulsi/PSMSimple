@@ -30,6 +30,45 @@
         Update verfügbar (v{{ versionInfo.latestVersion }})
       </span>
     </a>
+
+    <div class="nav-user">
+      <div id="user-popup" class="nav-user-popup" :class="{ open: isUserPopupOpen }">
+        <div class="popup-header">
+          <div class="popup-label">Angemeldet als</div>
+          <div id="popup-username" class="popup-username">{{ user.username }}</div>
+          <div class="popup-label">Rolle: {{ permissions.role || '' }}</div>
+        </div>
+        <a
+          href="/settings"
+          data-tab="settings"
+          class="popup-button-reset"
+          @click.prevent.stop="$emit('open-tab', 'settings', $event.currentTarget)"
+        >
+          <span class="ico">⚙️</span>
+          <div class="popup-label">Einstellungen</div>
+        </a>
+        <Button
+          type="button"
+          class="popup-button-reset p-button-secondary"
+          @click.stop="$emit('logout')"
+        >
+          <span class="ico">🚪</span>
+          <div class="popup-label">Abmelden</div>
+        </Button>
+      </div>
+
+      <Button
+        id="user-btn"
+        type="button"
+        class="nav-user-btn p-button-secondary"
+        :class="{ open: isUserPopupOpen }"
+        @click.stop="$emit('toggle-user-popup')"
+      >
+        <div id="user-avatar" class="nav-user-avatar">{{ user.avatar }}</div>
+        <span id="user-name-label" class="nav-user-name">{{ user.username }}</span>
+        <span class="nav-user-caret">▾</span>
+      </Button>
+    </div>
   </Teleport>
 
   <Teleport to="#psm-vue-overlay">
@@ -67,44 +106,6 @@
       </template>
     </div>
 
-    <div class="nav-user">
-      <div id="user-popup" class="nav-user-popup" :class="{ open: isUserPopupOpen }">
-        <div class="popup-header">
-          <div class="popup-label">Angemeldet als</div>
-          <div id="popup-username" class="popup-username">{{ user.username }}</div>
-          <div class="popup-label">Rolle: {{ permissions.role || '' }}</div>
-        </div>
-        <a
-          href="/settings"
-          data-tab="settings"
-          class="popup-button-reset"
-          @click.prevent.stop="$emit('open-tab', 'settings', $event.currentTarget)"
-        >
-          <span class="ico">⚙️</span>
-          <div class="popup-label">Einstellungen</div>
-        </a>
-        <Button
-          type="button"
-          class="popup-button-reset p-button-secondary"
-          @click.stop="$emit('logout')"
-        >
-          <span class="ico">🚪</span>
-          <div class="popup-label">Abmelden</div>
-        </Button>
-      </div>
-
-      <Button
-        id="user-btn"
-        type="button"
-        class="nav-user-btn p-button-secondary"
-        :class="{ open: isUserPopupOpen }"
-        @click.stop="$emit('toggle-user-popup')"
-      >
-        <div id="user-avatar" class="nav-user-avatar">{{ user.avatar }}</div>
-        <span id="user-name-label" class="nav-user-name">{{ user.username }}</span>
-        <span class="nav-user-caret">▲</span>
-      </Button>
-    </div>
   </Teleport>
 </template>
 

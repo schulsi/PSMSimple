@@ -295,21 +295,30 @@ const AppRoot = {
       this.psmSearchResults = [];
       this.showPsmSearchResults = false;
 
-      let inventoryDefaults = {};
-      try {
-        const payload = await apiGet('/api/app/settings');
-        if (Array.isArray(payload)) {
-          inventoryDefaults = Object.fromEntries(payload.map(item => [item.key, item.value]));
-        }
-      } catch (err) {
-        console.warn('[resetPSMForm] App-Settings konnten nicht geladen werden:', err);
-      }
+      const inventoryDefaults = await this.loadInventoryDefaults();
 
       this.applyPsmForm({
         bienen: 'B4',
-        min_lager: inventoryDefaults.inventory_min_default ?? '',
-        warnung_lager: inventoryDefaults.inventory_warn_default ?? '',
+        min_lager: inventoryDefaults.inventory_min_default,
+        warnung_lager: inventoryDefaults.inventory_warn_default,
       });
+    },
+
+    async loadInventoryDefaults() {
+      try {
+        const payload = await apiGet('/api/app/settings/inventory-defaults');
+        return {
+          inventory_min_default: String(payload?.inventory_min_default ?? ''),
+          inventory_warn_default: String(payload?.inventory_warn_default ?? ''),
+        };
+      } catch (err) {
+        console.warn('[loadInventoryDefaults] App-Settings konnten nicht geladen werden:', err);
+      }
+
+      return {
+        inventory_min_default: '',
+        inventory_warn_default: '',
+      };
     },
 
     async openPSMModal() {
@@ -400,6 +409,7 @@ const AppRoot = {
 
       this.isPsmInfoLoading = true;
       try {
+        const inventoryDefaults = await this.loadInventoryDefaults();
         const info = await apiGet(`/api/psm/info/${encodeURIComponent(kennr)}`);
         const beeClass = (info.bienenfreundlichkeit || '').split(',')[0].trim();
         const effortUnit = info.aufwand_einheit || '';
@@ -412,6 +422,8 @@ const AppRoot = {
           bienen: ['B1', 'B2', 'B3', 'B4'].includes(beeClass) ? beeClass : this.psmForm.bienen,
           aufwandEinheit: effortUnit,
           lager_einheit: lagerEinheit || this.psmForm.lager_einheit,
+          min_lager: this.psmForm.min_lager || inventoryDefaults.inventory_min_default,
+          warnung_lager: this.psmForm.warnung_lager || inventoryDefaults.inventory_warn_default,
         };
       } catch (err) {
         console.error(err);

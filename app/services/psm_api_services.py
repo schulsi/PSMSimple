@@ -146,23 +146,37 @@ def search_psm_by_term(term: str, limit: int = 10) -> list[dict]:
     if len(term) < 2:
         return []
 
+    base = _psm_api_base() + "mittel/"
+    queries = [
+        {"mittelname": {"$instr": term}},
+        {"MITTELNAME": {"$instr": term}},
+    ]
+
     try:
-        resp = requests.get(
-            _psm_api_base() + "mittel/",
-            params={
-                "q": json.dumps({"MITTELNAME": {"$instr": term}}),
-                "limit": limit,
-            },
-            timeout=5,
-        )
-        resp.raise_for_status()
-        items = resp.json().get("items", [])
+        items = []
+        for query in queries:
+            resp = requests.get(
+                base,
+                params={
+                    "q": json.dumps(query),
+                    "limit": limit,
+                },
+                timeout=5,
+            )
+            resp.raise_for_status()
+            items = resp.json().get("items", [])
+            if items:
+                break
 
         result = []
         for row in items:
+            name = row.get("mittelname") or row.get("MITTELNAME") or row.get("name") or ""
+            kennr = row.get("kennr") or row.get("KENNR") or row.get("zulassungsnr") or ""
+            if not name:
+                continue
             result.append({
-                "name": row.get("mittelname", ""),
-                "kennr": row.get("kennr", ""),
+                "name": name,
+                "kennr": kennr,
             })
         return result
 
@@ -210,8 +224,9 @@ def get_psm_info_by_kennr(kennr: str) -> dict:
                 text = f"{ws_name} {menge} {einheit}".strip()
                 if text:
                     wirkstoffe_parts.append(text)
-            bee_class = _get_bee_class(base, kennr)
-            einheit = _get_application_rate(base, kennr)
+
+        bee_class = _get_bee_class(base, kennr)
+        einheit = _get_application_rate(base, kennr)
         return {
             "wirkstoffe": ", ".join(wirkstoffe_parts),
             "zulassungsnr": kennr,

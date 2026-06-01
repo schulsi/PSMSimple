@@ -5,7 +5,7 @@ import re
 
 from ..extensions import db, limiter, logger
 from ..models.user import User
-from ..repositories.settings_repo import get_setting
+from ..repositories.settings_repo import get_setting, set_setting
 from ..repositories.role_repo import get_role_id
 
 USERNAME_RE = re.compile(r"^[A-Za-z0-9_.-]{2,50}$")
@@ -91,7 +91,8 @@ def register():
         description: Registrierung deaktiviert
     """
     registration_allowed = get_setting("registration_allowed") == "1"
-    if not registration_allowed:
+    is_first_user = User.query.count() == 0
+    if not registration_allowed and not is_first_user:
         flash("Registrierung ist derzeit nicht erlaubt.", "error")
         return redirect(url_for("auth.login") + "?tab=register")
 
@@ -123,7 +124,7 @@ def register():
         flash("Das Passwort muss mindestens einen Großbuchstaben, einen Kleinbuchstaben und eine Zahl enthalten.", "error")
         return redirect(url_for("auth.login") + "?tab=register")
 
-    is_first_user = User.query.count() == 0
+    
     if is_first_user:
         role = int(get_role_id("admin"))
     else:
@@ -140,6 +141,8 @@ def register():
         f"New user '{username}' registered with role '{'admin' if is_first_user else 'user'}' from IP: {request.remote_addr}")
     flash(
         f"Konto für {username} erfolgreich erstellt. Bitte jetzt anmelden.", "success")
+    if is_first_user:
+        set_setting("registration_allowed", "0")  
     return redirect(url_for("auth.login"))
 
 

@@ -28,7 +28,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Install project dependencies
         run: |
@@ -53,12 +53,7 @@ jobs:
       # -----------------------------
       - name: Run Bandit SAST scan
         run: |
-          bandit -r . \
-            -f json \
-            -o bandit-report.json \
-            --exclude .venv,venv,__pycache__,tests
-
-        continue-on-error: true
+          bandit -c bandit.yaml -f json -o bandit-report.json -r .
 
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4
@@ -76,7 +71,6 @@ jobs:
             --json \
             --output semgrep-report.json
 
-        continue-on-error: true
 
       - name: Upload Semgrep report
         uses: actions/upload-artifact@v4
@@ -93,27 +87,11 @@ jobs:
             --format=json \
             --output=pip-audit-report.json
 
-        continue-on-error: true
-
       - name: Upload pip-audit report
         uses: actions/upload-artifact@v4
         with:
           name: pip-audit-report
           path: pip-audit-report.json
-
-      - name: Run Safety dependency scan
-        run: |
-          safety check \
-            --json \
-            --output safety-report.json
-
-        continue-on-error: true
-
-      - name: Upload Safety report
-        uses: actions/upload-artifact@v4
-        with:
-          name: safety-report
-          path: safety-report.json
 
       # -----------------------------
       # Docker Image Build

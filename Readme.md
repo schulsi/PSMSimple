@@ -33,6 +33,16 @@ User documentation: <https://schulsi.github.io/PSMSimple>
 | **Spray Window Forecast**     | Calculate optimal spray windows based on weather data (Open-Meteo)                              |
 | **PSM Advisory**              | AI-powered product recommendations based on BVL approval data, weather, and application history |
 | **Inventory**                 | Track stock levels of plant protection products with movement history                           |
+| **Notifications / Reports**   | Manage operational reports with status, type, field assignment, notes, and filtering            |
+| **BBCH Management**           | Create, edit, assign, and search BBCH stages per crop                                           |
+| **User Management**           | First registered user becomes admin; registration is disabled automatically afterwards           |
+| **Role Management**           | Admins can manage user roles and remove users                                                   |
+| **Personal Defaults**         | Per-user defaults for application exports, such as applicator and responsible person            |
+| **App Settings**              | Admin settings for registration, advisory, forecast thresholds, and inventory defaults           |
+| **Inventory Warnings**        | Configurable warning and minimum stock levels with a sidebar badge                              |
+| **Version & Update Check**    | Shows the installed version and checks GitHub releases for available updates                    |
+| **Secure Sessions**           | CSRF protection, secure cookies, rate limiting, and security headers for safer deployments       |
+| **Docker Deployment**         | Docker/Compose setup with internal Redis support and a trimmed Docker build context             |
 
 ---
 
@@ -194,7 +204,6 @@ http://localhost:8080/apidocs
 
 ## Security Notes
 
-- `SESSION_COOKIE_SECURE` and `REMEMBER_COOKIE_SECURE` are currently commented out in `config.py`. For production deployments behind HTTPS (recommended), these should be enabled.
 - The `SECRET_KEY` should be at least 32 random bytes long — use `openssl rand -hex 32` to generate one.
 - For production, the app should be run behind a reverse proxy (e.g. nginx or Traefik) with TLS termination.
 - API keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) should be stored in the `.env` file and never committed to version control.
