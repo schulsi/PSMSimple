@@ -2,6 +2,8 @@
 
 A web app for creating and managing plant protection application records in JSON format.
 
+User documentation: <https://schulsi.github.io/PSMSimple>
+
 ---
 
 ## Table of Contents
