@@ -1,6 +1,6 @@
 # Wetter und Prognose
 
-## Kompakt
+## Auf einen Blick
 
 Die **Prognose** berechnet geeignete Spritzfenster für ausgewählte Orte. PSMSimple bewertet Wetterdaten anhand konfigurierter Grenzwerte wie Wind, Niederschlag, Temperatur, Luftfeuchte und Trockenzeit.
 
@@ -12,7 +12,7 @@ Sie wählen:
 
 PSMSimple zeigt danach das beste Zeitfenster und weitere Alternativen.
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Voraussetzung
 

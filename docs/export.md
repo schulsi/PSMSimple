@@ -1,6 +1,6 @@
 # Export
 
-## Kompakt
+## Auf einen Blick
 
 Der Export erzeugt aus einer dokumentierten Anwendung Dateien für die Ablage oder Weitergabe. Je nach Einstellung speichert PSMSimple die Dateien auf dem Server oder lädt sie im Browser herunter. Vor dem Export sollten Sie die **Vorschau** prüfen.
 
@@ -10,7 +10,7 @@ Mögliche Aktionen:
 - **Speichern** für Ablage auf dem Server
 - **Download** für Browser-Download
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Was exportiert wird
 

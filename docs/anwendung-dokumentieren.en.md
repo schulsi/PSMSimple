@@ -1,6 +1,6 @@
 # Documenting an Application
 
-## Compact
+## At a Glance
 
 For a complete documentation entry, select at least one plant protection product, one crop, one BBCH code, and one field. Then add the date, time, type of use, responsible person, and applicator. Use **Preview** to check the data, then use **Save** or **Download** to generate the documentation.
 
@@ -12,7 +12,7 @@ Required information:
 - date and time
 - type of use
 
-## Detailed
+## How the Function Works
 
 ## Prerequisites
 

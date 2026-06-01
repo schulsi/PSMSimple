@@ -1,6 +1,6 @@
 # Anwendung dokumentieren
 
-## Kompakt
+## Auf einen Blick
 
 Für eine vollständige Dokumentation wählen Sie mindestens ein Pflanzenschutzmittel, eine Kultur, einen BBCH-Code und ein Feld aus. Danach ergänzen Sie Datum, Uhrzeit, Art der Verwendung, verantwortliche Person und Anwender. Mit **Vorschau** prüfen Sie die Daten, mit **Speichern** oder **Download** erzeugen Sie die Dokumentation.
 
@@ -12,7 +12,7 @@ Pflichtangaben:
 - Datum und Uhrzeit
 - Art der Verwendung
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Voraussetzung
 

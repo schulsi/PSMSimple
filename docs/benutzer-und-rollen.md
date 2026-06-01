@@ -1,6 +1,6 @@
 # Benutzer und Rollen
 
-## Kompakt
+## Auf einen Blick
 
 PSMSimple verwendet Rollen, um Funktionen zu schützen. Der erste registrierte Benutzer wird Administrator. Administratoren können Registrierung erlauben, Benutzerrollen ändern und Benutzer löschen.
 
@@ -10,7 +10,7 @@ Rollen:
 - **user**: normale Nutzung mit Schreibrechten
 - **read-only**: lesender Zugriff
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Erster Benutzer
 

@@ -1,6 +1,6 @@
 # Einsatzorte und Felder
 
-## Kompakt
+## Auf einen Blick
 
 Im Bereich **Felder** legen Sie die Flächen an, auf denen Anwendungen dokumentiert werden. Ein Feld sollte mindestens einen Namen, eine Fläche und möglichst eine Kulturzuordnung haben. Nur Felder, die zur gewählten Kultur passen, erscheinen später in der Dokumentation.
 
@@ -13,7 +13,7 @@ Wichtige Angaben:
 - Ort
 - Kultur
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Wofür Felder verwendet werden
 

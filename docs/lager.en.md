@@ -1,6 +1,6 @@
 # Inventory
 
-## Compact
+## At a Glance
 
 In **Inventory**, you see current stock levels for plant protection products and record incoming or outgoing movements. Warning and minimum stock levels come from product master data or inventory defaults.
 
@@ -11,7 +11,7 @@ Important features:
 - movements for purchase, correction, and disposal
 - movement history with date, type, quantity, and note
 
-## Detailed
+## How the Function Works
 
 ## Prerequisite
 

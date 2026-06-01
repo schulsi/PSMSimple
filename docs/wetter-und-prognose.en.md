@@ -1,6 +1,6 @@
 # Weather and Forecast
 
-## Compact
+## At a Glance
 
 **Forecast** calculates suitable spray windows for selected sites. PSMSimple evaluates weather data using configured thresholds such as wind, precipitation, temperature, humidity, and drying time.
 
@@ -12,7 +12,7 @@ You select:
 
 PSMSimple then shows the best time window and alternatives.
 
-## Detailed
+## How the Function Works
 
 ## Prerequisite
 

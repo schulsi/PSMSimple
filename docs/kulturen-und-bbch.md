@@ -1,6 +1,6 @@
 # Kulturen und BBCH
 
-## Kompakt
+## Auf einen Blick
 
 Im Bereich **Kulturen** verwalten Sie Kulturarten und die dazugehörigen BBCH-Codes. Kulturen werden später mit Feldern und Anwendungen verknüpft. BBCH-Codes beschreiben das Entwicklungsstadium der Kultur bei einer Anwendung.
 
@@ -13,7 +13,7 @@ Wichtige Angaben:
 - optionale BBCH-Beschreibung
 - Sortierung
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Wofür Kulturen verwendet werden
 

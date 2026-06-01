@@ -1,6 +1,6 @@
 # Einstellungen
 
-## Kompakt
+## Auf einen Blick
 
 In den **Einstellungen** legen Sie persönliche Vorgaben und, als Administrator, globale Systemwerte fest. Persönliche Einstellungen betreffen Exportverhalten und Standardwerte für die Dokumentation. Admin-Einstellungen betreffen Registrierung, Beratung, Prognose und Lager.
 
@@ -12,7 +12,7 @@ Wichtige Bereiche:
 - Vorhersage
 - Lager
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Allgemeine Einstellungen
 

@@ -1,6 +1,6 @@
 # Advisory
 
-## Compact
+## At a Glance
 
 **Advisory** searches for approved plant protection products for a combination of crop and harmful organism. Optionally, an AI recommendation can be added if the feature is configured and enabled.
 
@@ -12,7 +12,7 @@ You select:
 
 PSMSimple then shows approved products and, if enabled, a recommendation.
 
-## Detailed
+## How the Function Works
 
 ## Prerequisite
 

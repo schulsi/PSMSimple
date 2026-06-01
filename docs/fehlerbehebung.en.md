@@ -1,6 +1,6 @@
 # Troubleshooting
 
-## Compact
+## At a Glance
 
 If PSMSimple does not behave as expected, start with the simple checks: reload the page, check sign-in, reset filters, review master data, and verify permissions. Many issues are caused by missing assignments or unsaved settings.
 
@@ -13,7 +13,7 @@ First steps:
 - check role and permissions
 - for export issues, check browser downloads
 
-## Detailed
+## How the Function Works
 
 ## Sign-in does not work
 

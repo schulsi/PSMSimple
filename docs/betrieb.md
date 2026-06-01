@@ -1,6 +1,6 @@
 # Betrieb
 
-## Kompakt
+## Auf einen Blick
 
 Im Bereich **Betrieb** pflegen Sie die Stammdaten Ihres Betriebs. Diese Daten werden in Dokumentationen, Exporten und der Historie verwendet. Prüfen Sie die Angaben vor der ersten Anwendung und aktualisieren Sie sie, sobald sich Adresse oder verantwortliche Daten ändern.
 
@@ -12,7 +12,7 @@ Wichtige Angaben:
 - PLZ und Ort
 - Bundesland
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Wofür die Betriebsdaten verwendet werden
 

@@ -5,9 +5,11 @@ theme:
   name: material
   language: de
   palette:
+  
     scheme: default
     primary: custom
     accent: custom
+    
   features:
     - navigation.sections
     - navigation.expand

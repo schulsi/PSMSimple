@@ -1,6 +1,6 @@
 # Lager
 
-## Kompakt
+## Auf einen Blick
 
 Im Bereich **Lagerbestand** sehen Sie die aktuellen Bestände Ihrer Pflanzenschutzmittel und buchen Zu- oder Abgänge. Warn- und Mindestbestände kommen aus den Pflanzenschutzmittel-Stammdaten oder aus den Lager-Standardwerten.
 
@@ -11,7 +11,7 @@ Wichtige Funktionen:
 - Buchungen für Einkauf, Korrektur und Entsorgung
 - Bewegungshistorie mit Datum, Typ, Menge und Notiz
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Voraussetzung
 

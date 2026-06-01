@@ -1,6 +1,6 @@
 # History
 
-## Compact
+## At a Glance
 
 **History** shows saved applications and usage summaries for plant protection products and fields. You can filter by date range, open details, and delete entries if you have the required permission.
 
@@ -10,7 +10,7 @@ Sections:
 - product usage
 - field usage
 
-## Detailed
+## How the Function Works
 
 ## What history is used for
 

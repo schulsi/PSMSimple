@@ -1,6 +1,6 @@
 # Settings
 
-## Compact
+## At a Glance
 
 In **Settings**, you configure personal defaults and, as an administrator, global system values. Personal settings affect export behavior and defaults for documentation. Admin settings affect registration, advisory, forecast, and inventory.
 
@@ -12,7 +12,7 @@ Important areas:
 - forecast
 - inventory
 
-## Detailed
+## How the Function Works
 
 ## General settings
 

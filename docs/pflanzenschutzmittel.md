@@ -1,6 +1,6 @@
 # Pflanzenschutzmittel
 
-## Kompakt
+## Auf einen Blick
 
 Im Bereich **Pflanzenschutzmittel** pflegen Sie Mittel, die später in Anwendungen verwendet werden. Wenn möglich, wählen Sie ein Mittel über die Suche aus, damit Zulassungsnummer und Wirkstoffe automatisch übernommen werden. Ergänzen Sie Einheit, Bienengefährlichkeit und Lagerangaben.
 
@@ -14,7 +14,7 @@ Wichtige Angaben:
 - Lagereinheit
 - Mindest- und Warnbestand
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Wofür Pflanzenschutzmittel verwendet werden
 

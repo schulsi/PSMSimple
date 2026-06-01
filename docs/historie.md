@@ -1,6 +1,6 @@
 # Historie
 
-## Kompakt
+## Auf einen Blick
 
 Die **Historie** zeigt gespeicherte Anwendungen und Auswertungen zur Verwendung von Pflanzenschutzmitteln und Feldern. Sie können nach Zeitraum filtern, Details öffnen und bei entsprechender Berechtigung Einträge löschen.
 
@@ -10,7 +10,7 @@ Bereiche:
 - PSM-Verwendung
 - Felder-Verwendung
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Wofür die Historie verwendet wird
 

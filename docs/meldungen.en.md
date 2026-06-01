@@ -1,6 +1,6 @@
 # Reports
 
-## Compact
+## At a Glance
 
 In **Reports**, you record observations, damage, tasks, or notes related to fields. Reports can be filtered by status, type, and field. A report can include photos, coordinates, priority, and processing status.
 
@@ -15,7 +15,7 @@ Typical details:
 - coordinates
 - photos
 
-## Detailed
+## How the Function Works
 
 ## Open reports
 

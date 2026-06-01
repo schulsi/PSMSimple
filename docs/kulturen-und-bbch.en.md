@@ -1,6 +1,6 @@
 # Crops and BBCH
 
-## Compact
+## At a Glance
 
 In **Crops**, you manage crop types and their BBCH codes. Crops are later linked to fields and applications. BBCH codes describe the crop growth stage at the time of application.
 
@@ -13,7 +13,7 @@ Important fields:
 - optional BBCH description
 - sorting
 
-## Detailed
+## How the Function Works
 
 ## What crops are used for
 

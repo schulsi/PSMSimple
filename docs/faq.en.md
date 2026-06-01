@@ -1,6 +1,6 @@
 # FAQ
 
-## Compact
+## At a Glance
 
 This FAQ answers common questions about daily work with PSMSimple. If something does not work, first check permissions, missing master data, and active filters.
 
@@ -12,7 +12,7 @@ Common causes:
 - restricted user role
 - browser or download settings
 
-## Detailed
+## How the Function Works
 
 ## Why do I not see all menu items?
 

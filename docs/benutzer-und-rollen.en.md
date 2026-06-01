@@ -1,6 +1,6 @@
 # Users and Roles
 
-## Compact
+## At a Glance
 
 PSMSimple uses roles to protect functionality. The first registered user becomes administrator. Administrators can allow registration, change user roles, and delete users.
 
@@ -10,7 +10,7 @@ Roles:
 - **user**: normal use with write permissions
 - **read-only**: read-only access
 
-## Detailed
+## How the Function Works
 
 ## First user
 

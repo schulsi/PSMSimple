@@ -1,6 +1,6 @@
 # Meldungen
 
-## Kompakt
+## Auf einen Blick
 
 Im Bereich **Meldungen** erfassen Sie Beobachtungen, Schäden, Aufgaben oder Hinweise zu Feldern. Meldungen können nach Status, Typ und Feld gefiltert werden. Zu einer Meldung können Fotos, Koordinaten, Priorität und Bearbeitungsstatus gespeichert werden.
 
@@ -15,7 +15,7 @@ Typische Angaben:
 - Koordinaten
 - Fotos
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Meldungen öffnen
 

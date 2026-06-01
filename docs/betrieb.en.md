@@ -1,6 +1,6 @@
 # Farm
 
-## Compact
+## At a Glance
 
 In **Farm**, you maintain the master data of your farm or business. These details are used in documentation entries, exports, and history records. Check them before documenting the first application and update them whenever address or responsibility details change.
 
@@ -12,7 +12,7 @@ Important fields:
 - postal code and city
 - federal state
 
-## Detailed
+## How the Function Works
 
 ## What farm data is used for
 

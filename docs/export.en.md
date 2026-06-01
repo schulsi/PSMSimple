@@ -1,6 +1,6 @@
 # Export
 
-## Compact
+## At a Glance
 
 Export creates files from a documented application for storage or sharing. Depending on the settings, PSMSimple either saves the files on the server or downloads them in the browser. Always check the **Preview** before exporting.
 
@@ -10,7 +10,7 @@ Available actions:
 - **Save** for server-side storage
 - **Download** for browser download
 
-## Detailed
+## How the Function Works
 
 ## What is exported
 

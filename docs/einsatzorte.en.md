@@ -1,6 +1,6 @@
 # Application Sites and Fields
 
-## Compact
+## At a Glance
 
 In **Fields**, you create the areas where applications are documented. A field should have at least a name, an area, and ideally a crop assignment. Only fields matching the selected crop will later appear in the documentation workflow.
 
@@ -13,7 +13,7 @@ Important fields:
 - site
 - crop
 
-## Detailed
+## How the Function Works
 
 ## What fields are used for
 

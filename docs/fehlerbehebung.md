@@ -1,6 +1,6 @@
 # Fehlerbehebung
 
-## Kompakt
+## Auf einen Blick
 
 Wenn PSMSimple nicht wie erwartet funktioniert, prüfen Sie zuerst die einfachen Dinge: Seite neu laden, Anmeldung prüfen, Filter zurücksetzen, Stammdaten kontrollieren und Berechtigungen klären. Viele Probleme entstehen durch fehlende Zuordnungen oder nicht gespeicherte Einstellungen.
 
@@ -13,7 +13,7 @@ Erste Schritte:
 - Rolle und Berechtigungen prüfen
 - bei Exportproblemen Browser-Downloads prüfen
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Anmeldung funktioniert nicht
 

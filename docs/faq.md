@@ -1,6 +1,6 @@
 # FAQ
 
-## Kompakt
+## Auf einen Blick
 
 Diese FAQ beantwortet häufige Fragen zur täglichen Arbeit mit PSMSimple. Wenn etwas nicht funktioniert, prüfen Sie zuerst Berechtigungen, fehlende Stammdaten und die aktuell gesetzten Filter.
 
@@ -12,7 +12,7 @@ Häufige Ursachen:
 - eingeschränkte Benutzerrolle
 - Browser- oder Download-Einstellungen
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Warum sehe ich nicht alle Menüpunkte?
 

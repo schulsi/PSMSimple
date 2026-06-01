@@ -1,6 +1,6 @@
 # Beratung
 
-## Kompakt
+## Auf einen Blick
 
 Die **Beratung** sucht zugelassene Pflanzenschutzmittel für eine Kombination aus Kultur und Schadorganismus. Optional kann eine KI-Empfehlung ergänzt werden, wenn die Funktion eingerichtet und aktiviert ist.
 
@@ -12,7 +12,7 @@ Sie wählen:
 
 Danach zeigt PSMSimple zugelassene Mittel und, falls aktiviert, eine Empfehlung.
 
-## Ausführlich
+## So funktioniert die Funktion
 
 ## Voraussetzung
 

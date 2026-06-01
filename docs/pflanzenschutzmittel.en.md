@@ -1,6 +1,6 @@
 # Plant Protection Products
 
-## Compact
+## At a Glance
 
 In **Plant Protection Products**, you maintain products that are later used in applications. If possible, select a product from the search so the approval number and active substances are filled automatically. Add the application rate unit, bee hazard classification, and inventory details.
 
@@ -14,7 +14,7 @@ Important fields:
 - inventory unit
 - minimum and warning stock level
 
-## Detailed
+## How the Function Works
 
 ## What plant protection products are used for
 
