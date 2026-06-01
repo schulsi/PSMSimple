@@ -1,12 +1,12 @@
 name: Deploy Documentation
 
 on:
-  push:
+  pull_request:
     branches: ["main", "master"]
     paths:
       - "docs/**"
       - "mkdocs.yaml"
-      - "requirements-docs.txt"
+      - "docs/requirements-docs.txt"
       - ".github/workflows/docs.yaml"
   workflow_dispatch:
 
