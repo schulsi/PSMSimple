@@ -1,5 +1,5 @@
 site_name: PSM Simple Guide
-site_url: https://docs.psm.schulsi.org
+site_url: https://schulsi.github.io/PSMSimple
 
 theme:
   name: material
