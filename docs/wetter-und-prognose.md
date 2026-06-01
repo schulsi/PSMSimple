@@ -84,4 +84,3 @@ Prüfen Sie, ob Orte vorhanden sind und ob die Verbindung zum Server funktionier
 ## Ergebnis wirkt unerwartet
 
 Kontrollieren Sie die Koordinaten des Orts und die Grenzwerte in den Einstellungen.
-
