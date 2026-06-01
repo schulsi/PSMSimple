@@ -5,6 +5,7 @@ from pathlib import Path
 from flask import Flask, jsonify, request, flash, redirect, url_for, render_template, g
 from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
+from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_migrate import Migrate, upgrade
 from werkzeug.security import check_password_hash
@@ -77,6 +78,15 @@ def create_app():
     @app.errorhandler(503)
     def service_unavailable(e):
         return render_template("errors/503.html"), 503
+
+    @app.errorhandler(HTTPException)
+    def generic_http_error(e):
+        return render_template(
+            "errors/generic.html",
+            generic_error_code=e.code,
+            generic_error_title=e.name,
+            generic_error_description=e.description,
+        ), e.code
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
