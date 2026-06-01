@@ -1,0 +1,16 @@
+{% extends "errors/error_base.html" %}
+
+{% set error_code        = "403" %}
+{% set error_title       = "Zugriff\nverweigert" %}
+{% set error_description = "Du hast keine Berechtigung, diese Seite aufzurufen. Wende dich an deinen Administrator, falls du Zugriff benötigst." %}
+{% set badge_class       = "badge-red" %}
+{% set info_label        = "Hinweis:" %}
+{% set info_text         = "Dein Konto verfügt möglicherweise nicht über die erforderliche Rolle für diesen Bereich." %}
+{% set is_danger         = true %}
+{% set status_dot_class  = "dot-amber" %}
+{% set status_text       = "Zugriff eingeschränkt" %}
+
+{% block actions %}
+  <a href="/" class="btn btn-primary">Zur Startseite</a>
+  <a href="/login" class="btn btn-secondary">Anmelden</a>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "errors/error_base.html" %}
+
+{% set error_code        = generic_error_code|string %}
+{% set error_title       = "Fehler\naufgetreten" %}
+{% set error_description = "Die Anfrage konnte nicht verarbeitet werden. Bitte prüfe die Eingabe oder kehre zur Startseite zurück." %}
+{% set badge_class       = "badge-red" %}
+{% set info_label        = "Details:" %}
+{% set info_text         = "HTTP " ~ error_code ~ " - " ~ generic_error_title %}
+{% set is_danger         = false %}
+{% set status_dot_class  = "dot-amber" %}
+{% set status_text       = "Anfrage nicht abgeschlossen" %}
+
+{% block actions %}
+  <a href="/" class="btn btn-secondary">Zur Startseite</a>
+{% endblock %}

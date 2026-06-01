@@ -1,0 +1,16 @@
+{% extends "errors/error_base.html" %}
+
+{% set error_code        = "503" %}
+{% set error_title       = "Dienst nicht\nverfügbar" %}
+{% set error_description = "Die App befindet sich gerade in der Wartung oder ist vorübergehend überlastet. Wir sind bald wieder für dich da." %}
+{% set badge_class       = "badge-red" %}
+{% set info_label        = "Geplante Wartung:" %}
+{% set info_text         = "Wir informieren über den Status auf unserem Dashboard so bald wie möglich." %}
+{% set is_danger         = false %}
+{% set status_dot_class  = "dot-amber" %}
+{% set status_text       = "Wartungsmodus aktiv" %}
+
+{% block actions %}
+  <a href="javascript:location.reload()" class="btn btn-primary">Erneut versuchen</a>
+  <a href="/status" class="btn btn-secondary">Status prüfen</a>
+{% endblock %}
