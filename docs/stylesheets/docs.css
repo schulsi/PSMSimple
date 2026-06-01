@@ -37,15 +37,52 @@ body,
   --md-footer-bg-color--dark: #0e2218;
 }
 
+[data-md-color-scheme="slate"] {
+  --psm-green-deep: #8fb89c;
+  --psm-green-mid: #9fcfac;
+  --psm-green-light: #b4d7bd;
+  --psm-green-pale: #c9dfd0;
+  --psm-cream: #151a17;
+  --psm-cream-dark: #1b211d;
+  --psm-text: #d6ded8;
+  --psm-text-muted: #9eaca3;
+  --psm-danger: #d28a80;
+  --psm-surface: #171d19;
+  --psm-surface-soft: #1d2520;
+  --psm-border: rgba(159, 207, 172, 0.18);
+  --psm-shadow: none;
+
+  --md-primary-fg-color: #1f3327;
+  --md-primary-fg-color--light: #2a4434;
+  --md-primary-fg-color--dark: #15241b;
+  --md-primary-bg-color: #d6ded8;
+
+  --md-accent-fg-color: var(--psm-green-mid);
+  --md-accent-fg-color--transparent: rgba(159, 207, 172, 0.12);
+
+  --md-default-fg-color: var(--psm-text);
+  --md-default-fg-color--light: var(--psm-text-muted);
+  --md-default-bg-color: #121713;
+  --md-typeset-color: var(--psm-text);
+  --md-typeset-a-color: var(--psm-green-mid);
+
+  --md-code-fg-color: var(--psm-green-pale);
+  --md-code-bg-color: #202820;
+  --md-code-hl-color: rgba(159, 207, 172, 0.14);
+
+  --md-footer-bg-color: #15241b;
+  --md-footer-bg-color--dark: #101a14;
+}
+
 body,
 .md-main {
-  background: #fff;
+  background: var(--md-default-bg-color);
   color: var(--psm-text);
 }
 
 .md-header,
 .md-tabs {
-  background: var(--psm-green-deep);
+  background: var(--md-primary-fg-color);
   color: #fff;
 }
 
@@ -97,7 +134,7 @@ body,
 }
 
 .md-typeset a:hover {
-  color: var(--psm-green-deep);
+  color: var(--psm-green-light);
 }
 
 .md-typeset code {
