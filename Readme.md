@@ -2,6 +2,8 @@
 
 A web app for creating and managing plant protection application records in JSON format.
 
+User documentation: <https://schulsi.github.io/PSMSimple>
+
 ---
 
 ## Table of Contents
@@ -44,14 +46,14 @@ A web app for creating and managing plant protection application records in JSON
 
 This is the recommended approach for production. Docker Compose starts the app alongside a Redis container for rate limiting.
 
-**1. Download `docker-compose.yaml`**
+### 1. Download `docker-compose.yaml`
 
 ```bash
 mkdir psmsimple && cd psmsimple
 curl -O https://raw.githubusercontent.com/schulsi/psmsimple/main/docker-compose.yaml
 ```
 
-**2. Set the secret key**
+### 2. Set the secret key
 
 Create a `.env` file in the same directory:
 
@@ -61,7 +63,7 @@ echo "SECRET_KEY=$(openssl rand -hex 32)" > .env
 
 > ⚠️ Keep the `SECRET_KEY` safe and never share it publicly. It protects sessions and CSRF tokens.
 
-**3. Start**
+### 3. Start
 
 ```bash
 docker compose up -d
@@ -69,13 +71,13 @@ docker compose up -d
 
 The app will be available at **`http://localhost:8080`**.
 
-**4. Check logs**
+### 4. Check logs
 
 ```bash
 docker compose logs -f app
 ```
 
-**5. Stop**
+### 5. Stop
 
 ```bash
 docker compose down
@@ -104,33 +106,33 @@ The app will be available at **`http://localhost:8080`**.
 
 ## Local Development
 
-**1. Clone the repository**
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/schulsi/psmsimple.git
 cd psmsimple
 ```
 
-**2. Set up a virtual environment**
+### 2. Set up a virtual environment
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 ```
 
-**3. Install dependencies**
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**4. Set environment variables**
+### 4. Set environment variables
 
 ```bash
 export SECRET_KEY="dev-only-secret"
 ```
 
-**5. Start the app**
+### 5. Start the app
 
 ```bash
 python run.py
@@ -162,7 +164,7 @@ The app is configured entirely via environment variables:
 
 All persistent data is stored in the `DATA_DIR` directory (default: `./data`):
 
-```
+```text
 data/
 ├── databases/
 │   ├── users.db            # User accounts & roles
@@ -182,7 +184,7 @@ Both databases are created automatically on first start.
 
 The interactive Swagger UI is available at:
 
-```
+```text
 http://localhost:8080/apidocs
 ```
 

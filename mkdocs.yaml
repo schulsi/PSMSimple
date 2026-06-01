@@ -1,0 +1,89 @@
+site_name: PSM Simple Guide
+site_url: https://schulsi.github.io/PSMSimple
+
+theme:
+  name: material
+  language: de
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Dark Mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Light Mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+  logo: assets/logo.png
+  favicon: assets/favicon.png
+
+extra_css:
+  - stylesheets/docs.css
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: de
+          default: true
+          name: Deutsch
+          build: true
+        - locale: en
+          name: English
+          build: true
+          nav_translations:
+            Start: Home
+            Erste Schritte: Getting Started
+            Arbeiten mit PSMSimple: Working with PSMSimple
+            Anwendung dokumentieren: Documenting an Application
+            Export: Export
+            Historie: History
+            Stammdaten: Master Data
+            Betrieb: Farm
+            Einsatzorte und Felder: Application Sites and Fields
+            Kulturen und BBCH: Crops and BBCH
+            Pflanzenschutzmittel: Plant Protection Products
+            Weitere Funktionen: Additional Features
+            Lager: Inventory
+            Meldungen: Reports
+            Wetter und Prognose: Weather and Forecast
+            Beratung: Advisory
+            Administration: Administration
+            Einstellungen: Settings
+            Benutzer und Rollen: Users and Roles
+            Hilfe: Help
+            FAQ: FAQ
+            Fehlerbehebung: Troubleshooting
+
+nav:
+  - Start: index.md
+  - Erste Schritte: erste-schritte.md
+  - Arbeiten mit PSMSimple:
+      - Anwendung dokumentieren: anwendung-dokumentieren.md
+      - Export: export.md
+      - Historie: historie.md
+  - Stammdaten:
+      - Betrieb: betrieb.md
+      - Einsatzorte und Felder: einsatzorte.md
+      - Kulturen und BBCH: kulturen-und-bbch.md
+      - Pflanzenschutzmittel: pflanzenschutzmittel.md
+  - Weitere Funktionen:
+      - Lager: lager.md
+      - Meldungen: meldungen.md
+      - Wetter und Prognose: wetter-und-prognose.md
+      - Beratung: beratung.md
+  - Administration:
+      - Einstellungen: einstellungen.md
+      - Benutzer und Rollen: benutzer-und-rollen.md
+  - Hilfe:
+      - FAQ: faq.md
+      - Fehlerbehebung: fehlerbehebung.md
