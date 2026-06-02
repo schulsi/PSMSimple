@@ -541,6 +541,7 @@ main {
   font-size: .86rem;
   line-height: 1.45;
   overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .beratung-detail-raw {
@@ -602,6 +603,7 @@ main {
 .beratung-detail-row dd {
   margin: 0;
   overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 @media (max-width: 640px) {

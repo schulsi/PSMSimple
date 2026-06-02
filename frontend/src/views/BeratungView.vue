@@ -520,12 +520,38 @@ export default {
       }
     }
 
+    function formatDetailLabel(key) {
+      const labels = {
+        anwendungen_anz_je_befall: 'Anwendungen je Befall',
+        anwendungen_anz_je_kultur: 'Anwendungen je Kultur',
+        anwendungen_anz_je_jahr: 'Anwendungen je Jahr',
+        behandlungen_anz_je_befall: 'Behandlungen je Befall',
+        behandlungen_anz_je_kultur: 'Behandlungen je Kultur',
+        behandlungen_anz_je_jahr: 'Behandlungen je Jahr',
+        awg_id: 'AWG-ID',
+        kennr: 'Zulassungsnummer',
+        mittelname: 'Mittelname',
+        zul_ende: 'Zulassungsende',
+        m_aufwand: 'Mittel-Aufwand',
+        m_aufwandmenge: 'Mittel-Aufwandmenge',
+        m_aufwand_einheit: 'Mittel-Aufwandeinheit',
+      };
+      const normalized = String(key || '').toLowerCase();
+      if (labels[normalized]) return labels[normalized];
+      return String(key || '')
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/^\w/, (letter) => letter.toUpperCase());
+    }
+
     function detailFields(row) {
       return Object.entries(row || {})
         .filter(([, value]) => value !== null && value !== undefined && value !== '')
         .map(([key, value]) => ({
           key,
-          label: key.replaceAll('_', ' '),
+          label: formatDetailLabel(key),
           value: Array.isArray(value) || typeof value === 'object' ? JSON.stringify(value) : String(value),
         }));
     }
@@ -652,6 +678,7 @@ export default {
       clearMittelDetails,
       closeDropdown,
       detailFields,
+      formatDetailLabel,
       dropdownItems,
       errorMessage,
       emptyLoadingText,
