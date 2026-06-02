@@ -110,11 +110,16 @@
         <div id="beratung-mittel-list" class="beratung-bubble-grid">
           <div v-if="isLoadingMittel && !mittel.length" class="empty">{{ emptyLoadingText }}</div>
           <div v-else-if="!mittel.length" class="empty">Keine zugelassenen Mittel gefunden.</div>
-          <div
+          <button
             v-for="item in mittel"
             :key="`${item.kennr || item.mittelname}-${item.awg_id || item.zul_ende || ''}`"
+            type="button"
             class="beratung-bubble-card"
-            :class="{ 'beratung-bubble-low-risk': item.geringes_risiko }"
+            :class="{
+              'beratung-bubble-low-risk': item.geringes_risiko,
+              'beratung-bubble-selected': isSelectedMittel(item),
+            }"
+            @click="loadMittelDetails(item)"
           >
             <div class="beratung-bubble-name">{{ item.mittelname }}</div>
             <div v-if="item.wirkstoffe?.length" class="beratung-bubble-sub">
@@ -126,7 +131,90 @@
               <span v-if="item.aufwand_info" class="beratung-bubble-tag">📏 {{ item.aufwand_info }}</span>
               <span v-if="item.zul_ende" class="beratung-bubble-tag beratung-tag-muted">bis {{ item.zul_ende.slice(0, 10) }}</span>
             </div>
+          </button>
+        </div>
+
+        <div v-if="selectedMittel" class="beratung-detail-panel">
+          <div class="beratung-detail-head">
+            <div>
+              <h4>{{ mittelDetailInfo?.title || selectedMittel.mittelname }}</h4>
+              <div class="beratung-detail-sub">
+                {{ mittelDetailInfo?.subtitle || `Kennnr. ${selectedMittel.kennr || '-'}` }}<template v-if="selectedMittel.awg_id"> · AWG {{ selectedMittel.awg_id }}</template>
+              </div>
+            </div>
+            <div class="beratung-detail-actions">
+              <a
+                v-if="mittelDetailInfo?.source_url"
+                class="btn btn-ghost"
+                :href="mittelDetailInfo.source_url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                BVL-Quelle
+              </a>
+              <button type="button" class="btn btn-ghost" @click="clearMittelDetails">Schließen</button>
+            </div>
           </div>
+
+          <div v-if="isMittelDetailLoading" class="forecast-info-box">Details werden geladen...</div>
+          <div v-else-if="mittelDetailError" class="forecast-error-box">{{ mittelDetailError }}</div>
+          <template v-else-if="mittelDetailInfo">
+            <div class="beratung-detail-summary">
+              <div
+                v-for="entry in mittelDetailFacts"
+                :key="entry.label"
+                class="beratung-detail-summary-item"
+              >
+                <span>{{ entry.label }}</span>
+                <strong>{{ entry.value }}</strong>
+              </div>
+            </div>
+
+            <div class="beratung-detail-groups">
+              <section
+                v-for="group in mittelDetailGroups"
+                :key="group.title"
+                class="beratung-detail-group"
+              >
+                <h5>{{ group.title }}</h5>
+                <div class="beratung-detail-field-list">
+                  <div
+                    v-for="field in group.items"
+                    :key="`${group.title}-${field.label}`"
+                    class="beratung-detail-field"
+                  >
+                    <span>{{ field.label }}</span>
+                    <p>{{ field.value }}</p>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <details class="beratung-detail-raw">
+              <summary>BVL-Rohdaten anzeigen</summary>
+              <div class="beratung-detail-raw-sections">
+                <details
+                  v-for="section in mittelDetailSections"
+                  :key="section.title"
+                  class="beratung-detail-section"
+                >
+                  <summary>{{ section.title }} <span>{{ section.items.length }}</span></summary>
+                  <div
+                    v-for="(row, rowIndex) in section.items"
+                    :key="`${section.title}-${rowIndex}`"
+                    class="beratung-detail-row"
+                  >
+                    <dl>
+                      <template v-for="field in detailFields(row)" :key="`${section.title}-${rowIndex}-${field.key}`">
+                        <dt>{{ field.label }}</dt>
+                        <dd>{{ field.value }}</dd>
+                      </template>
+                    </dl>
+                  </div>
+                </details>
+              </div>
+            </details>
+          </template>
         </div>
       </div>
 
@@ -181,6 +269,10 @@ export default {
     const errorMessage = ref('');
     const mittel = ref([]);
     const showMittel = ref(false);
+    const selectedMittel = ref(null);
+    const mittelDetail = ref(null);
+    const isMittelDetailLoading = ref(false);
+    const mittelDetailError = ref('');
     const progressLoaded = ref(0);
     const progressTotal = ref(0);
     const progressFound = computed(() => mittel.value.length);
@@ -215,6 +307,24 @@ export default {
       return `Abgeschlossen: ${progressFound.value} Mittel gefunden`;
     });
     const emptyLoadingText = computed(() => 'Mittel werden geladen...');
+    const mittelDetailInfo = computed(() => mittelDetail.value?.detail || null);
+    const mittelDetailFacts = computed(() => (
+      Array.isArray(mittelDetailInfo.value?.facts) ? mittelDetailInfo.value.facts : []
+    ));
+    const mittelDetailGroups = computed(() => (
+      Array.isArray(mittelDetailInfo.value?.groups)
+        ? mittelDetailInfo.value.groups.map((group) => ({
+          ...group,
+          items: Array.isArray(group.items) ? group.items : [],
+        })).filter((group) => group.items.length)
+        : []
+    ));
+    const mittelDetailSections = computed(() => {
+      const sections = Array.isArray(mittelDetail.value?.sections) ? mittelDetail.value.sections : [];
+      return sections
+        .filter((section) => Array.isArray(section.items) && section.items.length)
+        .map((section, index) => ({ ...section, open: index < 2 }));
+    });
 
     watch(selectedKulturId, () => {
       selectedSchadorg.value = null;
@@ -355,6 +465,7 @@ export default {
       closeMittelStream();
       mittel.value = [];
       showMittel.value = false;
+      clearMittelDetails();
       progressLoaded.value = 0;
       progressTotal.value = 0;
       recommendationError.value = '';
@@ -367,6 +478,56 @@ export default {
         mittelEventSource.close();
         mittelEventSource = null;
       }
+    }
+
+    function clearMittelDetails() {
+      selectedMittel.value = null;
+      mittelDetail.value = null;
+      mittelDetailError.value = '';
+      isMittelDetailLoading.value = false;
+    }
+
+    function isSelectedMittel(item) {
+      if (!selectedMittel.value) return false;
+      return selectedMittel.value.kennr === item.kennr && selectedMittel.value.awg_id === item.awg_id;
+    }
+
+    async function loadMittelDetails(item) {
+      selectedMittel.value = item;
+      mittelDetail.value = null;
+      mittelDetailError.value = '';
+
+      if (!item?.kennr) {
+        mittelDetailError.value = 'Für dieses Mittel fehlt die Kennnummer.';
+        return;
+      }
+
+      isMittelDetailLoading.value = true;
+      const params = new URLSearchParams({ kennr: item.kennr });
+      if (item.awg_id) params.append('awg_id', item.awg_id);
+
+      try {
+        const result = await apiGet(`/api/beratung/mittel/detail?${params.toString()}`);
+        if (!result?.ok) {
+          mittelDetailError.value = result?.message || 'Details konnten nicht geladen werden.';
+          return;
+        }
+        mittelDetail.value = result;
+      } catch (error) {
+        mittelDetailError.value = error?.message || 'Details konnten nicht geladen werden.';
+      } finally {
+        isMittelDetailLoading.value = false;
+      }
+    }
+
+    function detailFields(row) {
+      return Object.entries(row || {})
+        .filter(([, value]) => value !== null && value !== undefined && value !== '')
+        .map(([key, value]) => ({
+          key,
+          label: key.replaceAll('_', ' '),
+          value: Array.isArray(value) || typeof value === 'object' ? JSON.stringify(value) : String(value),
+        }));
     }
 
     async function startBeratung() {
@@ -488,18 +649,29 @@ export default {
       beratungButtonText,
       beratungButtonTitle,
       clearSchadorg,
+      clearMittelDetails,
       closeDropdown,
+      detailFields,
       dropdownItems,
       errorMessage,
       emptyLoadingText,
       isDropdownOpen,
       isLlmConfigured,
       isLoadingMittel,
+      isMittelDetailLoading,
       isRecommendationLoading,
       isResolvingPartial,
       isSearchLoading,
+      isSelectedMittel,
       kulturen,
+      loadMittelDetails,
       mittel,
+      mittelDetail,
+      mittelDetailError,
+      mittelDetailFacts,
+      mittelDetailGroups,
+      mittelDetailInfo,
+      mittelDetailSections,
       onSchadInput,
       openDropdown,
       orte,
@@ -517,6 +689,7 @@ export default {
       searchError,
       selectSchadorg,
       selectedKulturId,
+      selectedMittel,
       selectedOrtId,
       selectedSchadorg,
       showMittel,

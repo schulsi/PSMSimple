@@ -367,14 +367,32 @@ main {
 }
 
 .beratung-bubble-card {
+  appearance: none;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
   padding: 0.6rem 0.9rem;
   min-width: 160px;
   max-width: 220px;
   flex: 1 1 160px;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.beratung-bubble-card:hover,
+.beratung-bubble-card:focus-visible {
+  border-color: var(--green-mid);
+  box-shadow: 0 0 0 3px rgba(82, 183, 136, .14);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.beratung-bubble-card.beratung-bubble-selected {
+  border-color: var(--green-deep);
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, .16);
 }
 
 .beratung-bubble-card.beratung-bubble-low-risk {
@@ -414,6 +432,193 @@ main {
 }
 
 .beratung-tag-muted { color: var(--text-muted); }
+
+.beratung-detail-panel {
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  background: var(--surface);
+}
+
+.beratung-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .85rem;
+}
+
+.beratung-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.beratung-detail-head h4 {
+  margin: 0 0 .2rem;
+  color: var(--green-deep);
+  font-size: 1.15rem;
+}
+
+.beratung-detail-sub {
+  color: var(--text-muted);
+  font-size: .8rem;
+}
+
+.beratung-detail-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: .55rem;
+  margin-bottom: 1rem;
+}
+
+.beratung-detail-summary-item {
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  padding: .7rem .75rem;
+  background: rgba(0, 0, 0, .02);
+}
+
+.beratung-detail-summary-item span {
+  display: block;
+  color: var(--text-muted);
+  font-size: .72rem;
+  margin-bottom: .2rem;
+}
+
+.beratung-detail-summary-item strong {
+  color: var(--text);
+  font-size: .84rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.beratung-detail-groups {
+  display: grid;
+  gap: .85rem;
+}
+
+.beratung-detail-group {
+  border: 1px solid var(--cream-dark);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .45);
+  overflow: hidden;
+}
+
+.beratung-detail-group h5 {
+  margin: 0;
+  padding: .72rem .85rem;
+  background: rgba(45, 106, 79, .07);
+  color: var(--green-deep);
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+.beratung-detail-field-list {
+  display: grid;
+}
+
+.beratung-detail-field {
+  display: grid;
+  grid-template-columns: minmax(160px, .32fr) 1fr;
+  gap: .8rem;
+  padding: .75rem .85rem;
+  border-top: 1px solid var(--cream-dark);
+}
+
+.beratung-detail-field span {
+  color: var(--text-muted);
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.beratung-detail-field p {
+  margin: 0;
+  color: var(--text);
+  font-size: .86rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.beratung-detail-raw {
+  margin-top: 1rem;
+  border-top: 1px solid var(--cream-dark);
+  padding-top: .7rem;
+}
+
+.beratung-detail-raw > summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: .8rem;
+  font-weight: 800;
+}
+
+.beratung-detail-raw-sections {
+  margin-top: .65rem;
+}
+
+.beratung-detail-section {
+  border-top: 1px solid var(--cream-dark);
+  padding: .55rem 0;
+}
+
+.beratung-detail-section summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.beratung-detail-section summary span {
+  color: var(--text-muted);
+  font-size: .76rem;
+  font-weight: 600;
+  margin-left: .35rem;
+}
+
+.beratung-detail-row {
+  margin-top: .55rem;
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  padding: .55rem .65rem;
+  overflow-x: auto;
+}
+
+.beratung-detail-row dl {
+  display: grid;
+  grid-template-columns: minmax(120px, .35fr) 1fr;
+  gap: .3rem .75rem;
+  margin: 0;
+  font-size: .8rem;
+}
+
+.beratung-detail-row dt {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.beratung-detail-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .beratung-detail-head {
+    flex-direction: column;
+  }
+
+  .beratung-detail-actions,
+  .beratung-detail-actions .btn {
+    width: 100%;
+  }
+
+  .beratung-detail-field,
+  .beratung-detail-row dl {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* Schadorganismus-Suche */
 .beratung-search-wrap { position: relative; }
