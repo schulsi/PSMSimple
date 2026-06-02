@@ -397,8 +397,6 @@ def format_aufwand_entries(rows, awg_kultur=None, awg_schadorg=None):
             value_from(row, "m_aufwand", "m_aufwandmenge", "aufwandmenge", "aufwand"),
             mittel_unit,
         )
-        if mittel_amount:
-            lines.append(f"Mittel: {mittel_amount}")
 
         wasser_unit = decoded_value_for_key(row, "AWG_AUFWAND", "w_aufwand_einheit")
         wasser_amount = range_with_unit(
