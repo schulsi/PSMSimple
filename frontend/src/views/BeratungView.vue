@@ -127,7 +127,9 @@
             </div>
             <div class="beratung-bubble-tags">
               <span v-if="item.geringes_risiko" class="beratung-bubble-tag beratung-tag-green">geringes Risiko</span>
-              <span v-if="item.wartezeit_tage" class="beratung-bubble-tag">⏱ {{ item.wartezeit_tage }}d</span>
+              <span v-if="item.wartezeit_text || item.wartezeit_tage" class="beratung-bubble-tag">
+                ⏱ {{ item.wartezeit_text || `${item.wartezeit_tage}d` }}
+              </span>
               <span v-if="item.aufwand_info" class="beratung-bubble-tag">📏 {{ item.aufwand_info }}</span>
               <span v-if="item.zul_ende" class="beratung-bubble-tag beratung-tag-muted">bis {{ item.zul_ende.slice(0, 10) }}</span>
             </div>
@@ -143,15 +145,6 @@
               </div>
             </div>
             <div class="beratung-detail-actions">
-              <a
-                v-if="mittelDetailInfo?.source_url"
-                class="btn btn-ghost"
-                :href="mittelDetailInfo.source_url"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                BVL-Quelle
-              </a>
               <button type="button" class="btn btn-ghost" @click="clearMittelDetails">Schließen</button>
             </div>
           </div>
@@ -189,31 +182,6 @@
                 </div>
               </section>
             </div>
-
-            <details class="beratung-detail-raw">
-              <summary>BVL-Rohdaten anzeigen</summary>
-              <div class="beratung-detail-raw-sections">
-                <details
-                  v-for="section in mittelDetailSections"
-                  :key="section.title"
-                  class="beratung-detail-section"
-                >
-                  <summary>{{ section.title }} <span>{{ section.items.length }}</span></summary>
-                  <div
-                    v-for="(row, rowIndex) in section.items"
-                    :key="`${section.title}-${rowIndex}`"
-                    class="beratung-detail-row"
-                  >
-                    <dl>
-                      <template v-for="field in detailFields(row)" :key="`${section.title}-${rowIndex}-${field.key}`">
-                        <dt>{{ field.label }}</dt>
-                        <dd>{{ field.value }}</dd>
-                      </template>
-                    </dl>
-                  </div>
-                </details>
-              </div>
-            </details>
           </template>
         </div>
       </div>
@@ -319,13 +287,6 @@ export default {
         })).filter((group) => group.items.length)
         : []
     ));
-    const mittelDetailSections = computed(() => {
-      const sections = Array.isArray(mittelDetail.value?.sections) ? mittelDetail.value.sections : [];
-      return sections
-        .filter((section) => Array.isArray(section.items) && section.items.length)
-        .map((section, index) => ({ ...section, open: index < 2 }));
-    });
-
     watch(selectedKulturId, () => {
       selectedSchadorg.value = null;
       schadQuery.value = '';
@@ -520,42 +481,6 @@ export default {
       }
     }
 
-    function formatDetailLabel(key) {
-      const labels = {
-        anwendungen_anz_je_befall: 'Anwendungen je Befall',
-        anwendungen_anz_je_kultur: 'Anwendungen je Kultur',
-        anwendungen_anz_je_jahr: 'Anwendungen je Jahr',
-        behandlungen_anz_je_befall: 'Behandlungen je Befall',
-        behandlungen_anz_je_kultur: 'Behandlungen je Kultur',
-        behandlungen_anz_je_jahr: 'Behandlungen je Jahr',
-        awg_id: 'AWG-ID',
-        kennr: 'Zulassungsnummer',
-        mittelname: 'Mittelname',
-        zul_ende: 'Zulassungsende',
-        m_aufwand: 'Mittel-Aufwand',
-        m_aufwandmenge: 'Mittel-Aufwandmenge',
-        m_aufwand_einheit: 'Mittel-Aufwandeinheit',
-      };
-      const normalized = String(key || '').toLowerCase();
-      if (labels[normalized]) return labels[normalized];
-      return String(key || '')
-        .replaceAll('_', ' ')
-        .replaceAll('-', ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .replace(/^\w/, (letter) => letter.toUpperCase());
-    }
-
-    function detailFields(row) {
-      return Object.entries(row || {})
-        .filter(([, value]) => value !== null && value !== undefined && value !== '')
-        .map(([key, value]) => ({
-          key,
-          label: formatDetailLabel(key),
-          value: Array.isArray(value) || typeof value === 'object' ? JSON.stringify(value) : String(value),
-        }));
-    }
-
     async function startBeratung() {
       if (!selectedKulturId.value) {
         errorMessage.value = 'Bitte eine Kultur auswählen.';
@@ -677,8 +602,6 @@ export default {
       clearSchadorg,
       clearMittelDetails,
       closeDropdown,
-      detailFields,
-      formatDetailLabel,
       dropdownItems,
       errorMessage,
       emptyLoadingText,
@@ -698,7 +621,6 @@ export default {
       mittelDetailFacts,
       mittelDetailGroups,
       mittelDetailInfo,
-      mittelDetailSections,
       onSchadInput,
       openDropdown,
       orte,

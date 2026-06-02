@@ -494,6 +494,7 @@ main {
   font-size: .84rem;
   font-weight: 700;
   overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .beratung-detail-groups {
@@ -533,6 +534,9 @@ main {
   color: var(--text-muted);
   font-size: .78rem;
   font-weight: 800;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 .beratung-detail-field p {
@@ -540,6 +544,7 @@ main {
   color: var(--text);
   font-size: .86rem;
   line-height: 1.45;
+  min-width: 0;
   overflow-wrap: anywhere;
   white-space: pre-line;
 }
