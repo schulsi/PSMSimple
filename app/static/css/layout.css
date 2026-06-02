@@ -331,6 +331,17 @@ main {
   background: var(--green-mid);
   border-radius: 99px;
   transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.beratung-progress-bar-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .32), transparent);
+  animation: beratung-progress-sheen 1.2s linear infinite;
+  transform: translateX(-100%);
 }
 
 .beratung-progress-label {
@@ -346,6 +357,75 @@ main {
 .beratung-card-enter {
   opacity: 0;
   transform: translateY(6px);
+}
+
+.beratung-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-width: 0;
+  color: var(--green-deep);
+  font-weight: 700;
+}
+
+.beratung-loading-inline {
+  color: inherit;
+  font-weight: 600;
+}
+
+.beratung-loading-empty {
+  display: flex;
+  align-items: center;
+  min-height: 54px;
+}
+
+.beratung-spinner {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 1rem;
+  border: 2px solid rgba(45, 106, 79, .18);
+  border-top-color: var(--green-mid);
+  border-radius: 50%;
+  animation: beratung-spin .75s linear infinite;
+}
+
+.beratung-spinner-gif {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 1rem;
+  display: block;
+  object-fit: contain;
+}
+
+.beratung-dropdown-loading .beratung-spinner-gif {
+  width: .85rem;
+  height: .85rem;
+  flex-basis: .85rem;
+}
+
+.beratung-dropdown-loading .beratung-spinner {
+  width: .85rem;
+  height: .85rem;
+  flex-basis: .85rem;
+}
+
+@keyframes beratung-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes beratung-progress-sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beratung-spinner,
+  .beratung-progress-bar-fill::after {
+    animation: none;
+  }
 }
 
 .nav-overlay-button {

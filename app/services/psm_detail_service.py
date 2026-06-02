@@ -7,7 +7,7 @@ from .psm_api_services import _get_bee_class
 from .psm_beratung_service import PSMBeratungError, _get, _get_all_items
 
 
-DETAIL_CACHE_VERSION = "9"
+DETAIL_CACHE_VERSION = "12"
 
 
 @cache.memoize(timeout=Config.CACHE_DEFAULT_TIMEOUT)
@@ -337,36 +337,101 @@ def range_with_unit(value_from_text, value_to_text, unit):
     return amount_with_unit(value, unit)
 
 
-def format_aufwand_entries(rows):
-    entries = []
-    seen = set()
+def format_aufwand_context(awg_kultur, awg_schadorg):
+    kulturen = named_values(
+        awg_kultur,
+        ("kultur", "kultur_code", "kode", "code"),
+        ("kultur_text", "kultur_name", "bezeichnung", "text", "kodetext"),
+        table="AWG_KULTUR",
+    )
+    schadorganismen = named_values(
+        awg_schadorg,
+        ("schadorg", "schadorganismus", "schadorg_code", "kode", "code"),
+        ("schadorg_text", "schadorganismus_text", "bezeichnung", "text", "kodetext"),
+        table="AWG_SCHADORG",
+    )
 
-    def add(label, value):
-        text = str(value or "").strip()
-        if not text:
-            return
-        entry = f"{label}: {text}"
-        if entry not in seen:
-            seen.add(entry)
-            entries.append(entry)
+    parts = []
+    if kulturen:
+        parts.append(f"Kultur: {', '.join(kulturen)}")
+    if schadorganismen:
+        parts.append(f"Schadorganismus: {', '.join(schadorganismen)}")
+    return parts
+
+
+def format_aufwand_variant_context(row):
+    parts = []
+
+    condition = value_from(row, "aufwandbedingung")
+    if condition:
+        decoded = decode_code("AWG_AUFWAND", "aufwandbedingung", condition)
+        text = decoded if decoded and decoded != condition else condition
+        if text.strip():
+            parts.append(f"Bedingung: {text.strip()}")
+
+    bbch_from = value_from(row, "bbch_von", "stadium_von")
+    bbch_to = value_from(row, "bbch_bis", "stadium_bis")
+    bbch = value_from(row, "bbch", "stadium")
+    if bbch_from or bbch_to:
+        range_text = " - ".join(part for part in [bbch_from, bbch_to] if part)
+        parts.append(f"BBCH: {range_text}")
+    elif bbch:
+        parts.append(f"BBCH: {bbch}")
+
+    return parts
+
+
+def format_aufwand_entries(rows, awg_kultur=None, awg_schadorg=None):
+    if not rows:
+        return []
+
+    context = format_aufwand_context(awg_kultur or [], awg_schadorg or [])
+    variant_lines = []
+    seen = set()
 
     for row in rows:
         mittel_unit = decoded_value_for_key(row, "AWG_AUFWAND", "m_aufwand_einheit")
         if not mittel_unit:
             mittel_unit = decoded_value_for_key(row, "AWG_AUFWAND", "aufwandeinheit")
-        add("Mittel-Aufwand", amount_with_unit(
+        mittel_amount = amount_with_unit(
             value_from(row, "m_aufwand", "m_aufwandmenge", "aufwandmenge", "aufwand"),
             mittel_unit,
-        ))
+        )
+        if mittel_amount:
+            lines.append(f"Mittel: {mittel_amount}")
 
         wasser_unit = decoded_value_for_key(row, "AWG_AUFWAND", "w_aufwand_einheit")
-        add("Wasser-Aufwand", range_with_unit(
+        wasser_amount = range_with_unit(
             value_from(row, "w_aufwand_von"),
             value_from(row, "w_aufwand_bis"),
             wasser_unit,
-        ))
+        )
 
-    return entries
+        values = []
+        if mittel_amount:
+            values.append(f"Mittel {mittel_amount}")
+        if wasser_amount:
+            values.append(f"Wasser {wasser_amount}")
+        if not values:
+            continue
+
+        variant_context = format_aufwand_variant_context(row)
+        prefix = " | ".join(variant_context)
+        line = " - ".join(part for part in [prefix, ", ".join(values)] if part)
+        if line and line not in seen:
+            seen.add(line)
+            variant_lines.append(line)
+
+    if not variant_lines:
+        return []
+
+    lines = []
+    if context:
+        lines.append("Gilt für:")
+        lines.extend(context)
+        lines.append("Aufwand:")
+    lines.extend(f"- {line}" for line in variant_lines)
+    return ["\n".join(lines)]
 
 
 def format_wartezeit_value(row):
@@ -708,7 +773,7 @@ def _build_mittel_detail_cached(kennr, awg_id="", cache_version=DETAIL_CACHE_VER
                         *matching_entries(awg, "max", "behandl"),
                     ])},
                     {"label": "Aufwandmenge", "value": format_lines([
-                        *format_aufwand_entries(awg_aufwand),
+                        *format_aufwand_entries(awg_aufwand, awg_kultur, awg_schadorg),
                     ])},
                     {"label": "Wartezeiten", "value": format_lines([
                         *format_wartezeit_entries(awg_wartezeit),
