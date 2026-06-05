@@ -57,7 +57,7 @@ jobs:
         id: bandit
         continue-on-error: true
         run: |
-          bandit -c bandit.yaml -f json -o bandit-report.json -r .
+          bandit -c bandit.yaml -f json -o bandit-report.json -r requirements.txt 
 
       - name: Upload Bandit report
         if: always()
