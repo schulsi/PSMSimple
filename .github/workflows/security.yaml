@@ -44,6 +44,8 @@ jobs:
       # Secret Scanning
       # -----------------------------
       - name: Secret scanning with Gitleaks
+        id: gitleaks
+        continue-on-error: true
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,19 +54,25 @@ jobs:
       # Python SAST - Bandit
       # -----------------------------
       - name: Run Bandit SAST scan
+        id: bandit
+        continue-on-error: true
         run: |
           bandit -c bandit.yaml -f json -o bandit-report.json -r .
 
       - name: Upload Bandit report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: bandit-report
           path: bandit-report.json
+          if-no-files-found: warn
 
       # -----------------------------
       # Semgrep OWASP Scan
       # -----------------------------
       - name: Run Semgrep OWASP Top 10 scan
+        id: semgrep
+        continue-on-error: true
         run: |
           semgrep scan \
             --config p/owasp-top-ten \
@@ -73,30 +81,38 @@ jobs:
 
 
       - name: Upload Semgrep report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report
           path: semgrep-report.json
+          if-no-files-found: warn
 
       # -----------------------------
       # Dependency Vulnerability Scanning
       # -----------------------------
       - name: Run pip-audit
+        id: pip_audit
+        continue-on-error: true
         run: |
           pip-audit \
             --format=json \
             --output=pip-audit-report.json
 
       - name: Upload pip-audit report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pip-audit-report
           path: pip-audit-report.json
+          if-no-files-found: warn
 
       # -----------------------------
       # Docker Image Build
       # -----------------------------
       - name: Build Docker image
+        id: docker_build
+        continue-on-error: true
         run: |
           docker build -t myapp:security-scan .
 
@@ -104,6 +120,9 @@ jobs:
       # Docker Image Vulnerability Scan
       # -----------------------------
       - name: Scan Docker image with Trivy
+        id: trivy_image
+        if: always() && steps.docker_build.outcome == 'success'
+        continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: myapp:security-scan
@@ -113,15 +132,20 @@ jobs:
           ignore-unfixed: true
 
       - name: Upload Trivy report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-report
           path: trivy-report.json
+          if-no-files-found: warn
 
       # -----------------------------
       # Filesystem / IaC / Secret Scan
       # -----------------------------
       - name: Trivy filesystem scan
+        id: trivy_fs
+        if: always()
+        continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
@@ -132,10 +156,36 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM
 
       - name: Upload Trivy filesystem report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-filesystem-report
           path: trivy-fs-report.json
+          if-no-files-found: warn
+
+      - name: Fail if security scans failed
+        if: always()
+        run: |
+          failed=0
+
+          check_step() {
+            name="$1"
+            outcome="$2"
+            if [ "$outcome" = "failure" ]; then
+              echo "::error::$name failed."
+              failed=1
+            fi
+          }
+
+          check_step "Gitleaks" "${{ steps.gitleaks.outcome }}"
+          check_step "Bandit" "${{ steps.bandit.outcome }}"
+          check_step "Semgrep" "${{ steps.semgrep.outcome }}"
+          check_step "pip-audit" "${{ steps.pip_audit.outcome }}"
+          check_step "Docker build" "${{ steps.docker_build.outcome }}"
+          check_step "Trivy image" "${{ steps.trivy_image.outcome }}"
+          check_step "Trivy filesystem" "${{ steps.trivy_fs.outcome }}"
+
+          exit "$failed"
 
   dast-zap-scan:
     name: OWASP ZAP DAST Scan
