@@ -149,7 +149,22 @@
             </div>
           </div>
 
-          <div v-if="isMittelDetailLoading" class="forecast-info-box">Details werden geladen...</div>
+          <div
+            v-if="isMittelDetailLoading"
+            ref="mittelDetailLoadingEl"
+            class="beratung-detail-loading"
+            aria-live="polite"
+          >
+            <img
+              v-if="loadingUrl"
+              :src="loadingUrl"
+              alt=""
+              class="beratung-detail-loading-gif"
+              aria-hidden="true"
+            />
+            <span v-else class="beratung-spinner" aria-hidden="true"></span>
+            <span>{{ currentMittelDetailLoadingMessage }}</span>
+          </div>
           <div v-else-if="mittelDetailError" class="forecast-error-box">{{ mittelDetailError }}</div>
           <template v-else-if="mittelDetailInfo">
             <div class="beratung-detail-summary">
@@ -211,12 +226,18 @@
 </template>
 
 <script>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { apiGet, apiPost } from '../app/api.js';
 
 export default {
   name: 'BeratungView',
+  props: {
+    loadingUrl: {
+      type: String,
+      default: '',
+    },
+  },
   setup() {
     const kulturen = ref([]);
     const orte = ref([]);
@@ -238,6 +259,7 @@ export default {
     const mittel = ref([]);
     const showMittel = ref(false);
     const selectedMittel = ref(null);
+    const mittelDetailLoadingEl = ref(null);
     const mittelDetail = ref(null);
     const isMittelDetailLoading = ref(false);
     const mittelDetailError = ref('');
@@ -263,6 +285,37 @@ export default {
     });
 
     const recommendationLines = computed(() => recommendationText.value.split('\n'));
+    const detailLoadingMessages = [
+      'Anwendungen werden geladen...',
+      'Aufwandmengen werden berechnet...',
+      'Wartezeiten werden geprüft...',
+      'Wirkstoffe werden abgeglichen...',
+      'Anwendungsbestimmungen werden geladen...',
+      'Bienenschutzdaten werden geprüft...',
+      'Details werden zusammengestellt...',
+    ];
+    const detailLoadingMessageIndex = ref(0);
+    const currentMittelDetailLoadingMessage = computed(() => (
+      detailLoadingMessages[detailLoadingMessageIndex.value] || detailLoadingMessages[0]
+    ));
+    let detailLoadingTimer = null;
+    let mittelDetailRequestId = 0;
+
+    function stopMittelDetailLoadingMessages() {
+      if (detailLoadingTimer) {
+        clearInterval(detailLoadingTimer);
+        detailLoadingTimer = null;
+      }
+      detailLoadingMessageIndex.value = 0;
+    }
+
+    function startMittelDetailLoadingMessages() {
+      stopMittelDetailLoadingMessages();
+      detailLoadingTimer = window.setInterval(() => {
+        detailLoadingMessageIndex.value = (detailLoadingMessageIndex.value + 1) % detailLoadingMessages.length;
+      }, 2400);
+    }
+
     const progressPercent = computed(() => {
       if (progressTotal.value) return Math.min(100, Math.round((progressLoaded.value / progressTotal.value) * 100));
       return isLoadingMittel.value ? 8 : 0;
@@ -442,6 +495,8 @@ export default {
     }
 
     function clearMittelDetails() {
+      mittelDetailRequestId += 1;
+      stopMittelDetailLoadingMessages();
       selectedMittel.value = null;
       mittelDetail.value = null;
       mittelDetailError.value = '';
@@ -454,9 +509,11 @@ export default {
     }
 
     async function loadMittelDetails(item) {
+      const requestId = ++mittelDetailRequestId;
       selectedMittel.value = item;
       mittelDetail.value = null;
       mittelDetailError.value = '';
+      stopMittelDetailLoadingMessages();
 
       if (!item?.kennr) {
         mittelDetailError.value = 'Für dieses Mittel fehlt die Kennnummer.';
@@ -464,20 +521,30 @@ export default {
       }
 
       isMittelDetailLoading.value = true;
+      startMittelDetailLoadingMessages();
+      await nextTick();
+      mittelDetailLoadingEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
       const params = new URLSearchParams({ kennr: item.kennr });
       if (item.awg_id) params.append('awg_id', item.awg_id);
 
       try {
         const result = await apiGet(`/api/beratung/mittel/detail?${params.toString()}`);
+        if (requestId !== mittelDetailRequestId) return;
+
         if (!result?.ok) {
           mittelDetailError.value = result?.message || 'Details konnten nicht geladen werden.';
           return;
         }
         mittelDetail.value = result;
       } catch (error) {
+        if (requestId !== mittelDetailRequestId) return;
         mittelDetailError.value = error?.message || 'Details konnten nicht geladen werden.';
       } finally {
-        isMittelDetailLoading.value = false;
+        if (requestId === mittelDetailRequestId) {
+          isMittelDetailLoading.value = false;
+          stopMittelDetailLoadingMessages();
+        }
       }
     }
 
@@ -591,6 +658,7 @@ export default {
 
     onBeforeUnmount(() => {
       clearTimeout(debounceTimer);
+      stopMittelDetailLoadingMessages();
       closeMittelStream();
       document.removeEventListener('click', onDocumentClick);
     });
@@ -602,6 +670,7 @@ export default {
       clearSchadorg,
       clearMittelDetails,
       closeDropdown,
+      currentMittelDetailLoadingMessage,
       dropdownItems,
       errorMessage,
       emptyLoadingText,
@@ -621,6 +690,7 @@ export default {
       mittelDetailFacts,
       mittelDetailGroups,
       mittelDetailInfo,
+      mittelDetailLoadingEl,
       onSchadInput,
       openDropdown,
       orte,

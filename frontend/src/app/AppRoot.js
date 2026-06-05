@@ -1410,7 +1410,9 @@ const AppRoot = {
           id: 'forecast-sub-beratung',
           class: ['history-sub-tab', { active: this.activeForecastSubTab === 'beratung' }],
         }, [
-          h(BeratungView),
+          h(BeratungView, {
+            loadingUrl: this.assets.loading || '',
+          }),
         ]),
       ]),
       h(Teleport, { to: '#tab-history' }, [
