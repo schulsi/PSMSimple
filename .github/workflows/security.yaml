@@ -29,14 +29,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.14"
-      
-      - name: Check changed files
-        id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            relevant:
-              - 'app/**/*.py'
 
       - name: Install project dependencies
         run: |
@@ -203,6 +195,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Check changed files
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - 'app/**/*.py'
 
       - name: Build Docker image
         run: |
