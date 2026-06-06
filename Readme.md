@@ -152,17 +152,18 @@ The app runs at **`http://localhost:5001`**.
 
 ## Configuration
 
+
 The app is configured entirely via environment variables:
 
-| Variable                | Required | Default          | Description                                                                                          |
-| ----------------------- | -------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
-| `SECRET_KEY`            | ✅       | –                | Cryptographic key for sessions and CSRF protection                                                   |
-| `DATA_DIR`              | ❌       | `./data`         | Directory for databases, exports, and logs                                                           |
-| `RATELIMIT_STORAGE_URI` | ❌       | `memory://`      | Redis URL for rate limiting, e.g. `redis://redis:6379/0`                                             |
-| `LLM_PROVIDER`          | ❌       | `anthropic`      | LLM provider for PSM advisory (`anthropic` or `openai`)                                              |
-| `LLM_MODEL`             | ❌       | provider default | Model name to use, e.g. `claude-sonnet-4-20250514`. Falls back to the provider's default if not set. |
-| `ANTHROPIC_API_KEY`     | ❌       | –                | API key for Anthropic. Required if `LLM_PROVIDER=anthropic`.                                         |
-| `OPENAI_API_KEY`        | ❌       | –                | API key for OpenAI. Required if `LLM_PROVIDER=openai`.                                               |
+| Variable                | Required | Default           | Description                                                                                             |
+|-------------------------|----------|-------------------|---------------------------------------------------------------------------------------------------------|
+| `SECRET_KEY`            | ✅       | –                 | Cryptographic key for sessions and CSRF protection                                                      |
+| `DATA_DIR`              | ❌       | `./data`          | Directory for databases, exports, and logs                                                              |
+| `RATELIMIT_STORAGE_URI` | ❌       | `memory://`       | Redis URL for rate limiting, e.g. `redis://redis:6379/0`                                                |
+| `LLM_PROVIDER`          | ❌       | `anthropic`       | LLM provider for PSM advisory (`anthropic` or `openai`)                                                 |
+| `LLM_MODEL`             | ❌       | `provider default`| Model name to use, e.g. `claude-sonnet-4-20250514`. Falls back to the provider's default if not set.    |
+| `ANTHROPIC_API_KEY`     | ❌       | –                 | API key for Anthropic. Required if `LLM_PROVIDER=anthropic`.                                            |
+| `OPENAI_API_KEY`        | ❌       | –                 | API key for OpenAI. Required if `LLM_PROVIDER=openai`.                                                  |
 
 > ℹ️ The PSM advisory feature (AI recommendations) is optional. If no API key is configured, the advisory button is disabled in the UI. All other features work without an LLM key.
 
