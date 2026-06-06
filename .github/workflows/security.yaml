@@ -96,6 +96,7 @@ jobs:
         continue-on-error: true
         run: |
           pip-audit \
+            -r requirements.txt \
             --format=json \
             --output=pip-audit-report.json
 
