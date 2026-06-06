@@ -3,7 +3,7 @@ services:
     image: ghcr.io/schulsi/psmsimple:latest
     container_name: psmsimple-app
     ports:
-      - "8080:80"
+      - "8080:8000"
     environment:
       - DATA_DIR=/data
       - SECRET_KEY=${SECRET_KEY}
@@ -20,7 +20,7 @@ services:
       - psmsimple-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
       timeout: 10s
       retries: 3

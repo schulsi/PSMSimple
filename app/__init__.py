@@ -2,13 +2,14 @@ import json
 import secrets
 from pathlib import Path
 
-from flask import Flask, jsonify, request, flash, redirect, url_for, render_template, g
+from flask import Flask, jsonify, request, flash, redirect, url_for, render_template, g, abort
 from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.exceptions import HTTPException
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_migrate import Migrate, upgrade
 from werkzeug.security import check_password_hash
+from flask_login import current_user
 
 from .config import Config
 from .utils.warmup import _start_warmup_cache
@@ -111,6 +112,19 @@ def create_app():
             return
 
         csrf.protect()
+
+    @app.before_request
+    def protect_swagger():
+        swagger_paths = ("/apidocs", "/apispec_1.json")
+
+        if not request.path.startswith(swagger_paths):
+            return
+
+        if not current_user.is_authenticated:
+            abort(403)
+
+        if not getattr(current_user, "role", None) or current_user.role.name != "admin":
+            abort(403)
 
     @app.before_request
     def create_csp_nonce():
