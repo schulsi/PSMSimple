@@ -15,6 +15,7 @@ from ..services.psm_beratung_service import (
     _format_mittel,
     suche_mittel_stream,
     )
+from ..services.psm_detail_service import build_mittel_detail
 from .einsatzorte import cord2plz
 from ..repositories.orte_repo import get_ort_by_id
 from ..services.weather_service import fetch_forecast
@@ -409,3 +410,44 @@ def stream_mittel_empfehlung():
             "X-Accel-Buffering": "no",   # nginx: Buffering deaktivieren
         }
     )
+
+
+@bp.get("/api/beratung/mittel/detail")
+@login_required
+def get_mittel_detail():
+    """
+    Detaildaten zu einem zugelassenen Pflanzenschutzmittel abrufen.
+    ---
+    tags:
+      - Beratung
+    parameters:
+      - in: query
+        name: kennr
+        type: string
+        required: true
+        description: BVL-Zulassungsnummer des Pflanzenschutzmittels
+      - in: query
+        name: awg_id
+        type: string
+        required: false
+        description: Optionale AWG-ID, um anwendungsspezifische Details wie Aufwand und Wartezeit einzugrenzen
+    responses:
+      200:
+        description: Kuratierte PSM-Detaildaten mit aufgelösten BVL-Codes
+      400:
+        description: Fehlende oder ungültige Parameter
+      401:
+        description: Nicht authentifiziert
+      502:
+        description: BVL-API nicht erreichbar oder fehlerhaft
+    """
+    kennr = request.args.get("kennr", "").strip()
+    awg_id = request.args.get("awg_id", "").strip()
+
+    if not kennr:
+        return jsonify({"ok": False, "message": "kennr erforderlich"}), 400
+
+    try:
+        return jsonify(build_mittel_detail(kennr, awg_id))
+    except PSMBeratungError as e:
+        return jsonify({"ok": False, "message": str(e)}), 502
