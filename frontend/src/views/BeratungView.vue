@@ -110,11 +110,16 @@
         <div id="beratung-mittel-list" class="beratung-bubble-grid">
           <div v-if="isLoadingMittel && !mittel.length" class="empty">{{ emptyLoadingText }}</div>
           <div v-else-if="!mittel.length" class="empty">Keine zugelassenen Mittel gefunden.</div>
-          <div
+          <button
             v-for="item in mittel"
             :key="`${item.kennr || item.mittelname}-${item.awg_id || item.zul_ende || ''}`"
+            type="button"
             class="beratung-bubble-card"
-            :class="{ 'beratung-bubble-low-risk': item.geringes_risiko }"
+            :class="{
+              'beratung-bubble-low-risk': item.geringes_risiko,
+              'beratung-bubble-selected': isSelectedMittel(item),
+            }"
+            @click="loadMittelDetails(item)"
           >
             <div class="beratung-bubble-name">{{ item.mittelname }}</div>
             <div v-if="item.wirkstoffe?.length" class="beratung-bubble-sub">
@@ -122,11 +127,77 @@
             </div>
             <div class="beratung-bubble-tags">
               <span v-if="item.geringes_risiko" class="beratung-bubble-tag beratung-tag-green">geringes Risiko</span>
-              <span v-if="item.wartezeit_tage" class="beratung-bubble-tag">⏱ {{ item.wartezeit_tage }}d</span>
+              <span v-if="item.wartezeit_text || item.wartezeit_tage" class="beratung-bubble-tag">
+                ⏱ {{ item.wartezeit_text || `${item.wartezeit_tage}d` }}
+              </span>
               <span v-if="item.aufwand_info" class="beratung-bubble-tag">📏 {{ item.aufwand_info }}</span>
               <span v-if="item.zul_ende" class="beratung-bubble-tag beratung-tag-muted">bis {{ item.zul_ende.slice(0, 10) }}</span>
             </div>
+          </button>
+        </div>
+
+        <div v-if="selectedMittel" class="beratung-detail-panel">
+          <div class="beratung-detail-head">
+            <div>
+              <h4>{{ mittelDetailInfo?.title || selectedMittel.mittelname }}</h4>
+              <div class="beratung-detail-sub">
+                {{ mittelDetailInfo?.subtitle || `Kennnr. ${selectedMittel.kennr || '-'}` }}<template v-if="selectedMittel.awg_id"> · AWG {{ selectedMittel.awg_id }}</template>
+              </div>
+            </div>
+            <div class="beratung-detail-actions">
+              <button type="button" class="btn btn-ghost" @click="clearMittelDetails">Schließen</button>
+            </div>
           </div>
+
+          <div
+            v-if="isMittelDetailLoading"
+            ref="mittelDetailLoadingEl"
+            class="beratung-detail-loading"
+            aria-live="polite"
+          >
+            <img
+              v-if="loadingUrl"
+              :src="loadingUrl"
+              alt=""
+              class="beratung-detail-loading-gif"
+              aria-hidden="true"
+            />
+            <span v-else class="beratung-spinner" aria-hidden="true"></span>
+            <span>{{ currentMittelDetailLoadingMessage }}</span>
+          </div>
+          <div v-else-if="mittelDetailError" class="forecast-error-box">{{ mittelDetailError }}</div>
+          <template v-else-if="mittelDetailInfo">
+            <div class="beratung-detail-summary">
+              <div
+                v-for="entry in mittelDetailFacts"
+                :key="entry.label"
+                class="beratung-detail-summary-item"
+              >
+                <span>{{ entry.label }}</span>
+                <strong>{{ entry.value }}</strong>
+              </div>
+            </div>
+
+            <div class="beratung-detail-groups">
+              <section
+                v-for="group in mittelDetailGroups"
+                :key="group.title"
+                class="beratung-detail-group"
+              >
+                <h5>{{ group.title }}</h5>
+                <div class="beratung-detail-field-list">
+                  <div
+                    v-for="field in group.items"
+                    :key="`${group.title}-${field.label}`"
+                    class="beratung-detail-field"
+                  >
+                    <span>{{ field.label }}</span>
+                    <p>{{ field.value }}</p>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </template>
         </div>
       </div>
 
@@ -155,12 +226,18 @@
 </template>
 
 <script>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { apiGet, apiPost } from '../app/api.js';
 
 export default {
   name: 'BeratungView',
+  props: {
+    loadingUrl: {
+      type: String,
+      default: '',
+    },
+  },
   setup() {
     const kulturen = ref([]);
     const orte = ref([]);
@@ -181,6 +258,11 @@ export default {
     const errorMessage = ref('');
     const mittel = ref([]);
     const showMittel = ref(false);
+    const selectedMittel = ref(null);
+    const mittelDetailLoadingEl = ref(null);
+    const mittelDetail = ref(null);
+    const isMittelDetailLoading = ref(false);
+    const mittelDetailError = ref('');
     const progressLoaded = ref(0);
     const progressTotal = ref(0);
     const progressFound = computed(() => mittel.value.length);
@@ -203,6 +285,37 @@ export default {
     });
 
     const recommendationLines = computed(() => recommendationText.value.split('\n'));
+    const detailLoadingMessages = [
+      'Anwendungen werden geladen...',
+      'Aufwandmengen werden berechnet...',
+      'Wartezeiten werden geprüft...',
+      'Wirkstoffe werden abgeglichen...',
+      'Anwendungsbestimmungen werden geladen...',
+      'Bienenschutzdaten werden geprüft...',
+      'Details werden zusammengestellt...',
+    ];
+    const detailLoadingMessageIndex = ref(0);
+    const currentMittelDetailLoadingMessage = computed(() => (
+      detailLoadingMessages[detailLoadingMessageIndex.value] || detailLoadingMessages[0]
+    ));
+    let detailLoadingTimer = null;
+    let mittelDetailRequestId = 0;
+
+    function stopMittelDetailLoadingMessages() {
+      if (detailLoadingTimer) {
+        clearInterval(detailLoadingTimer);
+        detailLoadingTimer = null;
+      }
+      detailLoadingMessageIndex.value = 0;
+    }
+
+    function startMittelDetailLoadingMessages() {
+      stopMittelDetailLoadingMessages();
+      detailLoadingTimer = window.setInterval(() => {
+        detailLoadingMessageIndex.value = (detailLoadingMessageIndex.value + 1) % detailLoadingMessages.length;
+      }, 2400);
+    }
+
     const progressPercent = computed(() => {
       if (progressTotal.value) return Math.min(100, Math.round((progressLoaded.value / progressTotal.value) * 100));
       return isLoadingMittel.value ? 8 : 0;
@@ -215,7 +328,18 @@ export default {
       return `Abgeschlossen: ${progressFound.value} Mittel gefunden`;
     });
     const emptyLoadingText = computed(() => 'Mittel werden geladen...');
-
+    const mittelDetailInfo = computed(() => mittelDetail.value?.detail || null);
+    const mittelDetailFacts = computed(() => (
+      Array.isArray(mittelDetailInfo.value?.facts) ? mittelDetailInfo.value.facts : []
+    ));
+    const mittelDetailGroups = computed(() => (
+      Array.isArray(mittelDetailInfo.value?.groups)
+        ? mittelDetailInfo.value.groups.map((group) => ({
+          ...group,
+          items: Array.isArray(group.items) ? group.items : [],
+        })).filter((group) => group.items.length)
+        : []
+    ));
     watch(selectedKulturId, () => {
       selectedSchadorg.value = null;
       schadQuery.value = '';
@@ -355,6 +479,7 @@ export default {
       closeMittelStream();
       mittel.value = [];
       showMittel.value = false;
+      clearMittelDetails();
       progressLoaded.value = 0;
       progressTotal.value = 0;
       recommendationError.value = '';
@@ -366,6 +491,60 @@ export default {
       if (mittelEventSource) {
         mittelEventSource.close();
         mittelEventSource = null;
+      }
+    }
+
+    function clearMittelDetails() {
+      mittelDetailRequestId += 1;
+      stopMittelDetailLoadingMessages();
+      selectedMittel.value = null;
+      mittelDetail.value = null;
+      mittelDetailError.value = '';
+      isMittelDetailLoading.value = false;
+    }
+
+    function isSelectedMittel(item) {
+      if (!selectedMittel.value) return false;
+      return selectedMittel.value.kennr === item.kennr && selectedMittel.value.awg_id === item.awg_id;
+    }
+
+    async function loadMittelDetails(item) {
+      const requestId = ++mittelDetailRequestId;
+      selectedMittel.value = item;
+      mittelDetail.value = null;
+      mittelDetailError.value = '';
+      stopMittelDetailLoadingMessages();
+
+      if (!item?.kennr) {
+        mittelDetailError.value = 'Für dieses Mittel fehlt die Kennnummer.';
+        return;
+      }
+
+      isMittelDetailLoading.value = true;
+      startMittelDetailLoadingMessages();
+      await nextTick();
+      mittelDetailLoadingEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const params = new URLSearchParams({ kennr: item.kennr });
+      if (item.awg_id) params.append('awg_id', item.awg_id);
+
+      try {
+        const result = await apiGet(`/api/beratung/mittel/detail?${params.toString()}`);
+        if (requestId !== mittelDetailRequestId) return;
+
+        if (!result?.ok) {
+          mittelDetailError.value = result?.message || 'Details konnten nicht geladen werden.';
+          return;
+        }
+        mittelDetail.value = result;
+      } catch (error) {
+        if (requestId !== mittelDetailRequestId) return;
+        mittelDetailError.value = error?.message || 'Details konnten nicht geladen werden.';
+      } finally {
+        if (requestId === mittelDetailRequestId) {
+          isMittelDetailLoading.value = false;
+          stopMittelDetailLoadingMessages();
+        }
       }
     }
 
@@ -479,6 +658,7 @@ export default {
 
     onBeforeUnmount(() => {
       clearTimeout(debounceTimer);
+      stopMittelDetailLoadingMessages();
       closeMittelStream();
       document.removeEventListener('click', onDocumentClick);
     });
@@ -488,18 +668,29 @@ export default {
       beratungButtonText,
       beratungButtonTitle,
       clearSchadorg,
+      clearMittelDetails,
       closeDropdown,
+      currentMittelDetailLoadingMessage,
       dropdownItems,
       errorMessage,
       emptyLoadingText,
       isDropdownOpen,
       isLlmConfigured,
       isLoadingMittel,
+      isMittelDetailLoading,
       isRecommendationLoading,
       isResolvingPartial,
       isSearchLoading,
+      isSelectedMittel,
       kulturen,
+      loadMittelDetails,
       mittel,
+      mittelDetail,
+      mittelDetailError,
+      mittelDetailFacts,
+      mittelDetailGroups,
+      mittelDetailInfo,
+      mittelDetailLoadingEl,
       onSchadInput,
       openDropdown,
       orte,
@@ -517,6 +708,7 @@ export default {
       searchError,
       selectSchadorg,
       selectedKulturId,
+      selectedMittel,
       selectedOrtId,
       selectedSchadorg,
       showMittel,

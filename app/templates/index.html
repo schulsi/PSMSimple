@@ -65,7 +65,8 @@
     },
     "permissions": {{ permissions | tojson }},
     "assets": {
-      "logo": {{ url_for('pages.media', filename='logo.png') | tojson }}
+      "logo": {{ url_for('pages.media', filename='logo.png') | tojson }},
+      "loading": {{ url_for('pages.media', filename='loading.gif') | tojson }}
     }
   }
 </script>
