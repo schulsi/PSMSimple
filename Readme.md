@@ -152,7 +152,6 @@ The app runs at **`http://localhost:5001`**.
 
 ## Configuration
 
-
 The app is configured entirely via environment variables:
 
 | Variable                | Required | Default           | Description                                                                                             |
