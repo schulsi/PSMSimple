@@ -137,6 +137,7 @@ const AppRoot = {
       versionInfo: {
         appName: 'PSMSimple',
         currentVersion: '',
+        environment: '',
         latestVersion: '',
         releaseUrl: '',
         updateAvailable: false,
@@ -455,10 +456,20 @@ const AppRoot = {
     async loadVersionInfo() {
       try {
         const version = await apiGet('/version');
+        // normalize environment values to 'dev' | 'stage' | 'production' when possible
+        const rawEnv = (version.environment || this.versionInfo.environment || '').toString();
+        const envLower = rawEnv.trim().toLowerCase();
+        let normalizedEnv = '';
+        if (envLower.startsWith('dev')) normalizedEnv = 'dev';
+        else if (envLower.includes('stag')) normalizedEnv = 'stage';
+        else if (envLower.startsWith('prod')) normalizedEnv = 'production';
+        else if (envLower) normalizedEnv = envLower; // preserve custom values
+
         this.versionInfo = {
           ...this.versionInfo,
           appName: version.name || this.versionInfo.appName,
           currentVersion: version.version || '',
+          environment: normalizedEnv || this.versionInfo.environment,
         };
 
         try {

@@ -51,6 +51,7 @@ ENV OPENAI_API_KEY=""
 ENV ANTHROPIC_API_KEY=""
 ENV OPENAI_BASE_URL="https://api.openai.com/v1"
 ENV RATELIMIT_STORAGE_URI="redis://redis:6379/0"
+ENV ENVIRONMENT=production
 
 ENV FLASK_APP=run:app
 

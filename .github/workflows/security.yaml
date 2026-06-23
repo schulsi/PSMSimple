@@ -3,6 +3,8 @@ name: Security CI/CD Pipeline
 on:
   pull_request:
     branches: ["main", "master", "develop"]
+  merge_group:
+    branches: ["main", "master", "develop"]
   workflow_dispatch:
 
 permissions:
@@ -13,6 +15,7 @@ permissions:
 
 jobs:
   security-scanning:
+    if: github.event_name == 'pull_request'
     name: Security Scanning
     runs-on: ubuntu-latest
 
@@ -189,6 +192,7 @@ jobs:
           exit "$failed"
 
   dast-zap-scan:
+    if: github.event_name == 'merge_group'
     name: OWASP ZAP DAST Scan
     runs-on: ubuntu-latest
 

@@ -4,13 +4,15 @@ from packaging.version import parse as parse_version
 import requests
 
 from ..version import APP_NAME, APP_VERSION, GITHUB_OWNER, GITHUB_REPO
+from ..config import Config
 
 bp = Blueprint("version", __name__)
 
 @bp.route("/version", methods=["GET"])
 @login_required
 def version():
-    return {"name": APP_NAME, "version": APP_VERSION}
+    env = Config.ENVIRONMENT
+    return {"name": APP_NAME, "version": APP_VERSION, "environment": env}
 
 @bp.route("/version/check", methods=["GET"])
 @login_required
