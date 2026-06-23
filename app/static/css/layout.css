@@ -46,7 +46,10 @@ header .sub {
   white-space: nowrap;
 }
 /* Environment-specific badge colors */
-.version-badge.env-prod { background: #2d8a2d; color: #fff; border-color: rgba(45,138,45,0.85); }
+.version-badge.env-prod { 
+  color: rgba(255, 255, 255, .82);
+  background: rgba(255, 255, 255, .08);
+ }
 .version-badge.env-stage { background: #ffb74d; color: #000; border-color: rgba(0,0,0,0.12); }
 .version-badge.env-dev { background: #e57373; color: #fff; border-color: rgba(0,0,0,0.12); }
 
