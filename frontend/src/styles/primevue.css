@@ -83,3 +83,25 @@
 .p-dialog-footer {
   padding: 1rem;
 }
+
+/* Version badge styles moved from AppShell.vue */
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.version-badge.env-prod { background: #2d8a2d; color: #fff; }
+.version-badge.env-stage { background: #ffb74d; color: #000; }
+.version-badge.env-dev { background: #e57373; color: #fff; }
+.env-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.15);
+}
