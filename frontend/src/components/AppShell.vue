@@ -17,10 +17,10 @@
       class="version-badge"
       :class="{
         'has-update': versionInfo.updateAvailable,
-        hidden: !versionInfo.currentVersion,
+        hidden: !versionInfo.currentVersion && !versionInfo.environment,
         'env-dev': versionInfo.environment === 'dev',
         'env-stage': versionInfo.environment === 'stage',
-        'env-prod': versionInfo.environment === 'production' || !versionInfo.environment,
+        'env-prod': versionInfo.environment === 'production',
       }"
       :href="versionInfo.releaseUrl || null"
       :target="versionInfo.releaseUrl ? '_blank' : null"
@@ -28,7 +28,7 @@
       :aria-label="versionAriaLabel"
     >
       <span id="app-version-label">{{ versionLabel }}</span>
-      <span v-if="versionInfo.environment && versionInfo.environment !== 'production'" id="app-env-label" class="env-label">{{ versionInfo.environment }}</span>
+      <span v-if="versionInfo.environment && (versionInfo.environment === 'dev' || versionInfo.environment === 'stage')" id="app-env-label" class="env-label">{{ versionInfo.environment }}</span>
       <span
         id="app-version-update"
         class="version-update"
@@ -136,7 +136,7 @@ export default {
       default: () => ({
         appName: 'PSMSimple',
         currentVersion: '',
-        environment: 'production',
+        environment: '',
         latestVersion: '',
         releaseUrl: '',
         updateAvailable: false,

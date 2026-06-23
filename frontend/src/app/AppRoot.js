@@ -137,7 +137,7 @@ const AppRoot = {
       versionInfo: {
         appName: 'PSMSimple',
         currentVersion: '',
-        environment: Config.ENVIRONMENT || 'production',
+        environment: '',
         latestVersion: '',
         releaseUrl: '',
         updateAvailable: false,
