@@ -182,6 +182,10 @@ export default {
       type: String,
       default: '',
     },
+    refreshKey: {
+      type: Number,
+      default: 0,
+    },
   },
   emits: ['warning-count'],
   setup(props, { emit }) {
@@ -312,6 +316,15 @@ export default {
 
     watch(() => props.activeTab, (tabName) => {
       if (tabName !== 'inventory') return;
+      if (activeSubTab.value === 'movements') {
+        loadMovements();
+      } else {
+        loadInventory();
+      }
+    });
+
+    watch(() => props.refreshKey, () => {
+      if (props.activeTab !== 'inventory') return;
       if (activeSubTab.value === 'movements') {
         loadMovements();
       } else {

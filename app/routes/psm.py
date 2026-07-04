@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 
 from ..services.permissions import require_write_access
 from ..extensions import logger
+from ..services.psm_api_services import _validate_inventory_thresholds
 from ..repositories.psm_repo import (
     list_psm,
     create_psm,
@@ -12,7 +13,6 @@ from ..repositories.psm_repo import (
 )
 
 bp = Blueprint("psm", __name__)
-
 
 @bp.route("/api/psm", methods=["GET"])
 @login_required
@@ -88,6 +88,9 @@ def api_add_psm():
             return jsonify({"ok": False, "error": f"Feld '{field}' ist erforderlich."}), 400
     if len(data["name"]) > 200:
         return jsonify({"ok": False, "error": "Der Name darf maximal 200 Zeichen lang sein."}), 400
+    threshold_error = _validate_inventory_thresholds(data)
+    if threshold_error:
+        return jsonify({"ok": False, "error": threshold_error}), 400
     result = create_psm(data)
 
     if not result.get("ok"):
@@ -153,6 +156,10 @@ def api_update_psm(pid):
         description: Keine Schreibberechtigung
     """
     data = request.get_json(silent=True) or {}
+    threshold_error = _validate_inventory_thresholds(data)
+    if threshold_error:
+        return jsonify({"ok": False, "error": threshold_error}), 400
+
     update_psm(pid, data)
     logger.info(
         f"PSM with ID '{pid}' updated by user: {current_user.username} from IP: {request.remote_addr}")

@@ -49,6 +49,22 @@ def _get_bee_class(base: str, kennr: str) -> str:
 
     return ", ".join(sorted(bee_classes))
 
+def _validate_inventory_thresholds(data):
+    try:
+        min_lager = float(data.get("min_lager"))
+        warnung_lager = float(data.get("warnung_lager"))
+    except (TypeError, ValueError):
+        return "Mindestbestand und Warnbestand muessen Zahlen sein."
+
+    if min_lager < 0 or warnung_lager < 0:
+        return "Mindestbestand und Warnbestand duerfen nicht negativ sein."
+
+    if warnung_lager < min_lager:
+        return "Der Warnbestand darf nicht unter dem Mindestbestand liegen."
+
+    return None
+
+
 def _decode_code(base: str, table: str, field: str, code: str, sprache: str = "DE") -> str:
     code = (code or "").strip()
     if not code:

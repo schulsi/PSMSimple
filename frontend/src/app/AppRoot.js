@@ -74,6 +74,7 @@ const AppRoot = {
       isBetriebWizardSaving: false,
       isFelderLoading: false,
       isKulturenLoading: false,
+      inventoryRefreshKey: 0,
       inventoryWarningCount: 0,
       isMobileNavOpen: false,
       isPsmInfoLoading: false,
@@ -290,6 +291,25 @@ const AppRoot = {
       };
     },
 
+    validatePsmInventoryThresholds(payload) {
+      const minLager = Number.parseFloat(payload.min_lager);
+      const warnungLager = Number.parseFloat(payload.warnung_lager);
+
+      if (Number.isNaN(minLager) || Number.isNaN(warnungLager)) {
+        return 'Mindestbestand und Warnbestand muessen Zahlen sein';
+      }
+
+      if (minLager < 0 || warnungLager < 0) {
+        return 'Mindestbestand und Warnbestand duerfen nicht negativ sein';
+      }
+
+      if (warnungLager < minLager) {
+        return 'Der Warnbestand darf nicht unter dem Mindestbestand liegen';
+      }
+
+      return '';
+    },
+
     async resetPSMForm() {
       this.psmEditId = null;
       this.isPsmInfoLoading = false;
@@ -354,6 +374,12 @@ const AppRoot = {
           return;
         }
 
+        const thresholdError = this.validatePsmInventoryThresholds(payload);
+        if (thresholdError) {
+          this.toast(`âŒ ${thresholdError}`);
+          return;
+        }
+
         if (this.psmEditId) {
           await apiPut(`/api/psm/${this.psmEditId}`, payload);
           this.toast('✅ Pflanzenschutzmittel gespeichert');
@@ -373,6 +399,7 @@ const AppRoot = {
         this.closeModal('modal-psm');
         await this.resetPSMForm();
         await this.loadPSM();
+        this.refreshInventory();
       } catch (err) {
         console.error(err);
         this.toast(`❌ ${err.message}`);
@@ -497,6 +524,7 @@ const AppRoot = {
         await apiDelete(`/api/psm/${id}`);
         this.toast('✅ Pflanzenschutzmittel gelöscht');
         await this.loadPSM();
+        this.refreshInventory();
       } catch (err) {
         console.error(err);
         this.toast(`❌ ${err.message}`);
@@ -1202,9 +1230,14 @@ const AppRoot = {
       this.activeForecastSubTab = subtab === 'beratung' ? 'beratung' : 'spritzfenster';
     },
 
+    refreshInventory() {
+      this.inventoryRefreshKey += 1;
+    },
+
     showTab(tabName, el = null, push = true) {
       if (!tabName) return;
 
+      const wasActiveTab = this.activeTab === tabName;
       this.activeTab = tabName;
       this.uiStore?.setActiveTab(tabName);
       this.applyTabClasses(el);
@@ -1221,7 +1254,7 @@ const AppRoot = {
         }
       }
 
-      this.runTabHooks(tabName, el);
+      this.runTabHooks(tabName, el, wasActiveTab);
     },
 
     applyTabClasses(activeLink = null) {
@@ -1235,9 +1268,12 @@ const AppRoot = {
       });
     },
 
-    runTabHooks(tabName, el = null) {
+    runTabHooks(tabName, el = null, wasActiveTab = false) {
       if (el?.dataset?.also) return;
 
+      if (tabName === 'inventory' && wasActiveTab) {
+        this.refreshInventory();
+      }
     },
 
     toggleMobileNav() {
@@ -1436,6 +1472,7 @@ const AppRoot = {
         h(InventoryView, {
           activeTab: this.activeTab,
           canWrite: !!this.permissions.can_write,
+          refreshKey: this.inventoryRefreshKey,
           onWarningCount: count => {
             this.inventoryWarningCount = count;
             this.uiStore?.setInventoryWarningCount(count);
