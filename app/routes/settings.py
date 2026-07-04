@@ -37,7 +37,26 @@ def get_app_setting():
 @login_required
 def get_inventory_defaults():
     """
-    Lager-Standardwerte für normale Formularnutzung abrufen.
+    Lager-Standardwerte fuer normale Formularnutzung abrufen
+    ---
+    tags:
+      - Einstellungen
+      - Inventory
+    summary: Liefert die globalen Standardwerte fuer neue Lagerdaten
+    responses:
+      200:
+        description: Lager-Standardwerte
+        schema:
+          type: object
+          properties:
+            inventory_min_default:
+              type: string
+              description: Standard-Mindestbestand
+            inventory_warn_default:
+              type: string
+              description: Standard-Warnbestand
+      401:
+        description: Nicht authentifiziert
     """
     settings = get_settings()
     return jsonify({

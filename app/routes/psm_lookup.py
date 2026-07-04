@@ -18,6 +18,30 @@ def search_psm(term):
 @bp.route("/api/psm/info/<kennr>")
 @login_required
 def get_psm_info(kennr: str):
+    """
+    Detaildaten eines Pflanzenschutzmittels aus der BVL-API abrufen
+    ---
+    tags:
+      - Pflanzenschutzmittel
+    summary: Liefert externe BVL-Detailinformationen zu einer Zulassungsnummer
+    parameters:
+      - in: path
+        name: kennr
+        type: string
+        required: true
+        description: Zulassungsnummer/Kennnummer des Pflanzenschutzmittels
+    responses:
+      200:
+        description: Detaildaten erfolgreich geladen
+        schema:
+          type: object
+      400:
+        description: Ungueltige Kennnummer oder Anfrage
+      401:
+        description: Nicht authentifiziert
+      502:
+        description: Fehler bei der externen BVL-API
+    """
     try:
         return jsonify(get_psm_info_by_kennr(kennr))
     except ValueError as exc:

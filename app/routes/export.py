@@ -19,6 +19,35 @@ bp = Blueprint("export", __name__)
 @login_required
 @require_write_access
 def preview_json():
+    """
+    Anwendungsvorschau erzeugen
+    ---
+    tags:
+      - Export
+    summary: Baut die vollstaendige Anwendungsdokumentation ohne Datei-Export
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          description: Formularpayload der Anwendung
+    responses:
+      200:
+        description: Vorschau erfolgreich erzeugt
+        schema:
+          type: object
+      400:
+        description: Validierungsfehler
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Keine Schreibberechtigung
+    """
     payload = request.get_json(silent=True) or {}
 
     try:
@@ -34,6 +63,40 @@ def preview_json():
 @login_required
 @require_write_access
 def export_json():
+    """
+    Anwendung als JSON exportieren
+    ---
+    tags:
+      - Export
+    summary: Erzeugt eine JSON-Datei oder speichert sie serverseitig
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          description: Formularpayload der Anwendung
+    responses:
+      200:
+        description: Export erfolgreich erzeugt
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+            filename:
+              type: string
+      400:
+        description: Validierungsfehler
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Keine Schreibberechtigung
+    """
     payload = request.get_json(silent=True) or {}
 
     try:
@@ -65,6 +128,41 @@ def export_json():
 @login_required
 @require_write_access
 def export_pdf():
+    """
+    Anwendung als PDF exportieren
+    ---
+    tags:
+      - Export
+    summary: Erzeugt eine PDF-Datei oder speichert sie serverseitig
+    consumes:
+      - application/json
+    produces:
+      - application/json
+      - application/pdf
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          description: Formularpayload der Anwendung
+    responses:
+      200:
+        description: PDF erfolgreich erzeugt
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+            filename:
+              type: string
+      400:
+        description: Validierungsfehler
+      401:
+        description: Nicht authentifiziert
+      403:
+        description: Keine Schreibberechtigung
+    """
     payload = request.get_json(silent=True) or {}
 
     try:

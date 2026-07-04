@@ -252,6 +252,36 @@ def api_delete_einsatzort(eid):
 @bp.route("/api/einsatzorte/cord2plz/<int:plz>", methods=["GET"])
 @login_required
 def cord2plz(plz):
+    """
+    Koordinaten zu einer deutschen PLZ abrufen
+    ---
+    tags:
+      - Felder
+      - Weather
+    summary: Ermittelt Latitude und Longitude ueber Nominatim
+    parameters:
+      - in: path
+        name: plz
+        type: integer
+        required: true
+        description: Deutsche Postleitzahl
+    responses:
+      200:
+        description: Koordinaten erfolgreich geladen
+        schema:
+          type: object
+          properties:
+            lat:
+              type: number
+            lon:
+              type: number
+      400:
+        description: PLZ fehlt oder ist ungueltig
+      401:
+        description: Nicht authentifiziert
+      502:
+        description: Fehler bei Nominatim
+    """
     if not plz:
         return jsonify({"ok": False, "error": "PLZ missing"}), 400
     try:
