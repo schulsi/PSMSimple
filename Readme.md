@@ -43,6 +43,23 @@ User documentation: <https://schulsi.github.io/PSMSimple>
 - **Docker Deployment**: Docker/Compose setup with internal Redis support and a trimmed Docker build context
 
 ---
+## Screenshots
+
+### Documentation
+
+![Documentation site](docs/assets/screenshots/doku.png)
+
+### PSM
+
+![PSM overview](docs/assets/screenshots/psm.png)
+
+### Store
+
+![Store overview](docs/assets/screenshots/lager.png)
+
+###
+
+---
 
 ## Requirements
 
