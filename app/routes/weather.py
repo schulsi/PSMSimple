@@ -131,7 +131,7 @@ def weather_forecast():
         return jsonify({"error": True, "message": str(exc)}), 502
 
 
-@bp.get("/api/weather/spray-window")
+@bp.post("/api/weather/spray-window")
 @login_required
 def spray_window():
     """
@@ -301,22 +301,15 @@ def geocode():
     description: |
       Wandelt einen Ortsnamen oder eine PLZ in geografische Koordinaten um.
       Nutzt die Open-Meteo Geocoding API.
-    consumes:
-      - application/json
     produces:
       - application/json
     parameters:
-      - in: body
-        name: body
+      - in: query
+        name: q
+        type: string
         required: true
-        schema:
-          type: object
-          required:
-            - q
-          properties:
-            q:
-              type: string
-              example: "Bötzingen"
+        example: "Boetzingen"
+        description: Ortsname oder Postleitzahl
     responses:
       200:
         description: Erfolgreiche Standortsuche
@@ -344,11 +337,7 @@ def geocode():
       502:
         description: Fehler bei Geocoding API
     """
-    data = request.get_json(silent=True)
-    if not data:
-        return jsonify({"error": True, "message": "No data send"}), 400
-
-    query = (data.get("q") or "").strip()
+    query = (request.args.get("q") or "").strip()
 
     if not query:
         return jsonify({
@@ -383,11 +372,11 @@ def spray_window_for_ort(ort_id: int):
     produces:
       - application/json
     parameters:
-      - name: einsatzort_id
+      - name: ort_id
         in: path
         type: integer
         required: true
-        description: ID des Feldes
+        description: ID des Ortes
       - in: body
         name: body
         required: false
@@ -430,7 +419,7 @@ def spray_window_for_ort(ort_id: int):
             error:
               type: boolean
               example: false
-            einsatzort_id:
+            ort_id:
               type: integer
             best_window:
               type: object

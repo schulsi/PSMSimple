@@ -8,6 +8,7 @@ from ..repositories.psm_repo import list_psm_by_ids
 from ..utils.paths import create_save_path
 
 def build_output(payload: dict, betrieb: dict) -> dict:
+    excluded_psm_export_fields = {"lager_einheit", "min_lager", "warnung_lager"}
     psm_overrides = {
         int(item["id"]): item.get("aufwandMenge", "")
         for item in payload.get("psm_overrides", [])
@@ -25,6 +26,8 @@ def build_output(payload: dict, betrieb: dict) -> dict:
     psm_list = []
     for psm in psm_rows:
         entry = dict(psm)
+        for field in excluded_psm_export_fields:
+            entry.pop(field, None)
         entry["aufwandMenge"] = psm_overrides.get(entry["id"], "")
         psm_list.append(entry)
 
