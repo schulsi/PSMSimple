@@ -22,7 +22,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y curl gosu \
+    && apt-get install --no-install-recommends -y curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY app/ app/
@@ -34,10 +34,7 @@ COPY run.py .
 # Copy built frontend from stage 1
 COPY --from=frontend-builder  /build/app/static/vue app/static/vue/
 
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
-    && mkdir -p /data
+RUN mkdir -p /data
 
 VOLUME ["/data"]
 
@@ -52,14 +49,8 @@ ENV OPENAI_BASE_URL="https://api.openai.com/v1"
 ENV RATELIMIT_STORAGE_URI="redis://redis:6379/0"
 ENV ENVIRONMENT=production
 
-# Default: root
-ENV PUID=0
-ENV PGID=0
-
 ENV FLASK_APP=run:app
 
 EXPOSE 8000
-
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 CMD ["gunicorn", "-b", "0.0.0.0:8000", "run:app", "--timeout", "130"]
