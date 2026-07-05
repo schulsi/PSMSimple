@@ -22,7 +22,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y curl \
+    && apt-get install --no-install-recommends -y curl gosu \
     && rm -rf /var/lib/apt/lists/*
 
 COPY app/ app/
@@ -37,7 +37,7 @@ COPY --from=frontend-builder  /build/app/static/vue app/static/vue/
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
-    && mkdir -p /data \
+    && mkdir -p /data
 
 VOLUME ["/data"]
 
