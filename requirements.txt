@@ -5,6 +5,7 @@ Flask-Migrate
 flask_wtf
 flask-limiter
 flask-caching
+Authlib
 redis
 werkzeug
 reportlab

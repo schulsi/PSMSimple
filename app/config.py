@@ -1,6 +1,14 @@
 import os
 from datetime import timedelta
 
+
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.environ.get("DATA_DIR", os.path.join(BASE_DIR, "data"))
 
@@ -17,6 +25,17 @@ DB = os.path.join(DB_DIR, "app.db")
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
+
+    AUTH_MODE = os.environ.get("AUTH_MODE", "local").strip().lower()
+    OIDC_ENABLED = AUTH_MODE in {"oidc", "hybrid"}
+    OIDC_PROVIDER_NAME = os.environ.get("OIDC_PROVIDER_NAME", "SSO").strip() or "SSO"
+    OIDC_ISSUER = os.environ.get("OIDC_ISSUER", "").strip().rstrip("/")
+    OIDC_CLIENT_ID = os.environ.get("OIDC_CLIENT_ID", "").strip()
+    OIDC_CLIENT_SECRET = os.environ.get("OIDC_CLIENT_SECRET", "")
+    OIDC_SCOPES = os.environ.get("OIDC_SCOPES", "openid profile email").strip()
+    OIDC_DEFAULT_ROLE = os.environ.get("OIDC_DEFAULT_ROLE", "read-only").strip().lower()
+    OIDC_AUTO_PROVISION = env_bool("OIDC_AUTO_PROVISION", False)
+
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
@@ -94,3 +113,24 @@ class Config:
     UPDATE_URL = ""
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY environment variable is not set.")
+    if AUTH_MODE not in {"local", "oidc", "hybrid"}:
+        raise RuntimeError("AUTH_MODE must be one of: local, oidc, hybrid.")
+    if OIDC_DEFAULT_ROLE not in {"admin", "user", "read-only"}:
+        raise RuntimeError("OIDC_DEFAULT_ROLE must be one of: admin, user, read-only.")
+    if OIDC_ENABLED:
+        if "openid" not in OIDC_SCOPES.split():
+            raise RuntimeError("OIDC_SCOPES must include the openid scope.")
+        missing_oidc_settings = [
+            name
+            for name, value in {
+                "OIDC_ISSUER": OIDC_ISSUER,
+                "OIDC_CLIENT_ID": OIDC_CLIENT_ID,
+                "OIDC_CLIENT_SECRET": OIDC_CLIENT_SECRET,
+            }.items()
+            if not value
+        ]
+        if missing_oidc_settings:
+            raise RuntimeError(
+                "OIDC is enabled but required environment variables are missing: "
+                + ", ".join(missing_oidc_settings)
+            )
