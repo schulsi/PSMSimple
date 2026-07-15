@@ -2,7 +2,7 @@ import json
 import secrets
 from pathlib import Path
 
-from flask import Flask, jsonify, request, flash, redirect, url_for, render_template, g, abort
+from flask import Flask, abort, current_app, flash, g, jsonify, redirect, render_template, request, url_for
 from flask_wtf.csrf import CSRFError
 from flask_limiter.errors import RateLimitExceeded
 from werkzeug.exceptions import HTTPException
@@ -13,8 +13,9 @@ from flask_login import current_user
 
 from .config import Config
 from .utils.warmup import _start_warmup_cache
-from .extensions import db, login_manager, csrf, limiter, swagger, cache
+from .extensions import db, login_manager, csrf, limiter, swagger, cache, oauth
 from .models import User
+from .models.user import ensure_user_auth_schema
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
 from .services.permissions import seed_roles
@@ -28,6 +29,9 @@ def load_user(user_id):
 
 @login_manager.request_loader
 def load_user_from_request(request):
+    if current_app.config["AUTH_MODE"] == "oidc":
+        return None
+
     auth = request.authorization
     if not auth or (auth.type or "").lower() != "basic":
         return None
@@ -58,6 +62,22 @@ def create_app():
     migrate = Migrate()
     migrate.init_app(app, db)
     cache.init_app(app)
+    oauth.init_app(app)
+
+    if app.config["OIDC_ENABLED"]:
+        oauth.register(
+            name="oidc",
+            overwrite=True,
+            client_id=app.config["OIDC_CLIENT_ID"],
+            client_secret=app.config["OIDC_CLIENT_SECRET"],
+            server_metadata_url=(
+                f"{app.config['OIDC_ISSUER']}/.well-known/openid-configuration"
+            ),
+            client_kwargs={
+                "scope": app.config["OIDC_SCOPES"],
+                "code_challenge_method": "S256",
+            },
+        )
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -195,6 +215,7 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        ensure_user_auth_schema()
         seed_roles()
         init_appdata_db()
         upgrade()

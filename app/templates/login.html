@@ -51,6 +51,7 @@
         <h2>🔑 Anmelden</h2>
         <p class="subtitle">Melden Sie sich an, um fortzufahren.</p>
 
+        {% if local_auth_enabled %}
         <form method="POST" action="{{ url_for('auth.login') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="field">
@@ -63,6 +64,15 @@
           </div>
           <button type="submit" class="btn btn-primary">→ Anmelden</button>
         </form>
+        {% endif %}
+
+        {% if oidc_enabled %}
+        {% if local_auth_enabled %}<div class="divider">oder</div>{% endif %}
+        <a class="btn btn-ghost" href="{{ url_for('auth.oidc_login') }}">
+          Mit {{ oidc_provider_name }} anmelden
+        </a>
+        {% endif %}
+
         {% if registration_allowed == "1" %}
         <div class="divider">oder</div>
         <button class="btn btn-ghost" type="button" data-panel="register">✏️ Neues Konto erstellen</button>

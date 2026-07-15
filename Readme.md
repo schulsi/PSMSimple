@@ -192,7 +192,11 @@ The app is configured entirely via environment variables:
 
 > ℹ️ The PSM advisory feature (AI recommendations) is optional. If no API key is configured, the advisory button is disabled in the UI. All other features work without an LLM key.
 
-OIDC settings are required only when `AUTH_MODE` is `hybrid` or `oidc`. The OIDC login routes and user linking must be implemented before enabling either mode.
+OIDC settings are required only when `AUTH_MODE` is `hybrid` or `oidc`. Register
+`https://<your-host>/auth/oidc/callback` as an allowed redirect URI at the identity
+provider. For a safe first-time setup, start in `hybrid` mode, sign in with the local
+admin account, and open `/auth/oidc/link` to link that account. You can switch to
+`oidc` mode afterwards. Automatic provisioning is optional and disabled by default.
 
 ---
 
