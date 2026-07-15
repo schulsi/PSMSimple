@@ -1,1 +1,9 @@
-Single-database configuration for Flask.
+Multi-database Alembic configuration for Flask-Migrate.
+
+The migration environment tracks the named SQLAlchemy binds `app_db` and
+`user_db`. Each revision must provide matching `upgrade_<bind>()` and
+`downgrade_<bind>()` functions. A bind that is unaffected by a revision uses
+an empty function.
+
+The unnamed SQLAlchemy default engine is intentionally excluded because it
+points to the same SQLite file as `user_db`.

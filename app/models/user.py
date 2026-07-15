@@ -1,5 +1,4 @@
 from flask_login import UserMixin
-from sqlalchemy import inspect, text
 
 from ..extensions import db
 
@@ -42,21 +41,3 @@ class User(UserMixin, db.Model):
             "role": self.role.name if self.role else None,
             "auth_method": self.auth_method(),
         }
-
-
-def ensure_user_auth_schema():
-    """Add optional OIDC columns to existing SQLite user databases."""
-    engine = db.engines["user_db"]
-    columns = {column["name"] for column in inspect(engine).get_columns("users")}
-
-    with engine.begin() as connection:
-        if "email" not in columns:
-            connection.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(255)"))
-        if "oidc_issuer" not in columns:
-            connection.execute(text("ALTER TABLE users ADD COLUMN oidc_issuer VARCHAR(500)"))
-        if "oidc_subject" not in columns:
-            connection.execute(text("ALTER TABLE users ADD COLUMN oidc_subject VARCHAR(255)"))
-        connection.execute(text(
-            "CREATE UNIQUE INDEX IF NOT EXISTS uq_users_oidc_identity "
-            "ON users (oidc_issuer, oidc_subject)"
-        ))

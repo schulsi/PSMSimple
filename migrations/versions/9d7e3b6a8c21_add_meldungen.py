@@ -16,7 +16,15 @@ branch_labels = None
 depends_on = None
 
 
-def upgrade():
+def upgrade(engine_name):
+    globals()[f"upgrade_{engine_name}"]()
+
+
+def downgrade(engine_name):
+    globals()[f"downgrade_{engine_name}"]()
+
+
+def upgrade_app_db():
     inspector = sa.inspect(op.get_bind())
     tables = set(inspector.get_table_names())
 
@@ -48,7 +56,7 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade_app_db():
     inspector = sa.inspect(op.get_bind())
     tables = set(inspector.get_table_names())
 
@@ -57,3 +65,11 @@ def downgrade():
 
     if "meldungen" in tables:
         op.drop_table("meldungen")
+
+
+def upgrade_user_db():
+    pass
+
+
+def downgrade_user_db():
+    pass

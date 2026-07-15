@@ -15,7 +15,6 @@ from .config import Config
 from .utils.warmup import _start_warmup_cache
 from .extensions import db, login_manager, csrf, limiter, swagger, cache, oauth
 from .models import User
-from .models.user import ensure_user_auth_schema
 from .routes import register_blueprints
 from .repositories.sqlite import init_appdata_db
 from .services.permissions import seed_roles
@@ -215,7 +214,6 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-        ensure_user_auth_schema()
         seed_roles()
         init_appdata_db()
         upgrade()

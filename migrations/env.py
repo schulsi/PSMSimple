@@ -1,125 +1,98 @@
-import os
+from alembic import context
+from flask import current_app
 
 from app.extensions import logger
 
-from flask import current_app
 
-from alembic import context
-
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
 config = context.config
-
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
-# fileConfig(config.config_file_name)
-# logger = logging.getLogger('alembic.env')
+target_db = current_app.extensions["migrate"].db
+bind_names = list(current_app.config.get("SQLALCHEMY_BINDS", {}).keys())
 
 
-MIGRATION_BIND = os.environ.get("ALEMBIC_BIND", "app_db")
-
-
-def get_engine():
-    db = current_app.extensions['migrate'].db
-
-    if MIGRATION_BIND:
-        try:
-            return db.engines[MIGRATION_BIND]
-        except (AttributeError, KeyError):
-            return db.get_engine(bind=MIGRATION_BIND)
-
+def get_engine(bind_key):
     try:
-        # this works with Flask-SQLAlchemy<3 and Alchemical
-        return db.get_engine()
-    except (TypeError, AttributeError):
-        # this works with Flask-SQLAlchemy>=3
-        return db.engine
+        return target_db.engines[bind_key]
+    except (AttributeError, KeyError):
+        return target_db.get_engine(bind=bind_key)
 
 
-def get_engine_url():
+def get_engine_url(bind_key):
     try:
-        return get_engine().url.render_as_string(hide_password=False).replace(
-            '%', '%%')
+        return get_engine(bind_key).url.render_as_string(hide_password=False).replace("%", "%%")
     except AttributeError:
-        return str(get_engine().url).replace('%', '%%')
+        return str(get_engine(bind_key).url).replace("%", "%%")
 
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-config.set_main_option('sqlalchemy.url', get_engine_url())
-target_db = current_app.extensions['migrate'].db
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+for bind_name in bind_names:
+    config.set_section_option(bind_name, "sqlalchemy.url", get_engine_url(bind_name))
 
 
-def get_metadata():
-    if MIGRATION_BIND and hasattr(target_db, 'metadatas'):
-        return target_db.metadatas[MIGRATION_BIND]
-
-    if hasattr(target_db, 'metadatas'):
-        return target_db.metadatas[None]
+def get_metadata(bind_key):
+    if hasattr(target_db, "metadatas"):
+        return target_db.metadatas[bind_key]
     return target_db.metadata
 
 
 def run_migrations_offline():
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-
-    """
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(
-        url=url, target_metadata=get_metadata(), literal_binds=True
-    )
-
-    with context.begin_transaction():
-        context.run_migrations()
+    for bind_name in bind_names:
+        logger.info("Migrating database %s", bind_name)
+        with open(f"{bind_name}.sql", "w", encoding="utf-8") as buffer:
+            context.configure(
+                url=config.get_section_option(bind_name, "sqlalchemy.url"),
+                output_buffer=buffer,
+                target_metadata=get_metadata(bind_name),
+                literal_binds=True,
+                upgrade_token=f"{bind_name}_upgrades",
+                downgrade_token=f"{bind_name}_downgrades",
+            )
+            with context.begin_transaction():
+                context.run_migrations(engine_name=bind_name)
 
 
 def run_migrations_online():
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    """
-
-    # this callback is used to prevent an auto-migration from being generated
-    # when there are no changes to the schema
-    # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
     def process_revision_directives(context, revision, directives):
-        if getattr(config.cmd_opts, 'autogenerate', False):
+        if getattr(config.cmd_opts, "autogenerate", False):
             script = directives[0]
-            if script.upgrade_ops.is_empty():
+            if all(upgrade_ops.is_empty() for upgrade_ops in script.upgrade_ops_list):
                 directives[:] = []
-                logger.info('No changes in schema detected.')
+                logger.info("No changes in schema detected.")
 
-    conf_args = current_app.extensions['migrate'].configure_args
+    conf_args = current_app.extensions["migrate"].configure_args
     if conf_args.get("process_revision_directives") is None:
         conf_args["process_revision_directives"] = process_revision_directives
 
-    connectable = get_engine()
+    engines = {
+        bind_name: {
+            "engine": get_engine(bind_name),
+        }
+        for bind_name in bind_names
+    }
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=get_metadata(),
-            **conf_args
-        )
+    for record in engines.values():
+        record["connection"] = record["engine"].connect()
+        record["transaction"] = record["connection"].begin()
 
-        with context.begin_transaction():
-            context.run_migrations()
+    try:
+        for bind_name, record in engines.items():
+            logger.info("Migrating database %s", bind_name)
+            context.configure(
+                connection=record["connection"],
+                target_metadata=get_metadata(bind_name),
+                upgrade_token=f"{bind_name}_upgrades",
+                downgrade_token=f"{bind_name}_downgrades",
+                **conf_args,
+            )
+            context.run_migrations(engine_name=bind_name)
+
+        for record in engines.values():
+            record["transaction"].commit()
+    except Exception:
+        for record in engines.values():
+            record["transaction"].rollback()
+        raise
+    finally:
+        for record in engines.values():
+            record["connection"].close()
 
 
 if context.is_offline_mode():
