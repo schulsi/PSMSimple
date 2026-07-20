@@ -6,6 +6,7 @@ from flask_limiter.util import get_remote_address
 from flask.logging import default_handler
 from flask_caching import Cache
 from flasgger import Swagger
+from authlib.integrations.flask_client import OAuth
 
 import logging
 import os
@@ -19,6 +20,7 @@ logging.info("Starting application...")
 
 swagger = Swagger()
 cache = Cache()
+oauth = OAuth()
 
 db = SQLAlchemy()
 login_manager = LoginManager()

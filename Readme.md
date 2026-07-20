@@ -172,17 +172,31 @@ The app runs at **`http://localhost:5001`**.
 
 The app is configured entirely via environment variables:
 
-| Variable                | Required | Default           | Description                                                                                             |
-|-------------------------|----------|-------------------|---------------------------------------------------------------------------------------------------------|
-| `SECRET_KEY`            | ✅       | –                 | Cryptographic key for sessions and CSRF protection                                                      |
-| `DATA_DIR`              | ❌       | `./data`          | Directory for databases, exports, and logs                                                              |
-| `RATELIMIT_STORAGE_URI` | ❌       | `memory://`       | Redis URL for rate limiting, e.g. `redis://redis:6379/0`                                                |
-| `LLM_PROVIDER`          | ❌       | `anthropic`       | LLM provider for PSM advisory (`anthropic` or `openai`)                                                 |
-| `LLM_MODEL`             | ❌       | `provider default`| Model name to use, e.g. `claude-sonnet-4-20250514`. Falls back to the provider's default if not set.    |
-| `ANTHROPIC_API_KEY`     | ❌       | –                 | API key for Anthropic. Required if `LLM_PROVIDER=anthropic`.                                            |
-| `OPENAI_API_KEY`        | ❌       | –                 | API key for OpenAI. Required if `LLM_PROVIDER=openai`.                                                  |
+| Variable                  | Required   | Default                | Description                                                                                               |
+| ------------------------- | ---------- | ---------------------- | --------------------------------------------------------------------------------------------------------- |
+| `SECRET_KEY`              | ✅         | –                      | Cryptographic key for sessions and CSRF protection                                                        |
+| `DATA_DIR`                | ❌         | `./data`               | Directory for databases, exports, and logs                                                                |
+| `RATELIMIT_STORAGE_URI`   | ❌         | `memory://`            | Redis URL for rate limiting, e.g. `redis://redis:6379/0`                                                  |
+| `LLM_PROVIDER`            | ❌         | `anthropic`            | LLM provider for PSM advisory (`anthropic` or `openai`)                                                   |
+| `LLM_MODEL`               | ❌         | `provider default`     | Model name to use, e.g. `claude-sonnet-4-20250514`. Falls back to the provider's default if not set.      |
+| `ANTHROPIC_API_KEY`       | ❌         | –                      | API key for Anthropic. Required if `LLM_PROVIDER=anthropic`.                                              |
+| `OPENAI_API_KEY`          | ❌         | –                      | API key for OpenAI. Required if `LLM_PROVIDER=openai`.                                                    |
+| `AUTH_MODE`               | ❌         | `local`                | Authentication mode: `local`, `hybrid`, or `oidc`.                                                        |
+| `OIDC_PROVIDER_NAME`      | ❌         | `SSO`                  | Display name of the identity provider on the login page.                                                  |
+| `OIDC_ISSUER`             | with OIDC  | –                      | OIDC issuer URL, without the `/.well-known/openid-configuration` suffix.                                  |
+| `OIDC_CLIENT_ID`          | with OIDC  | –                      | Client ID registered for PSMSimple at the identity provider.                                              |
+| `OIDC_CLIENT_SECRET`      | with OIDC  | –                      | Client secret registered for PSMSimple. Keep this value private.                                          |
+| `OIDC_SCOPES`             | ❌         | `openid profile email` | Space-separated OIDC scopes. `openid` must be included.                                                   |
+| `OIDC_DEFAULT_ROLE`       | ❌         | `read-only`            | Local role assigned to newly provisioned OIDC users.                                                      |
+| `OIDC_AUTO_PROVISION`     | ❌         | `false`                | Whether a local user may be created automatically after a successful OIDC login.                          |
 
 > ℹ️ The PSM advisory feature (AI recommendations) is optional. If no API key is configured, the advisory button is disabled in the UI. All other features work without an LLM key.
+
+OIDC settings are required only when `AUTH_MODE` is `hybrid` or `oidc`. Register
+`https://<your-host>/auth/oidc/callback` as an allowed redirect URI at the identity
+provider. For a safe first-time setup, start in `hybrid` mode, sign in with the local
+admin account, and open `/auth/oidc/link` to link that account. You can switch to
+`oidc` mode afterwards. Automatic provisioning is optional and disabled by default.
 
 ---
 
