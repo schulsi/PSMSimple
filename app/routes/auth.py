@@ -5,6 +5,8 @@ import secrets
 from authlib.integrations.base_client.errors import OAuthError
 from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
 from flask_login import login_user, logout_user, login_required, current_user
+from requests.exceptions import JSONDecodeError as RequestsJSONDecodeError
+from requests.exceptions import RequestException
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -143,6 +145,28 @@ def oidc_callback():
     action = session.pop("oidc_action", "login")
     try:
         token = oauth.oidc.authorize_access_token()
+    except RequestsJSONDecodeError as exc:
+        token_endpoint = oauth.oidc.server_metadata.get("token_endpoint", "unknown")
+        response_preview = " ".join((exc.doc or "").split())[:200]
+        logger.error(
+            "OIDC token endpoint returned a non-JSON response from %s: %s",
+            token_endpoint,
+            response_preview or "<empty response>",
+        )
+        flash(
+            "Der SSO-Provider hat beim Token-Austausch eine ungültige Antwort geliefert. "
+            "Bitte prüfen Sie die Pocket-ID- und Reverse-Proxy-Konfiguration.",
+            "error",
+        )
+        return redirect(url_for("auth.login"))
+    except RequestException as exc:
+        logger.error(
+            "OIDC token request failed at %s (%s)",
+            oauth.oidc.server_metadata.get("token_endpoint", "unknown"),
+            type(exc).__name__,
+        )
+        flash("Der SSO-Provider ist beim Token-Austausch nicht erreichbar.", "error")
+        return redirect(url_for("auth.login"))
     except OAuthError as exc:
         logger.warning(
             "OIDC login failed (%s) from IP: %s",
