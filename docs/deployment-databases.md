@@ -3,11 +3,10 @@
 Dieses Dokument beschreibt, wie du die Anwendung mit Postgres oder MySQL betreibst.
 
 Kurz: Unterstützte DBs in diesem Projekt
+
 - SQLite (Default, lokale Datei)
 - PostgreSQL (empfohlen für Produktion)
 - MySQL / MariaDB
-
-
 
 Vorbereitung
 1. Kopiere die Beispiel‑Datei:
@@ -24,8 +23,6 @@ cp .env.example .env
 Compose‑Stacks
 - Postgres‑Stack: `docker-compose.postgres.yaml`
 - MySQL‑Stack: `docker-compose.mysql.yaml`
-
-
 
 Starten:
 
@@ -61,5 +58,3 @@ Wichtige Hinweise
 - Die Compose‑Files lesen sensible Werte aus `.env`. Nutze keine Secrets im Repo.
 - Charset: MySQL wird mit `utf8mb4` konfiguriert; bei Postgres auf UTF‑8 achten.
 - Die App konfiguriert Verbindungen über `SQLALCHEMY_DATABASE_URI`, `APP_DB_URI` und `USER_DB_URI`.
-
- 
