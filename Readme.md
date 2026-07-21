@@ -79,7 +79,7 @@ mkdir psmsimple && cd psmsimple
 curl -O https://raw.githubusercontent.com/schulsi/psmsimple/main/docker-compose.yaml
 ```
 
-### 2. Set the secret key
+2. Set the secret key
 
 Create a `.env` file in the same directory:
 
@@ -90,6 +90,8 @@ echo "SECRET_KEY=$(openssl rand -hex 32)" > .env
 > ⚠️ Keep the `SECRET_KEY` safe and never share it publicly. It protects sessions and CSRF tokens.
 
 ### 3. Start
+
+The default compose setup uses a published prebuilt image for the application. Start the stack with:
 
 ```bash
 docker compose up -d
@@ -108,6 +110,56 @@ docker compose logs -f app
 ```bash
 docker compose down
 ```
+
+### Database-specific Compose files
+
+If you prefer to run the stack with a specific database, two ready-to-use compose files are provided:
+
+- `docker-compose.postgres.yaml` — Postgres + Redis + App
+- `docker-compose.mysql.yaml` — MySQL + Redis + App
+
+Usage:
+
+1. Copy the example env and edit secrets:
+
+```bash
+cp .env.example .env
+# edit .env and set passwords / SECRET_KEY
+```
+
+2. Start the Postgres stack:
+
+```bash
+docker compose -f docker-compose.postgres.yaml up -d
+```
+
+Or start the MySQL stack:
+
+```bash
+docker compose -f docker-compose.mysql.yaml up -d
+```
+
+The compose files read sensitive values from `.env` and use a published prebuilt image by default. Ports: app → `8000`, Postgres → `5432`, MySQL → `3306`, Redis → `6379`.
+
+If you want to build and use a local image instead, build it and set `PSMSIMPLE_IMAGE` to your local tag, or change the compose file to use `build: .`.
+
+### Postgres / MySQL prerequisites
+
+The published image already includes the necessary database drivers for Postgres and MySQL; no manual driver installation is required when running via the provided compose files. For local development in a virtual environment you may still install `requirements.txt` as usual.
+
+### Database migrations (Flask-Migrate / Alembic)
+
+This project uses Flask-Migrate (Alembic). After starting the stack and building the image, create or apply migrations as needed:
+
+```bash
+# create a new migration (run inside the app container or locally with the env configured)
+flask db migrate -m "Describe changes"
+
+# apply migrations
+flask db upgrade
+```
+
+Note: The migration setup in `migrations/env.py` supports multiple binds; `flask db upgrade` will apply migrations for configured binds (app_db, user_db).
 
 ---
 
