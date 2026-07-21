@@ -16,3 +16,5 @@ openai
 anthropic
 packaging
 defusedxml
+PyMySQL>=1.0.2
+psycopg2-binary

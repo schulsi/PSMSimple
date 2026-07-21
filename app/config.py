@@ -48,13 +48,17 @@ class Config:
     RATELIMIT_HEADER_ENABLED = True
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
     SESSION_REFRESH_EACH_REQUEST = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(DB_DIR + "/users.db")
+    # Allow overriding the database URIs via environment variables so other backends (e.g. MySQL)
+    # can be used by setting `SQLALCHEMY_DATABASE_URI`, `APP_DB_URI` and/or `USER_DB_URI`.
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "SQLALCHEMY_DATABASE_URI", f"sqlite:///{DB_DIR}/users.db"
+    )
     SQLALCHEMY_BINDS = {
-        "app_db": f"sqlite:///{DB_DIR}/app.db",
-        "user_db": f"sqlite:///{DB_DIR}/users.db",
+        "app_db": os.environ.get("APP_DB_URI", f"sqlite:///{DB_DIR}/app.db"),
+        "user_db": os.environ.get("USER_DB_URI", SQLALCHEMY_DATABASE_URI),
     }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    APP_DATA_DB = os.path.join(DB_DIR, "pflanzenschutz.db")
+    APP_DATA_DB = os.environ.get("APP_DATA_DB", os.path.join(DB_DIR, "pflanzenschutz.db"))
     EXPORTS_DIR = os.path.join(EXPORT_DIR)
     PSM_API = "https://psm-api.bvl.bund.de/ords/psm/api-v1/"
     BASE_DIR = BASE_DIR
