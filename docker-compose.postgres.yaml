@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:15
+    container_name: psm_postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-psm_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-psm_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-psm_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: psm_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: psm_app_postgres
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+    env_file: .env
+    environment:
+      DATA_DIR: ${DATA_DIR:-/data}
+      SECRET_KEY: ${SECRET_KEY:-}
+      RATELIMIT_STORAGE_URI: ${RATELIMIT_STORAGE_URI:-redis://redis:6379/0}
+      SQLALCHEMY_DATABASE_URI: ${SQLALCHEMY_DATABASE_URI:-postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+      APP_DB_URI: ${APP_DB_URI:-postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+      USER_DB_URI: ${USER_DB_URI:-postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+    volumes:
+      - ./data:/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

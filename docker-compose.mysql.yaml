@@ -1,0 +1,62 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: psm_mysql
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-psm_db}
+      MYSQL_USER: ${MYSQL_USER:-psm_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-psm_pass}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: psm_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: psm_app_mysql
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+    env_file: .env
+    environment:
+      DATA_DIR: ${DATA_DIR:-/data}
+      SECRET_KEY: ${SECRET_KEY:-}
+      RATELIMIT_STORAGE_URI: ${RATELIMIT_STORAGE_URI:-redis://redis:6379/0}
+      SQLALCHEMY_DATABASE_URI: ${SQLALCHEMY_DATABASE_URI:-mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}}
+      APP_DB_URI: ${APP_DB_URI:-mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}}
+      USER_DB_URI: ${USER_DB_URI:-mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+    volumes:
+      - ./data:/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
