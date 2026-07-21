@@ -79,7 +79,7 @@ mkdir psmsimple && cd psmsimple
 curl -O https://raw.githubusercontent.com/schulsi/psmsimple/main/docker-compose.yaml
 ```
 
-2. Set the secret key
+### 2. Set the secret key
 
 Create a `.env` file in the same directory:
 
@@ -127,7 +127,7 @@ cp .env.example .env
 # edit .env and set passwords / SECRET_KEY
 ```
 
-2. Start the Postgres stack:
+1. Start the Postgres stack:
 
 ```bash
 docker compose -f docker-compose.postgres.yaml up -d
@@ -140,8 +140,6 @@ docker compose -f docker-compose.mysql.yaml up -d
 ```
 
 The compose files read sensitive values from `.env` and use a published prebuilt image by default. Ports: app → `8000`, Postgres → `5432`, MySQL → `3306`, Redis → `6379`.
-
-If you want to build and use a local image instead, build it and set `PSMSIMPLE_IMAGE` to your local tag, or change the compose file to use `build: .`.
 
 ### Postgres / MySQL prerequisites
 
