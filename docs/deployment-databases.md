@@ -9,6 +9,7 @@ Kurz: Unterstützte DBs in diesem Projekt
 - MySQL / MariaDB
 
 Vorbereitung
+
 1. Kopiere die Beispiel‑Datei:
 
 ```bash
@@ -21,6 +22,7 @@ cp .env.example .env
 2. Die im Image benötigten Datenbanktreiber sind bereits enthalten; eine manuelle Installation ist nicht erforderlich.
 
 Compose‑Stacks
+
 - Postgres‑Stack: `docker-compose.postgres.yaml`
 - MySQL‑Stack: `docker-compose.mysql.yaml`
 
@@ -55,6 +57,7 @@ flask db upgrade
 ```
 
 Wichtige Hinweise
+
 - Die Compose‑Files lesen sensible Werte aus `.env`. Nutze keine Secrets im Repo.
 - Charset: MySQL wird mit `utf8mb4` konfiguriert; bei Postgres auf UTF‑8 achten.
 - Die App konfiguriert Verbindungen über `SQLALCHEMY_DATABASE_URI`, `APP_DB_URI` und `USER_DB_URI`.
