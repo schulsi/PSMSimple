@@ -22,7 +22,16 @@ bp = Blueprint("pages", __name__)
 @login_required
 def index():
     permissions = build_permissions(current_user)
-    return render_template("index.html", permissions=permissions)
+    auth_config = {
+        "oidc_enabled": current_app.config["OIDC_ENABLED"],
+        "oidc_provider_name": current_app.config["OIDC_PROVIDER_NAME"],
+        "oidc_linked": current_user.uses_oidc(),
+    }
+    return render_template(
+        "index.html",
+        permissions=permissions,
+        auth_config=auth_config,
+    )
 
 
 @bp.route("/media/<path:filename>")

@@ -41,10 +41,33 @@
         </div>
       </div>
     </div>
+
   </div>
 
-  <div v-if="canManageUsers" class="history-sub-tab" :class="{ active: activeSettingsTab === 'users' }">
-    <div class="card">
+  <div class="history-sub-tab" :class="{ active: activeSettingsTab === 'users' }">
+    <div v-if="auth.oidc_enabled" class="card">
+      <h3 class="section-title">🔐 Benutzerkonto</h3>
+      <div class="settings-stack">
+        <div class="settings-row-wrap">
+          <div>
+            <div class="settings-info-title">{{ auth.oidc_provider_name }}-Konto</div>
+            <div class="settings-info-sub">
+              {{ auth.oidc_linked
+                ? 'Dieses Benutzerkonto ist bereits mit SSO verknüpft.'
+                : 'Verknüpfe dein Benutzerkonto, um dich künftig per SSO anzumelden.' }}
+            </div>
+          </div>
+          <button v-if="auth.oidc_linked" type="button" class="btn btn-auto-width" disabled>
+            Bereits verknüpft
+          </button>
+          <a v-else class="btn btn-primary btn-auto-width" href="/auth/oidc/link">
+            Account verknüpfen
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="canManageUsers" class="card">
       <h3 class="section-title">📁 Globale Einstellungen</h3>
       <div class="settings-stack">
         <label class="settings-row-wrap">
@@ -57,7 +80,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div v-if="canManageUsers" class="card">
       <h3 class="section-title">👥 Benutzerverwaltung</h3>
       <div id="user-role-list" class="settings-stack">
         <div v-if="isUsersLoading" class="user-item-empty">Benutzer werden geladen...</div>
@@ -217,6 +240,10 @@ const appDefaults = {
 export default {
   name: 'SettingsView',
   props: {
+    auth: {
+      type: Object,
+      default: () => ({}),
+    },
     initialUsername: {
       type: String,
       default: '',
@@ -246,11 +273,11 @@ export default {
     const settingsTabs = computed(() => {
       const tabs = [
         { id: 'general', label: 'Allgemein' },
+        { id: 'users', label: 'Admin & Benutzer' },
       ];
 
       if (canManageUsers.value) {
         tabs.push(
-          { id: 'users', label: 'Admin & Benutzer' },
           { id: 'advice', label: 'Beratung' },
           { id: 'forecast', label: 'Vorhersage' },
           { id: 'inventory', label: 'Lager' },

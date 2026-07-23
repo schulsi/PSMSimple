@@ -64,6 +64,7 @@
       "avatar": {{ (current_user.username[0] | upper) | tojson }}
     },
     "permissions": {{ permissions | tojson }},
+    "auth": {{ auth_config | tojson }},
     "assets": {
       "logo": {{ url_for('pages.media', filename='logo.png') | tojson }},
       "loading": {{ url_for('pages.media', filename='loading.gif') | tojson }}
