@@ -313,7 +313,9 @@ export default {
 
     async function loadAppSettings() {
       const payload = await apiGet('/api/app/settings');
-      const items = Array.isArray(payload) ? Object.fromEntries(payload.map(item => [item.key, item.value])) : {};
+      const items = Array.isArray(payload)
+        ? Object.fromEntries(payload.map(item => [item.key, item.value]))
+        : (payload && typeof payload === 'object' ? payload : {});
 
       Object.assign(appSettings, {
         ...appDefaults,
