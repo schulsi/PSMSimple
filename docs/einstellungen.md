@@ -38,14 +38,15 @@ Welcher Modus sinnvoll ist, hängt von Ihrer Arbeitsweise ab. Für zentrale Abla
 
 ## Admin & Benutzer
 
-Dieser Bereich ist nur für Benutzer mit Admin-Rechten sichtbar.
+Dieser Bereich ist für alle Benutzer sichtbar. Jeder Benutzer kann dort den eigenen Benutzernamen ändern und, falls OIDC aktiviert ist, das eigene Konto mit SSO verknüpfen.
 
-Hier können Administratoren:
+Zusätzlich können Administratoren:
 
 - Registrierung erlauben oder sperren
 - Benutzerrollen ändern
 - Benutzer löschen
-- den eigenen Benutzernamen ändern
+
+Weitere Informationen zur Kontoverknüpfung finden Sie unter [OIDC und SSO](oidc-sso.md).
 
 ## Beratung
 

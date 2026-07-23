@@ -38,14 +38,15 @@ Which mode is best depends on your workflow. Server-side storage is useful for c
 
 ## Admin and users
 
-This area is only visible to users with admin permissions.
+This area is visible to all users. Every user can change their own username and, when OIDC is enabled, link their own account to SSO.
 
-Administrators can:
+Administrators can additionally:
 
 - allow or block registration
 - change user roles
 - delete users
-- change their own username
+
+For more information about account linking, see [OIDC and SSO](oidc-sso.md).
 
 ## Advisory
 

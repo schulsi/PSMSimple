@@ -60,6 +60,7 @@ plugins:
             Administration: Administration
             Einstellungen: Settings
             Benutzer und Rollen: Users and Roles
+            OIDC und SSO: OIDC and SSO
             Hilfe: Help
             FAQ: FAQ
             Fehlerbehebung: Troubleshooting
@@ -84,6 +85,7 @@ nav:
   - Administration:
       - Einstellungen: einstellungen.md
       - Benutzer und Rollen: benutzer-und-rollen.md
+      - OIDC und SSO: oidc-sso.md
   - Hilfe:
       - FAQ: faq.md
       - Fehlerbehebung: fehlerbehebung.md

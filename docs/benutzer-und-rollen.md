@@ -58,6 +58,10 @@ Löschen Sie Benutzer nur, wenn der Zugriff dauerhaft entfernt werden soll.
 
 Im Bereich **Admin & Benutzer** kann der eigene Benutzername geändert werden. Der neue Name muss eindeutig sein und darf nur erlaubte Zeichen enthalten.
 
+## Konto mit OIDC verknüpfen
+
+Wenn OIDC aktiviert ist, kann jeder Benutzer unter **Einstellungen > Admin & Benutzer** das eigene Konto mit SSO verknüpfen. Dafür sind keine Admin-Rechte erforderlich. Weitere Informationen finden Sie unter [OIDC und SSO](oidc-sso.md).
+
 ## Häufige Probleme
 
 ## Ein Benutzer kann sich nicht registrieren

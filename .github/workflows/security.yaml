@@ -3,6 +3,8 @@ name: Security CI/CD Pipeline
 on:
   pull_request:
     branches: ["main", "master", "develop"]
+    paths:
+      - "app/**"
   merge_group:
     branches: ["main", "master", "develop"]
   workflow_dispatch:
