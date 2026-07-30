@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:8.0
+    image: mysql:9.7
     container_name: psm_mysql
     restart: unless-stopped
     env_file: .env
@@ -37,8 +37,10 @@ services:
     container_name: psm_app_mysql
     restart: unless-stopped
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file: .env
     environment:
       DATA_DIR: ${DATA_DIR:-/data}
