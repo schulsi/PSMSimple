@@ -42,10 +42,12 @@ const AppRoot = {
   data() {
     const permissions = bootstrap.permissions || {};
     const user = bootstrap.user || {};
+    const auth = bootstrap.auth || {};
     const assets = bootstrap.assets || {};
 
     return {
       activeTab: getTabFromPath(),
+      auth,
       activeForecastSubTab: 'spritzfenster',
       assets,
       betriebExists: false,
@@ -1488,6 +1490,7 @@ const AppRoot = {
       ]),
       h(Teleport, { to: '#tab-settings' }, [
         h(SettingsView, {
+          auth: this.auth,
           initialUsername: this.user.username,
           permissions: this.permissions,
           onRenameUser: username => {

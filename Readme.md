@@ -14,6 +14,7 @@ User documentation: <https://schulsi.github.io/PSMSimple>
 - [Deployment with Docker](#deployment-with-docker)
 - [Local Development](#local-development)
 - [Configuration](#configuration)
+- [OIDC / SSO Authentication](#oidc--sso-authentication)
 - [Data Storage](#data-storage)
 - [API Documentation](#api-documentation)
 - [Security Notes](#security-notes)
@@ -34,6 +35,7 @@ User documentation: <https://schulsi.github.io/PSMSimple>
 - **Notifications / Reports**: Manage operational reports with status, type, field assignment, notes, and filtering
 - **BBCH Management**: Create, edit, assign, and search BBCH stages per crop
 - **User Management**: First registered user becomes admin; registration is disabled automatically afterwards
+- **OIDC / SSO**: Sign in through an OpenID Connect provider or link an existing local account to SSO
 - **Role Management**: Admins can manage user roles and remove users
 - **Personal Defaults**: Per-user defaults for application exports, such as applicator and responsible person
 - **App Settings**: Admin settings for registration, advisory, forecast thresholds, and inventory defaults
@@ -192,11 +194,77 @@ The app is configured entirely via environment variables:
 
 > ℹ️ The PSM advisory feature (AI recommendations) is optional. If no API key is configured, the advisory button is disabled in the UI. All other features work without an LLM key.
 
-OIDC settings are required only when `AUTH_MODE` is `hybrid` or `oidc`. Register
-`https://<your-host>/auth/oidc/callback` as an allowed redirect URI at the identity
-provider. For a safe first-time setup, start in `hybrid` mode, sign in with the local
-admin account, and open `/auth/oidc/link` to link that account. You can switch to
-`oidc` mode afterwards. Automatic provisioning is optional and disabled by default.
+OIDC settings are required only when `AUTH_MODE` is `hybrid` or `oidc`.
+
+---
+
+## OIDC / SSO Authentication
+
+PSMSimple can authenticate users through any OpenID Connect provider that supports
+OIDC discovery. Three authentication modes are available:
+
+| Mode     | Local login | OIDC login |
+| -------- | ----------- | ---------- |
+| `local`  | Yes         | No         |
+| `hybrid` | Yes         | Yes        |
+| `oidc`   | No          | Yes        |
+
+### Provider setup
+
+Register PSMSimple as an OIDC client at your identity provider and configure this
+exact redirect URI:
+
+```text
+https://<your-host>/auth/oidc/callback
+```
+
+The issuer URL must point to the provider or realm root. Do not append
+`/.well-known/openid-configuration`; PSMSimple adds the discovery path automatically.
+
+Example `.env` configuration:
+
+```dotenv
+AUTH_MODE=hybrid
+OIDC_PROVIDER_NAME=Pocket ID
+OIDC_ISSUER=https://id.example.com
+OIDC_CLIENT_ID=psmsimple
+OIDC_CLIENT_SECRET=replace-with-client-secret
+OIDC_SCOPES=openid profile email
+OIDC_DEFAULT_ROLE=read-only
+OIDC_AUTO_PROVISION=false
+```
+
+Restart the application after changing these variables:
+
+```bash
+docker compose up -d
+```
+
+### Linking an existing account
+
+To preserve an existing local account and its role, settings, and data:
+
+1. Start with `AUTH_MODE=hybrid`.
+2. Sign in with the existing local account.
+3. Open **Settings > Admin & Users**.
+4. Select **Link account** in the OIDC account section and authenticate with the
+   identity provider.
+5. After linking all required accounts, you may switch to `AUTH_MODE=oidc`.
+
+The link option is available to every signed-in user; managing other users still
+requires the admin role. An OIDC identity can only be linked to one local account.
+
+### Automatic provisioning
+
+With `OIDC_AUTO_PROVISION=true`, PSMSimple creates a local user on the first
+successful OIDC login. The new user receives the role configured by
+`OIDC_DEFAULT_ROLE` (`admin`, `user`, or `read-only`). Automatic provisioning is
+disabled by default. When it is disabled, unknown OIDC identities cannot sign in
+until they have been linked to an existing local account.
+
+> **Warning:** Do not switch an existing installation directly to `AUTH_MODE=oidc` with
+> automatic provisioning disabled. Link at least one admin account in `hybrid` mode
+> first, otherwise local users can no longer sign in.
 
 ---
 

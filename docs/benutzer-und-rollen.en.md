@@ -58,6 +58,10 @@ Only delete users when access should be removed permanently.
 
 In **Admin and Users**, the own username can be changed. The new name must be unique and may only contain allowed characters.
 
+## Link an Account to OIDC
+
+When OIDC is enabled, every user can link their own account to SSO under **Settings > Admin and Users**. Admin permissions are not required. For more information, see [OIDC and SSO](oidc-sso.md).
+
 ## Common Issues
 
 ## A user cannot register
