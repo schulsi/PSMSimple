@@ -30,7 +30,7 @@ jobs:
       - name: Set version from tag
         run: |
           sed -i 's/^APP_VERSION = .*/APP_VERSION = "${{ github.ref_name }}"/' app/version.py
- 
+
       - name: Show version.py
         run: cat app/version.py
 
