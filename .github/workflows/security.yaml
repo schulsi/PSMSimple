@@ -62,7 +62,7 @@ jobs:
         id: bandit
         continue-on-error: true
         run: |
-          bandit -c bandit.yaml -f json -o bandit-report.json -r requirements.txt 
+          bandit -c bandit.yaml -f json -o bandit-report.json -r requirements.txt
 
       - name: Upload Bandit report
         if: always()
@@ -201,7 +201,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Check changed files
         id: changes
         uses: dorny/paths-filter@v3
@@ -213,10 +213,10 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t myapp:dast .
-          
+   
       - name: Fix workspace permissions
         run: chmod -R 777 .
-      
+
       - name: Create Secret Key
         run: |
           secret_key="$(openssl rand -hex 32)"
@@ -345,7 +345,7 @@ jobs:
           fail_action: false
           artifact_name: "zap-scan"
           allow_issue_writing: false
-          
+
       - name: Run OWASP ZAP API Scan
         uses: zaproxy/action-api-scan@v0.10.0
         if: steps.changes.outputs.relevant == 'true'
@@ -355,7 +355,7 @@ jobs:
           fail_action: false
           artifact_name: "zap-api-scan"
           allow_issue_writing: false
-      
+
       - name: Debug app on failure
         if: failure()
         run: |
