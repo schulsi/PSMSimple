@@ -5,8 +5,8 @@ class Kulturen(db.Model):
     __tablename__ = "kulturen"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text)
-    eppoCode = db.Column(db.Text)
+    name = db.Column(db.String(255))
+    eppoCode = db.Column(db.String(32))
 
     bbch_codes = db.relationship(
         "BBCHCode",

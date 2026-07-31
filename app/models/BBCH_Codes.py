@@ -11,8 +11,8 @@ class BBCHCode(db.Model):
         nullable=False
     )
 
-    code = db.Column(db.Text)
-    bezeichnung = db.Column(db.Text)
+    code = db.Column(db.String(32))
+    bezeichnung = db.Column(db.String(255))
     beschreibung = db.Column(db.Text)
     sortierung = db.Column(db.Integer)
 

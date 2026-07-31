@@ -5,14 +5,14 @@ class Betrieb(db.Model):
     __tablename__ = "betrieb"
 
     id = db.Column(db.Integer, primary_key=True)
-    firma = db.Column(db.Text)
-    name = db.Column(db.Text)
-    vorname = db.Column(db.Text)
-    strHnr = db.Column(db.Text)
-    plz = db.Column(db.Text)
-    ort = db.Column(db.Text)
-    bundesland = db.Column(db.Text)
-    guid = db.Column(db.Text)
+    firma = db.Column(db.String(255))
+    name = db.Column(db.String(255))
+    vorname = db.Column(db.String(255))
+    strHnr = db.Column(db.String(255))
+    plz = db.Column(db.String(16))
+    ort = db.Column(db.String(255))
+    bundesland = db.Column(db.String(100))
+    guid = db.Column(db.String(64))
 
     def to_dict(self):
         return {

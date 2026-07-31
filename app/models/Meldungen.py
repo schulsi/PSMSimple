@@ -34,16 +34,16 @@ class Meldung(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     flaeche_id = db.Column(db.Integer, db.ForeignKey("einsatzorte.id"))
-    datum = db.Column(db.Text, nullable=False)
-    typ = db.Column(db.Text, nullable=False)
-    titel = db.Column(db.Text, nullable=False)
+    datum = db.Column(db.String(32), nullable=False)
+    typ = db.Column(db.String(50), nullable=False)
+    titel = db.Column(db.String(255), nullable=False)
     beschreibung = db.Column(db.Text)
-    status = db.Column(db.Text, server_default="offen")
-    prioritaet = db.Column(db.Text, server_default="normal")
+    status = db.Column(db.String(50), server_default="offen")
+    prioritaet = db.Column(db.String(50), server_default="normal")
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
-    created_at = db.Column(db.Text, nullable=False)
-    updated_at = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.String(32), nullable=False)
+    updated_at = db.Column(db.String(32), nullable=False)
 
     flaeche = db.relationship("Felder")
     fotos = db.relationship(
@@ -75,9 +75,9 @@ class MeldungFoto(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     meldung_id = db.Column(db.Integer, db.ForeignKey("meldungen.id"), nullable=False)
-    filename = db.Column(db.Text, nullable=False)
-    path = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.Text, nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    path = db.Column(db.String(1024), nullable=False)
+    created_at = db.Column(db.String(32), nullable=False)
 
     meldung = db.relationship("Meldung", back_populates="fotos")
 

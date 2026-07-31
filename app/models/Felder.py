@@ -6,15 +6,15 @@ class Felder(db.Model):
     __tablename__ = "einsatzorte"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text)
+    name = db.Column(db.String(255))
 
     gpsRechtswert = db.Column(db.Float)
     gpsHochwert = db.Column(db.Float)
 
-    anwendungsbereich = db.Column(db.Text)
-    geoTyp = db.Column(db.Text)
+    anwendungsbereich = db.Column(db.String(255))
+    geoTyp = db.Column(db.String(50))
 
-    einheit = db.Column(db.Text)
+    einheit = db.Column(db.String(50))
     flaecheVolumen = db.Column(db.Float)
 
     ort_id = db.Column(
