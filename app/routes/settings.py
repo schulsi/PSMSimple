@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
@@ -194,7 +194,7 @@ def export_app_settings_backup():
     return jsonify({
         "format": BACKUP_FORMAT,
         "version": BACKUP_VERSION,
-        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_at": datetime.now(datetime.UTC).isoformat(),
         "settings": {
             key: settings[key]
             for key in sorted(ALLOWED_SETTINGS)
