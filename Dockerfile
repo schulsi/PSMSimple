@@ -1,5 +1,5 @@
 # Stage 1: Build Frontend with Vite
-FROM node:22-alpine AS frontend-builder
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS frontend-builder
 
 WORKDIR /build
 
@@ -13,7 +13,7 @@ COPY vite.config.js .
 RUN npm run build:vue
 
 # Stage 2: Python Backend
-FROM python:3.14-slim
+FROM python:3.14-slim@sha256:ce40764625a4ff50df3548277632e7f96c4e77fe75fa848aae9885476e7df5a4
 
 WORKDIR /psmsimple
 

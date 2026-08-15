@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/schulsi/psmsimple:latest
+    image: ghcr.io/schulsi/psmsimple:latest@sha256:4369d051ae196d66e63ed8d8ef2dcdeaa3ca7804dc17b889c156158ec89c562d
     container_name: psmsimple-app
     ports:
       - "8080:8000"
@@ -36,7 +36,7 @@ services:
       start_period: 40s
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2
     container_name: psmsimple-redis
     volumes:
       - redis-data:/data
