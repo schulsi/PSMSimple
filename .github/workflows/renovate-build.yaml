@@ -61,12 +61,15 @@ jobs:
       - name: Check health endpoint
         run: |
           for attempt in {1..30}; do
-            if curl --fail --silent --show-error http://localhost:8000/ > /dev/null; then
+            if curl --fail --silent http://127.0.0.1:8000/ > /dev/null 2>&1; then
+              echo "Healthcheck passed on attempt ${attempt}."
               exit 0
             fi
+            echo "Healthcheck attempt ${attempt}/30 failed; retrying in 2 seconds."
             sleep 2
           done
 
+          echo "Healthcheck failed after 30 attempts."
           docker logs psmsimple-renovate-check
           exit 1
 
