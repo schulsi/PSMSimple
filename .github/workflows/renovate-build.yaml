@@ -1,0 +1,78 @@
+name: Build Renovate branches
+
+on:
+  push:
+    branches:
+      - "renovate/**"
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Build frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build:vue
+
+  docker:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          load: true
+          push: false
+          tags: psmsimple:renovate-check
+
+      - name: Run Docker image
+        run: |
+          docker run --detach \
+            --name psmsimple-renovate-check \
+            --publish 8000:8000 \
+            --env SECRET_KEY=renovate-build-check \
+            --env RATELIMIT_STORAGE_URI=memory:// \
+            psmsimple:renovate-check
+
+      - name: Check health endpoint
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/ > /dev/null 2>&1; then
+              echo "Healthcheck passed on attempt ${attempt}."
+              exit 0
+            fi
+            echo "Healthcheck attempt ${attempt}/30 failed; retrying in 2 seconds."
+            sleep 2
+          done
+
+          echo "Healthcheck failed after 30 attempts."
+          docker logs psmsimple-renovate-check
+          exit 1
+
+      - name: Stop Docker container
+        if: always()
+        run: docker rm --force psmsimple-renovate-check
