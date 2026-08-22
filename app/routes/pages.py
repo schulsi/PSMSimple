@@ -48,3 +48,7 @@ def favicon():
         "favicon.png",
         mimetype="image/png",
     )
+
+@bp.route("/health")
+def health():
+    return "OK", 200

@@ -5,7 +5,7 @@ class Ort(db.Model):
     __tablename__ = "orte"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Text)
+    name = db.Column(db.String(255))
     plz = db.Column(db.Integer)
 
     einsatzorte = db.relationship(

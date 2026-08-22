@@ -120,6 +120,22 @@
         </div>
       </div>
     </div>
+    <div class="card">
+      <h3 class="section-title">Einstellungen sichern</h3>
+      <p class="text-muted-history">
+        Exportiert oder importiert die globalen Anwendungseinstellungen als JSON-Datei.
+        Benutzerkonten und persönliche Einstellungen sind nicht enthalten.
+      </p>
+      <div class="rename-row">
+        <button type="button" class="btn btn-primary" @click="exportSettingsBackup">
+          Backup herunterladen
+        </button>
+        <label class="btn btn-auto-width">
+          Backup einspielen
+          <input type="file" accept="application/json,.json" hidden @change="importSettingsBackup" />
+        </label>
+      </div>
+    </div>
   </div>
 
   <div v-if="canManageUsers" class="history-sub-tab" :class="{ active: activeSettingsTab === 'advice' }">
@@ -461,6 +477,47 @@ export default {
       }
     }
 
+    async function exportSettingsBackup() {
+      try {
+        const backup = await apiGet('/api/app/settings/backup');
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const date = new Date().toISOString().slice(0, 10);
+        link.href = url;
+        link.download = `psmsimple-settings-${date}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        toast('✅ Einstellungen exportiert');
+      } catch (error) {
+        console.error(error);
+        toast(`❌ ${error.message}`);
+      }
+    }
+
+    async function importSettingsBackup(event) {
+      const input = event.target;
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file) return;
+
+      try {
+        const backup = JSON.parse(await file.text());
+        const confirmed = window.confirm(
+          'Möchtest du die globalen Einstellungen wirklich aus diesem Backup wiederherstellen?',
+        );
+        if (!confirmed) return;
+
+        await apiPost('/api/app/settings/backup', backup);
+        await loadAppSettings();
+        toast('✅ Einstellungen wiederhergestellt');
+      } catch (error) {
+        console.error(error);
+        const message = error instanceof SyntaxError ? 'Die Datei enthält kein gültiges JSON.' : error.message;
+        toast(`❌ ${message}`);
+      }
+    }
+
     function syncSaveMode() {
       updateExportButtons(localSave.value);
     }
@@ -494,6 +551,8 @@ export default {
       appSettings,
       canManageUsers,
       confirmDeleteUser,
+      exportSettingsBackup,
+      importSettingsBackup,
       isSaving,
       isUsersLoading,
       localSave,

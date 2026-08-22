@@ -41,6 +41,7 @@ def run_migrations_offline():
                 url=config.get_section_option(bind_name, "sqlalchemy.url"),
                 output_buffer=buffer,
                 target_metadata=get_metadata(bind_name),
+                version_table=f"alembic_version_{bind_name}",
                 literal_binds=True,
                 upgrade_token=f"{bind_name}_upgrades",
                 downgrade_token=f"{bind_name}_downgrades",
@@ -78,6 +79,7 @@ def run_migrations_online():
             context.configure(
                 connection=record["connection"],
                 target_metadata=get_metadata(bind_name),
+                version_table=f"alembic_version_{bind_name}",
                 upgrade_token=f"{bind_name}_upgrades",
                 downgrade_token=f"{bind_name}_downgrades",
                 **conf_args,

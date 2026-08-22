@@ -6,14 +6,14 @@ class Applikation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    created_at = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.String(32), nullable=False)
 
-    datum = db.Column(db.Text)
-    uhrzeit = db.Column(db.Text)
+    datum = db.Column(db.String(32))
+    uhrzeit = db.Column(db.String(16))
 
-    artVerwendung = db.Column(db.Text)
-    verantwortlich = db.Column(db.Text)
-    anwender = db.Column(db.Text)
+    artVerwendung = db.Column(db.String(100))
+    verantwortlich = db.Column(db.String(255))
+    anwender = db.Column(db.String(255))
 
     einsatzorte = db.Column(db.Text)
     psm_namen = db.Column(db.Text)

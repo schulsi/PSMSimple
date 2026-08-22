@@ -4,19 +4,19 @@ services:
     container_name: psmsimple-app
     ports:
       - "8080:8000"
+    env_file: .env
     environment:
-      - DATA_DIR=/data
-      - SECRET_KEY=${SECRET_KEY}
-      - RATELIMIT_STORAGE_URI=redis://redis:6379/0
-      - AUTH_MODE=${AUTH_MODE}
-      # OIDC configuration
-      # - OIDC_PROVIDER_NAME=${OIDC_PROVIDER_NAME}
-      # - OIDC_ISSUER=${OIDC_ISSUER}
-      # - OIDC_CLIENT_ID=${OIDC_CLIENT_ID}
-      # - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
-      # - OIDC_SCOPES=${OIDC_SCOPES}
-      # - OIDC_DEFAULT_ROLE=${OIDC_DEFAULT_ROLE}
-      # - OIDC_AUTO_PROVISION=${OIDC_AUTO_PROVISION}
+      DATA_DIR: ${DATA_DIR:-/data}
+      SECRET_KEY: ${SECRET_KEY:-}
+      RATELIMIT_STORAGE_URI: ${RATELIMIT_STORAGE_URI:-redis://redis:6379/0}
+      AUTH_MODE: ${AUTH_MODE:-local}
+      OIDC_PROVIDER_NAME: ${OIDC_PROVIDER_NAME:-SSO}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_SCOPES: ${OIDC_SCOPES:-openid profile email}
+      OIDC_DEFAULT_ROLE: ${OIDC_DEFAULT_ROLE:-read-only}
+      OIDC_AUTO_PROVISION: ${OIDC_AUTO_PROVISION:-false}
     volumes:
       - ./data:/data
       - ./data/logs:/data/logs
