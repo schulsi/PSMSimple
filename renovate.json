@@ -18,6 +18,16 @@
   ],
   "packageRules": [
     {
+      "description": "Keep PrimeVue on the last MIT-licensed release",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchPackageNames": [
+        "primevue"
+      ],
+      "allowedVersions": "4.5.5"
+    },
+    {
       "description": "Group Python dependencies",
       "matchManagers": [
         "pip_requirements"
