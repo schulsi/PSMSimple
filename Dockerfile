@@ -38,6 +38,8 @@ RUN mkdir -p /data
 
 VOLUME ["/data"]
 
+RUN echo "Test"
+
 ENV DATA_DIR=/data
 
 ENV SECRET_KEY=""
