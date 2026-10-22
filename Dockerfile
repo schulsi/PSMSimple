@@ -40,6 +40,7 @@ VOLUME ["/data"]
 
 ENV DATA_DIR=/data
 
+
 ENV SECRET_KEY=""
 ENV LLM_PROVIDER=""
 ENV LLM_MODEL=""
