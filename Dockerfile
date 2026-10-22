@@ -40,7 +40,7 @@ VOLUME ["/data"]
 
 ENV DATA_DIR=/data
 
-RUN  echo "Test123"
+RUN  echo "Test"
 
 ENV SECRET_KEY=""
 ENV LLM_PROVIDER=""
