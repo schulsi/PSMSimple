@@ -9,7 +9,9 @@
     "helpers:pinGitHubActionDigests"
   ],
   "timezone": "Europe/Berlin",
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "prHourlyLimit": 0,
   "prConcurrentLimit": 0,
   "branchConcurrentLimit": 0,
